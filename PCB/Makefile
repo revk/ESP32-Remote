@@ -1,6 +1,6 @@
 all:	png stl
 
-stl:	Remote/Remotre.stl
+stl:	Remote/Remote.stl
 
 PCBCase/clean: PCBCase/clean.c
 	make -C PCBCase
