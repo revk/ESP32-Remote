@@ -9248,7 +9248,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_SON:WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm_ThermalVias"
+		(property "Footprint" "RevK:WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm_ThermalVias-Side"
 			(at 252.73 116.84 0)
 			(effects
 				(font
@@ -9481,7 +9481,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010"
+		(property "Footprint" "RevK:SMD1010-Side"
 			(at 162.56 43.815 0)
 			(effects
 				(font
@@ -13864,7 +13864,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:VEML6040"
+		(property "Footprint" "RevK:VEML6040-Side"
 			(at 254 126.365 0)
 			(effects
 				(font
