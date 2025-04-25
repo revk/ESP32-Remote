@@ -29,6 +29,13 @@ The display shows current temperature, target temperature, operation mode and fa
 - The BLE can announce in a number of common temperature sensor modes instead.
 - The Faikin should be set to announce its current mode, and the remoter set to track this.
 
+## Fan/radiator
+
+In addition to working with the Faikin this can send MQTT messages to turn on or off a fan or radiator.
+
+- The radiator mode is typically where heating is cheaper than using an air conditioning unit, it works with some level temperature prediction much like *Faikin auto* mode.
+- The fan control applies when (configurable) high CO₂ or high humidity.
+
 ## Hardware and options
 
 <img src=PCB/Remote/Remote.png width=50% align=right>
