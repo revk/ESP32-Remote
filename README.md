@@ -16,6 +16,8 @@ A key feature is that this can work as the temperature reference for *Faikin aut
 
 The display shows current temperature, target temperature, operation mode and fan speed, as well as other details (e.g. CO₂ if fitted)
 
+- Push in to turn on/off
+- Push and hold to set *away* mode
 - Up/down on control changes target temp.
 - Left/right moves to another feature which can be controller with up/down, such as mode, fan speed, power on and off times.
 - Light sensor can turn off display when dark, so press control (any way) to light up.
