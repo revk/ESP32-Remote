@@ -640,6 +640,7 @@ ds18b20_task (void *x)
       while (!onewire_device_iter_get_next (iter, &dev))
       {
          ds18b20s = realloc (ds18b20s, (ds18b20_num + 1) * sizeof (*ds18b20s));
+         ds18b20s[ds18b20_num].c = NAN;
          ds18b20s[ds18b20_num].serial = dev.address;
          ds18b20_config_t config = { };
          REVK_ERR_CHECK (ds18b20_new_device (&dev, &config, &ds18b20s[ds18b20_num].handle));
@@ -735,10 +736,67 @@ app_main ()
 
    while (!revk_shutting_down (NULL))
    {
+      // TODO do we mutex this
+      float c = NAN;
+      switch (tempref)
+      {
+      case REVK_SETTINGS_TEMPREF_MCP9808:
+         c = mcp9808.c;
+         break;
+      case REVK_SETTINGS_TEMPREF_TMP1075:
+         c = tmp1075.c;
+         break;
+      case REVK_SETTINGS_TEMPREF_SCD41:
+         c = scd41.c;
+         break;
+      case REVK_SETTINGS_TEMPREF_GZP6816D:
+         c = gzp6816d.c;
+         break;
+      case REVK_SETTINGS_TEMPREF_BLE:
+         break;                 // TODO
+      case REVK_SETTINGS_TEMPREF_DS18B200:
+         if (ds18b20_num <= 1)
+            c = ds18b20s[0].c;
+         break;
+      case REVK_SETTINGS_TEMPREF_DS18B201:
+         if (ds18b20_num <= 2)
+            c = ds18b20s[1].c;
+         break;
+      }
+      if (isnan (c))
+      {                         // Auto
+         // TODO BLE first
+         if (isnan (c) && ds18b20_num)
+            c = ds18b20s[0].c;
+         if (isnan (c) && scd41.ok && !isnan (scd41.c))
+            c = scd41.c;
+         if (isnan (c) && tmp1075.ok)
+            c = tmp1075.c;
+         if (isnan (c) && mcp9808.ok)
+            c = mcp9808.c;
+         if (isnan (c) && gzp6816d.ok)
+            c = gzp6816d.c;
+      }
       epd_lock ();
       gfx_clear (0);
+      // Main temp display
+      if (!isnan (c))
+      {
+         gfx_pos (gfx_width () - 1, 0, GFX_R);
+         if (c <= tempblue)
+            gfx_foreground (gfx_rgb ('B'));
+         else if (c >= tempred)
+            gfx_foreground (gfx_rgb ('R'));
+         else
+            gfx_foreground (gfx_rgb ('G'));
+         gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%3.1fC", c);
+      }
       epd_unlock ();
-      sleep (1);
+      sleep (1);                // TODO needs keypad fast response
    }
    b.die = 1;
+   epd_lock ();
+   gfx_clear (0);
+   gfx_text(0,3,"Reboot");
+   epd_unlock ();
 }
