@@ -177,6 +177,7 @@ void
 app_main ()
 {
    epd_mutex = xSemaphoreCreateMutex ();
+   xSemaphoreGive (epd_mutex);
    revk_boot (&app_callback);
    revk_start ();
 
@@ -205,9 +206,10 @@ app_main ()
          revk_error ("GFX", &j);
       }
    }
+   xSemaphoreTake (epd_mutex, portMAX_DELAY);
    revk_gfx_init (5);
-#endif
    xSemaphoreGive (epd_mutex);
+#endif
 
    while (!revk_shutting_down (NULL))
    {
