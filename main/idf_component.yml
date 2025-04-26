@@ -17,3 +17,5 @@ dependencies:
   espressif/ds18b20: '*'
   espressif/led_strip: '*'
   espressif/onewire_bus: '*'
+  espressif/mdns: '*'
+  espressif/zlib: '*'

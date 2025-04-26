@@ -10,3 +10,6 @@
 [submodule "ESP32-BLE-Env"]
 	path = ESP32-BLE-Env
 	url = https://github.com/revk/ESP32-BLE-Env
+[submodule "components/ESP32-LWPNG"]
+	path = components/ESP32-LWPNG
+	url = https://github.com/revk/ESP32-LWPNG
