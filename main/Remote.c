@@ -533,9 +533,9 @@ i2c_task (void *x)
       }
       if (mcp9808.found)
       {
-         static int16_t last1 = 0,
-            last2 = 0,
-            last3 = 0;
+         static int16_t last1 = 20,
+            last2 = 20,
+            last3 = 20;
          int32_t v = i2c_read_16hl (mcp9808i2c, 5);
          if (v < 0)
          {
@@ -711,6 +711,12 @@ app_main ()
 #endif
       revk_web_settings_add (webserver);
    }
+   if (sda.set && scl.set)
+      revk_task ("i2c", i2c_task, NULL, 10);
+   if (btnn.set || btns.set || btne.set || btnw.set || btnp.set)
+      revk_task ("btn", btn_task, NULL, 10);
+   if (ds18b20.set)
+      revk_task ("18b20", ds18b20_task, NULL, 10);
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)
    {
@@ -727,12 +733,6 @@ app_main ()
    revk_gfx_init (5);
    xSemaphoreGive (epd_mutex);
 #endif
-   if (sda.set && scl.set)
-      revk_task ("i2c", i2c_task, NULL, 10);
-   if (btnn.set || btns.set || btne.set || btnw.set || btnp.set)
-      revk_task ("btn", btn_task, NULL, 10);
-   if (ds18b20.set)
-      revk_task ("18b20", ds18b20_task, NULL, 10);
 
    while (!revk_shutting_down (NULL))
    {
