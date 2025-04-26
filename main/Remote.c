@@ -16,6 +16,11 @@ const char TAG[] = "Remote";
 #include "halib.h"
 #include <lwpng.h>
 
+struct
+{
+   uint8_t die:1;               // Shutting down
+} b = { 0 };
+
 httpd_handle_t webserver = NULL;
 SemaphoreHandle_t epd_mutex = NULL;
 
@@ -80,6 +85,20 @@ register_get_uri (const char *uri, esp_err_t (*handler) (httpd_req_t * r))
       .handler = handler,
    };
    register_uri (&uri_struct);
+}
+
+void
+epd_lock (void)
+{
+   xSemaphoreTake (epd_mutex, portMAX_DELAY);
+   gfx_lock ();
+}
+
+void
+epd_unlock (void)
+{
+   gfx_unlock ();
+   xSemaphoreGive (epd_mutex);
 }
 
 #ifdef	CONFIG_LWPNG_ENCODE
@@ -174,6 +193,7 @@ app_main ()
          revk_error ("GFX", &j);
       }
    }
+   gfx_message ("Startup");
 #endif
    // Web interface
    httpd_config_t config = HTTPD_DEFAULT_CONFIG ();
@@ -189,8 +209,9 @@ app_main ()
       revk_web_settings_add (webserver);
    }
 
-   while (1)
+   while (!revk_shutting_down (NULL))
    {
       sleep (1);
    }
+   b.die = 1;
 }

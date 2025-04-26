@@ -8,7 +8,7 @@ gpio	gfx.dc		7				// Display DC
 gpio	gfx.rst		8				// Display RST
 gpio	gfx.bl		9				// Display Backlight
 gpio	gfx.busy					// Display BUSY
-u8	gfx.flip	6				// Display Flip
+u8	gfx.flip	0				// Display Flip
 
 bit	ha.announce	1				// Home Assistant announce
 
