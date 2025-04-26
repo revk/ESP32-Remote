@@ -755,11 +755,11 @@ app_main ()
       case REVK_SETTINGS_TEMPREF_BLE:
          break;                 // TODO
       case REVK_SETTINGS_TEMPREF_DS18B200:
-         if (ds18b20_num <= 1)
+         if (ds18b20_num >= 1)
             c = ds18b20s[0].c;
          break;
       case REVK_SETTINGS_TEMPREF_DS18B201:
-         if (ds18b20_num <= 2)
+         if (ds18b20_num >= 2)
             c = ds18b20s[1].c;
          break;
       }

@@ -43,7 +43,7 @@ u16	veml6040.dark		.live .decimal=1 .unit="lux"	// Level below which we turn off
 u8	t6793.i2c	"15"	.set .hex		// T6793 CO2 sensor
 s16	t6793.dt		.live .decimal=2	// T6793 Temp offset
 
-enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,DS18B200,DS18B201"	// Primary reference temperature.
+enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,DS18B200,DS18B201"	// Primary reference temperature
 s8	temp.blue	15	.live			// Temp considered cold 
 s8	temp.red	25	.live			// Temp considered hot
 
