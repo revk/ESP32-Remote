@@ -13,19 +13,16 @@ beta:
 	-git submodule update --recursive
 	-git commit -a
 	@make set
-	cp $(PROJECT_NAME)*.bin betarelease
+	cp $(PROJECT_NAME)*.bin release/beta
 	git commit -a -m Beta
 	git push
 
 issue:
 	-git pull
-	-git submodule update --recursive
 	-git commit -a
-	@make set
-	cp $(PROJECT_NAME)*.bin betarelease
-	cp $(PROJECT_NAME)*.bin release
-	git commit -a -m Release
-	git push
+	cp -f release/beta/$(PROJECT_NAME)*.bin release
+	-git commit -a -m Release
+	-git push
 
 main/settings.h:     components/ESP32-RevK/revk_settings main/settings.def components/*/settings.def
 	components/ESP32-RevK/revk_settings $^
