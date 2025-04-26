@@ -19,10 +19,70 @@ const char TAG[] = "Remote";
 struct
 {
    uint8_t die:1;               // Shutting down
+   uint8_t ha:1;                // HA update
 } b = { 0 };
 
 httpd_handle_t webserver = NULL;
 SemaphoreHandle_t epd_mutex = NULL;
+int8_t i2cport = 0;
+uint8_t ds18b20_num = 0;
+
+struct
+{
+   uint8_t found:1;
+   uint8_t ok:1;
+   float r,
+     g,
+     b,
+     w;
+} veml6040 = { 0 };
+
+struct
+{
+   uint8_t found:1;
+   uint8_t ok:1;
+   float c;
+} tmp1075 = { 0 };
+
+struct
+{
+   uint8_t found:1;
+   uint8_t ok:1;
+   float c;
+} mcp9808 = { 0 };
+
+struct
+{
+   uint8_t found:1;
+   uint8_t ok:1;
+   float hpa;
+   float c;
+} gzp6816d = { 0 };
+
+struct
+{
+   uint8_t found:1;
+   uint8_t ok:1;
+   uint16_t ppm;
+} t6793 = { 0 };
+
+struct
+{
+   uint8_t found:1;
+   uint8_t ok:1;
+   uint32_t serial;
+   uint16_t ppm;
+   float c;
+   float rh;
+} scd41 = { 0 };
+
+struct
+{
+   uint8_t ok:1;
+   ds18b20_device_handle_t handle;
+   uint64_t serial;
+   float c;
+} *ds18b20s = NULL;
 
 static void *
 my_alloc (void *opaque, uInt items, uInt size)
@@ -160,6 +220,462 @@ web_frame (httpd_req_t * req)
 }
 #endif
 
+void
+btn_task (void *x)
+{
+   while (1)
+   {
+      sleep (1);                // TODO
+   }
+}
+
+static int32_t
+i2c_read_16lh (uint8_t addr, uint8_t cmd)
+{
+   uint8_t h = 0,
+      l = 0;
+   i2c_cmd_handle_t t = i2c_cmd_link_create ();
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (addr << 1) | I2C_MASTER_WRITE, true);
+   i2c_master_write_byte (t, cmd, true);
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (addr << 1) | I2C_MASTER_READ, true);
+   i2c_master_read_byte (t, &l, I2C_MASTER_ACK);
+   i2c_master_read_byte (t, &h, I2C_MASTER_LAST_NACK);
+   i2c_master_stop (t);
+   esp_err_t err = i2c_master_cmd_begin (i2cport, t, 10 / portTICK_PERIOD_MS);
+   i2c_cmd_link_delete (t);
+   if (err)
+   {
+      ESP_LOGE (TAG, "I2C %02X %02X fail %s", addr & 0x7F, cmd, esp_err_to_name (err));
+      return -1;
+   }
+   ESP_LOGD (TAG, "I2C %02X %02X %02X%02X OK", addr & 0x7F, cmd, h, l);
+   return (h << 8) + l;
+}
+
+static esp_err_t
+i2c_write_16lh (uint8_t addr, uint8_t cmd, uint16_t val)
+{
+   i2c_cmd_handle_t t = i2c_cmd_link_create ();
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (addr << 1) | I2C_MASTER_WRITE, true);
+   i2c_master_write_byte (t, cmd, true);
+   i2c_master_write_byte (t, val & 0xFF, true);
+   i2c_master_write_byte (t, val >> 8, true);
+   i2c_master_stop (t);
+   esp_err_t err = i2c_master_cmd_begin (i2cport, t, 10 / portTICK_PERIOD_MS);
+   i2c_cmd_link_delete (t);
+   return err;
+}
+
+static int32_t
+i2c_read_16hl (uint8_t addr, uint8_t cmd)
+{
+   uint8_t h = 0,
+      l = 0;
+   i2c_cmd_handle_t t = i2c_cmd_link_create ();
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (addr << 1) | I2C_MASTER_WRITE, true);
+   i2c_master_write_byte (t, cmd, true);
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (addr << 1) | I2C_MASTER_READ, true);
+   i2c_master_read_byte (t, &h, I2C_MASTER_ACK);
+   i2c_master_read_byte (t, &l, I2C_MASTER_LAST_NACK);
+   i2c_master_stop (t);
+   esp_err_t err = i2c_master_cmd_begin (i2cport, t, 10 / portTICK_PERIOD_MS);
+   i2c_cmd_link_delete (t);
+   if (err)
+   {
+      ESP_LOGE (TAG, "I2C %02X %02X fail %s", addr & 0x7F, cmd, esp_err_to_name (err));
+      return -1;
+   }
+   ESP_LOGD (TAG, "I2C %02X %02X %02X%02X OK", addr & 0x7F, cmd, h, l);
+   return (h << 8) + l;
+}
+
+static int32_t
+i2c_modbus_read (uint8_t addr, uint16_t a)
+{
+   uint8_t s = 0,
+      b = 0,
+      h = 0,
+      l = 0;
+   i2c_cmd_handle_t t = i2c_cmd_link_create ();
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (addr << 1) | I2C_MASTER_WRITE, true);
+   i2c_master_write_byte (t, 0x04, true);
+   i2c_master_write_byte (t, a >> 8, true);
+   i2c_master_write_byte (t, a, true);
+   i2c_master_write_byte (t, 0x00, true);
+   i2c_master_write_byte (t, 0x01, true);
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (addr << 1) | I2C_MASTER_READ, true);
+   i2c_master_read_byte (t, &s, I2C_MASTER_ACK);
+   i2c_master_read_byte (t, &b, I2C_MASTER_ACK);
+   i2c_master_read_byte (t, &h, I2C_MASTER_ACK);
+   i2c_master_read_byte (t, &l, I2C_MASTER_LAST_NACK);
+   i2c_master_stop (t);
+   esp_err_t err = i2c_master_cmd_begin (i2cport, t, 10 / portTICK_PERIOD_MS);
+   i2c_cmd_link_delete (t);
+   if (err)
+   {
+      ESP_LOGE (TAG, "I2C %02X %04X fail %s", addr & 0x7F, a, esp_err_to_name (err));
+      return -1;
+   }
+   if (s != 4 || b != 2)
+   {
+      ESP_LOGE (TAG, "I2C %02X %04X %02X %02X %02X%02X Bad", addr & 0x7F, a, s, b, h, l);
+      return -1;
+   }
+   ESP_LOGD (TAG, "I2C %02X %04X %02X %02X %02X%02X OK", addr & 0x7F, a, s, b, h, l);
+   return (h << 8) + l;
+}
+
+static uint8_t
+scd41_crc (uint8_t b1, uint8_t b2)
+{
+   uint8_t crc = 0xFF;
+   void b (uint8_t v)
+   {
+      crc ^= v;
+      uint8_t n = 8;
+      while (n--)
+      {
+         if (crc & 0x80)
+            crc = (crc << 1) ^ 0x31;
+         else
+            crc <<= 1;
+      }
+   }
+   b (b1);
+   b (b2);
+   return crc;
+}
+
+static esp_err_t
+scd41_command (uint16_t c)
+{
+   i2c_cmd_handle_t t = i2c_cmd_link_create ();
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (scd41i2c << 1) | I2C_MASTER_WRITE, true);
+   i2c_master_write_byte (t, c >> 8, true);
+   i2c_master_write_byte (t, c, false);
+   i2c_master_stop (t);
+   esp_err_t err = i2c_master_cmd_begin (i2cport, t, 100 / portTICK_PERIOD_MS);
+   i2c_cmd_link_delete (t);
+   if (err)
+      ESP_LOGE (TAG, "I2C %02X %04X fail %s", scd41i2c & 0x7F, c, esp_err_to_name (err));
+   return err;
+}
+
+static esp_err_t
+scd41_read (uint16_t c, int8_t len, uint8_t * buf)
+{
+   i2c_cmd_handle_t t = i2c_cmd_link_create ();
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (scd41i2c << 1) | I2C_MASTER_WRITE, true);
+   i2c_master_write_byte (t, c >> 8, true);
+   i2c_master_write_byte (t, c, true);
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (scd41i2c << 1) + I2C_MASTER_READ, true);
+   i2c_master_read (t, buf, len, I2C_MASTER_LAST_NACK);
+   i2c_master_stop (t);
+   esp_err_t err = i2c_master_cmd_begin (i2cport, t, 100 / portTICK_PERIOD_MS);
+   i2c_cmd_link_delete (t);
+   if (err)
+      ESP_LOGE (TAG, "I2C %02X %d fail %s", scd41i2c & 0x7F, len, esp_err_to_name (err));
+   return err;
+}
+
+void
+i2c_task (void *x)
+{
+   void fail (uint8_t addr, const char *e)
+   {
+      ESP_LOGE (TAG, "I2C fail %02X: %s", addr & 0x7F, e);
+      jo_t j = jo_object_alloc ();
+      jo_string (j, "error", e);
+      jo_int (j, "sda", sda.num);
+      jo_int (j, "scl", scl.num);
+      if (addr)
+         jo_stringf (j, "addr", "%02X", addr & 0x7F);
+      revk_error ("I2C", &j);
+   }
+   if (i2c_driver_install (i2cport, I2C_MODE_MASTER, 0, 0, 0))
+   {
+      fail (0, "Driver install");
+      i2cport = -1;
+   } else
+   {
+      i2c_config_t config = {
+         .mode = I2C_MODE_MASTER,
+         .sda_io_num = sda.num,
+         .scl_io_num = scl.num,
+         .sda_pullup_en = true,
+         .scl_pullup_en = true,
+         .master.clk_speed = 100000,
+      };
+      if (i2c_param_config (i2cport, &config))
+      {
+         i2c_driver_delete (i2cport);
+         fail (0, "Config fail");
+         i2cport = -1;
+      } else
+         i2c_set_timeout (i2cport, 31);
+   }
+   if (i2cport < 0)
+      vTaskDelete (NULL);
+   // Init
+   if (veml6040i2c)
+   {
+      if (i2c_read_16lh (veml6040i2c, 0) < 0 && i2c_read_16lh (veml6040i2c, 0) < 0)
+         fail (veml6040i2c, "VEML6040");
+      else
+      {
+         veml6040.found = 1;
+         i2c_write_16lh (veml6040i2c, 0x00, 0x0040);    // IT=4 TRIG=0 AF=0 SD=0
+      }
+   }
+   if (mcp9808i2c)
+   {
+      if (i2c_read_16hl (mcp9808i2c, 6) != 0x54 || i2c_read_16hl (mcp9808i2c, 7) != 0x0400)
+         fail (mcp9808i2c, "MCP9808");
+      else
+         mcp9808.found = 1;
+   }
+   if (gzp6816di2c)
+   {
+      uint8_t v = 0;
+      i2c_cmd_handle_t t = i2c_cmd_link_create ();
+      i2c_master_start (t);
+      i2c_master_write_byte (t, (gzp6816di2c << 1) | I2C_MASTER_READ, true);
+      i2c_master_read_byte (t, &v, I2C_MASTER_LAST_NACK);
+      i2c_master_stop (t);
+      esp_err_t err = i2c_master_cmd_begin (i2cport, t, 10 / portTICK_PERIOD_MS);
+      i2c_cmd_link_delete (t);
+      if (!err)
+         gzp6816d.found = 1;
+   }
+   if (t6793i2c)
+   {
+      if (i2c_modbus_read (t6793i2c, 0x1389) < 0)
+         fail (t6793i2c, "T6793");
+      else
+         t6793.found = 1;
+   }
+   if (scd41i2c)
+   {
+      esp_err_t err = 0;
+      uint8_t try = 10;
+      while (try--)
+      {
+         err = scd41_command (0x3F86);  /* Stop measurement(SCD41) */
+         if (!err)
+         {
+            usleep (500000);
+            err = scd41_command (0x3646);       /* Reinit */
+         }
+         if (!err)
+         {
+            usleep (20000);
+            break;
+         }
+         sleep (1);
+      }
+      uint8_t buf[9];
+      if (err || scd41_read (0x3682, 9, buf))
+         fail (scd41i2c, "SCD41");
+      else
+      {
+         if (scd41_crc (buf[0], buf[1]) == buf[2] && scd41_crc (buf[3], buf[4]) == buf[5] && scd41_crc (buf[6], buf[7]) == buf[8])
+         {
+            scd41.serial =
+               ((unsigned long long) buf[0] << 40) + ((unsigned long long) buf[1] << 32) +
+               ((unsigned long long) buf[3] << 24) + ((unsigned long long) buf[4] << 16) +
+               ((unsigned long long) buf[6] << 8) + ((unsigned long long) buf[7]);
+            if (!scd41_command (0x21B1))
+               scd41.found = 1;
+         } else
+            ESP_LOGE (TAG, "SCD41 CRC bad %02X %02X %02X %02X %02X %02X %02X %02X %02X", buf[0], buf[1], buf[2], buf[3], buf[4],
+                      buf[5], buf[6], buf[7], buf[8]);
+      }
+   }
+   if (tmp1075i2c)
+   {
+      // TODO
+   }
+   b.ha = 1;
+   // Poll
+   while (!b.die)
+   {
+      if (gzp6816d.found)
+      {
+         i2c_cmd_handle_t t = i2c_cmd_link_create ();
+         i2c_master_start (t);
+         i2c_master_write_byte (t, (gzp6816di2c << 1) | I2C_MASTER_WRITE, true);
+         i2c_master_write_byte (t, 0xAC, false);
+         i2c_master_stop (t);
+         i2c_master_cmd_begin (i2cport, t, 10 / portTICK_PERIOD_MS);
+         i2c_cmd_link_delete (t);
+      }
+      usleep (500000);
+      if (veml6040.found)
+      {                         // Scale to lux
+         int32_t v;
+         veml6040.r = (v = i2c_read_16lh (veml6040i2c, 0x08)) >= 0 ? (float) v *1031 / 65535 : NAN;
+         veml6040.g = v >= 0 && (v = i2c_read_16lh (veml6040i2c, 0x09)) >= 0 ? (float) v *1031 / 65535 : NAN;
+         veml6040.b = v >= 0 && (v = i2c_read_16lh (veml6040i2c, 0x0A)) >= 0 ? (float) v *1031 / 65535 : NAN;
+         veml6040.w = v >= 0 && (v = i2c_read_16lh (veml6040i2c, 0x0B)) >= 0 ? (float) v *1031 / 65535 : NAN;
+         veml6040.ok = (v < 0 ? 0 : 1);
+         if (veml6040dark && gfxbl.set)
+            revk_gpio_set (gfxbl, veml6040.w < (float) veml6040dark / veml6040dark_scale ? 0 : 1);
+      }
+      if (mcp9808.found)
+      {
+         static int16_t last1 = 0,
+            last2 = 0,
+            last3 = 0;
+         int32_t v = i2c_read_16hl (mcp9808i2c, 5);
+         if (v < 0)
+         {
+            mcp9808.ok = 0;
+            mcp9808.c = NAN;
+         } else
+         {
+            int16_t t = (v << 3),
+               a = (last1 + last2 + last3 + t) / 4;
+            last3 = last2;
+            last2 = last1;
+            last1 = t;
+            mcp9808.c = (float) a / 128 + (float) mcp9808dt / mcp9808dt_scale;
+            mcp9808.ok = 1;
+         }
+      }
+      if (gzp6816d.found)
+      {
+         uint8_t s,
+           p1,
+           p2,
+           p3,
+           t1,
+           t2;
+         i2c_cmd_handle_t t = i2c_cmd_link_create ();
+         i2c_master_start (t);
+         i2c_master_write_byte (t, (gzp6816di2c << 1) | I2C_MASTER_READ, true);
+         i2c_master_read_byte (t, &s, I2C_MASTER_ACK);
+         i2c_master_read_byte (t, &p1, I2C_MASTER_ACK);
+         i2c_master_read_byte (t, &p2, I2C_MASTER_ACK);
+         i2c_master_read_byte (t, &p3, I2C_MASTER_ACK);
+         i2c_master_read_byte (t, &t1, I2C_MASTER_ACK);
+         i2c_master_read_byte (t, &t2, I2C_MASTER_LAST_NACK);
+         i2c_master_stop (t);
+         esp_err_t err = i2c_master_cmd_begin (i2cport, t, 10 / portTICK_PERIOD_MS);
+         i2c_cmd_link_delete (t);
+         if (!err && !(s & 0x20))
+         {
+            gzp6816d.c = (float) ((t1 << 8) | t2) * 190 / 65536 - 40 + (float) gzp6816ddt / gzp6816ddt_scale;
+            gzp6816d.hpa = (float) 800 *(((p1 << 16) | (p2 << 8) | p3) - 1677722) / 13421772 + 300;
+            gzp6816d.ok = 1;
+         } else
+         {
+            gzp6816d.ok = 0;
+            gzp6816d.c = NAN;
+            gzp6816d.hpa = NAN;
+         }
+      }
+      if (t6793.found)
+      {
+         int32_t v = i2c_modbus_read (t6793i2c, 0x138B);
+         if (v > 0)
+         {
+            t6793.ppm = v;
+            t6793.ok = 1;
+         } else
+         {
+            t6793.ok = 0;
+            t6793.ppm = 0;
+         }
+      }
+      if (scd41.found)
+      {
+         uint8_t buf[9];
+         if (!scd41_read (0xE4B8, 3, buf) && scd41_crc (buf[0], buf[1]) == buf[2] && ((buf[0] & 0x7) || buf[1]) &&
+             !scd41_read (0xEC05, sizeof (buf), buf) &&
+             scd41_crc (buf[0], buf[1]) == buf[2] && scd41_crc (buf[3], buf[4]) == buf[5] && scd41_crc (buf[6], buf[7]) == buf[8])
+         {
+            scd41.ppm = (buf[0] << 8) + buf[1];
+            if (uptime () > 30)
+               scd41.c = -45.0 + 175.0 * (float) ((buf[3] << 8) + buf[4]) / 65536.0 + (float) scd41dt / scd41dt_scale;
+            scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
+            scd41.ok = 1;
+         } else
+         {
+            scd41.ok = 0;
+            scd41.c = NAN;
+            scd41.rh = 0;
+         }
+      }
+      if (tmp1075.found)
+      {
+         // TODO
+      }
+      usleep (500000);
+   }
+   vTaskDelete (NULL);
+}
+
+void
+ds18b20_task (void *x)
+{
+   onewire_bus_config_t bus_config = { ds18b20.num };
+   onewire_bus_rmt_config_t rmt_config = { 20 };
+   onewire_bus_handle_t bus_handle = { 0 };
+   REVK_ERR_CHECK (onewire_new_bus_rmt (&bus_config, &rmt_config, &bus_handle));
+   void init (void)
+   {
+      onewire_device_iter_handle_t iter = { 0 };
+      REVK_ERR_CHECK (onewire_new_device_iter (bus_handle, &iter));
+      onewire_device_t dev = { };
+      while (!onewire_device_iter_get_next (iter, &dev))
+      {
+         ds18b20s = realloc (ds18b20s, (ds18b20_num + 1) * sizeof (*ds18b20s));
+         ds18b20s[ds18b20_num].serial = dev.address;
+         ds18b20_config_t config = { };
+         REVK_ERR_CHECK (ds18b20_new_device (&dev, &config, &ds18b20s[ds18b20_num].handle));
+         REVK_ERR_CHECK (ds18b20_set_resolution (ds18b20s[ds18b20_num].handle, DS18B20_RESOLUTION_12B));
+         ds18b20_num++;
+      }
+   }
+   init ();
+   if (!ds18b20_num)
+   {
+      usleep (100000);
+      init ();
+   }
+   if (!ds18b20_num)
+   {
+      jo_t j = jo_object_alloc ();
+      jo_string (j, "error", "No DS18B20 devices");
+      jo_int (j, "port", ds18b20.num);
+      revk_error ("temp", &j);
+      ESP_LOGE (TAG, "No DS18B20 port %d", ds18b20.num);
+      vTaskDelete (NULL);
+      return;
+   }
+   b.ha = 1;
+   while (!b.die)
+   {
+      usleep (250000);
+      for (int i = 0; i < ds18b20_num; ++i)
+      {
+         REVK_ERR_CHECK (ds18b20_trigger_temperature_conversion (ds18b20s[i].handle));
+         REVK_ERR_CHECK (ds18b20_get_temperature (ds18b20s[i].handle, &ds18b20s[i].c));
+      }
+   }
+   vTaskDelete (NULL);
+}
+
 static esp_err_t
 web_root (httpd_req_t * req)
 {
@@ -210,6 +726,12 @@ app_main ()
    revk_gfx_init (5);
    xSemaphoreGive (epd_mutex);
 #endif
+   if (sda.set && scl.set)
+      revk_task ("i2c", i2c_task, NULL, 10);
+   if (btnn.set || btns.set || btne.set || btnw.set || btnp.set)
+      revk_task ("btn", btn_task, NULL, 10);
+   if (ds18b20.set)
+      revk_task ("18b20", ds18b20_task, NULL, 10);
 
    while (!revk_shutting_down (NULL))
    {
