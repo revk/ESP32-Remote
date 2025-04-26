@@ -177,24 +177,9 @@ void
 app_main ()
 {
    epd_mutex = xSemaphoreCreateMutex ();
-   xSemaphoreGive (epd_mutex);
    revk_boot (&app_callback);
    revk_start ();
 
-#ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
-   if (gfxmosi.set)
-   {
-    const char *e = gfx_init (cs: gfxcs.num, sck: gfxsck.num, mosi: gfxmosi.num, dc: gfxdc.num, rst: gfxrst.num, flip:gfxflip);
-      if (e)
-      {
-         jo_t j = jo_object_alloc ();
-         jo_string (j, "error", "Failed to start");
-         jo_string (j, "description", e);
-         revk_error ("GFX", &j);
-      }
-   }
-   gfx_message ("Startup");
-#endif
    // Web interface
    httpd_config_t config = HTTPD_DEFAULT_CONFIG ();
    config.stack_size += 1024 * 4;
@@ -208,9 +193,27 @@ app_main ()
 #endif
       revk_web_settings_add (webserver);
    }
+#ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
+   if (gfxmosi.set)
+   {
+    const char *e = gfx_init (cs: gfxcs.num, sck: gfxsck.num, mosi: gfxmosi.num, dc: gfxdc.num, rst: gfxrst.num, flip:gfxflip);
+      if (e)
+      {
+         jo_t j = jo_object_alloc ();
+         jo_string (j, "error", "Failed to start");
+         jo_string (j, "description", e);
+         revk_error ("GFX", &j);
+      }
+   }
+   revk_gfx_init (5);
+#endif
+   xSemaphoreGive (epd_mutex);
 
    while (!revk_shutting_down (NULL))
    {
+      epd_lock ();
+      gfx_clear (0);
+      epd_unlock ();
       sleep (1);
    }
    b.die = 1;
