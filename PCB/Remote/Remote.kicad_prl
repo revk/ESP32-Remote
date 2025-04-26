@@ -58,7 +58,7 @@
     "ssh_key": ""
   },
   "meta": {
-    "filename": "EnvMon.kicad_prl",
+    "filename": "Remote.kicad_prl",
     "version": 5
   },
   "net_inspector_panel": {
