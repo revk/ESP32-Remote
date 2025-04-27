@@ -730,6 +730,25 @@ web_root (httpd_req_t * req)
    return revk_web_foot (req, 0, 1, NULL);
 }
 
+void temp_colour(float t)
+{
+	if(!isnan(t))gfx_foreground(0x888888);
+}
+
+void show_temp(float t)
+{
+	if(fahrenheit&&!isnan(t))t=(t+40)*1.7-40;
+	temp(colour(t));
+         if (c <= tempblue)
+            gfx_foreground (gfx_rgb ('B'));
+         else if (c >= tempred)
+            gfx_foreground (gfx_rgb ('R'));
+         else
+            gfx_foreground (gfx_rgb ('G'));
+         gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%3.1fC", c);
+      epd_unlock ();
+}
+
 void
 app_main ()
 {
@@ -826,18 +845,8 @@ app_main ()
       epd_lock ();
       gfx_clear (0);
       // Main temp display
-      if (!isnan (c))
-      {
-         gfx_pos (gfx_width () - 1, 0, GFX_R);
-         if (c <= tempblue)
-            gfx_foreground (gfx_rgb ('B'));
-         else if (c >= tempred)
-            gfx_foreground (gfx_rgb ('R'));
-         else
-            gfx_foreground (gfx_rgb ('G'));
-         gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%3.1fC", c);
-      }
-      epd_unlock ();
+      gfx_pos (gfx_width () - 1, 0, GFX_R|GFX_V);
+      show_temp(c);
       sleep (1);                // TODO needs keypad fast response
    }
    b.die = 1;
