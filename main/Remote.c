@@ -731,6 +731,7 @@ web_root (httpd_req_t * req)
    return revk_web_foot (req, 0, 1, NULL);
 }
 
+#ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
 typedef struct plot_s
 {
    gfx_pos_t ox,
@@ -744,10 +745,12 @@ pixel (void *opaque, uint32_t x, uint32_t y, uint16_t r, uint16_t g, uint16_t b,
    gfx_pixel_argb (p->ox + x, p->oy + y, ((a >> 8) << 24) | ((r >> 8) << 16) | ((g >> 8) << 8) | (b >> 8));
    return NULL;
 }
+#endif
 
 void
 icon_plot (uint8_t i)
 {
+#ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (i >= sizeof (icons) / sizeof (*icons))
       return;
    uint32_t w,
@@ -755,13 +758,14 @@ icon_plot (uint8_t i)
    const char *e = lwpng_get_info (icons[i].end - icons[i].start, icons[i].start, &w, &h);
    if (e)
       return;
-   gfx_pos_t ox,
-     oy;
+   gfx_pos_t ox=0,
+     oy=0;
    gfx_draw (w, h, 0, 0, &ox, &oy);
    plot_t settings = { ox, oy };
    lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
    lwpng_data (p, icons[i].end - icons[i].start, icons[i].start);
    e = lwpng_decoded (&p);
+#endif
 }
 
 const char *message = NULL;
@@ -1036,8 +1040,11 @@ app_main ()
          rh = scd41.rh;
       } else if (t6793.ok)
          co2 = t6793.ppm;
+      // TODO rad control
+      // TODO fan control
       // Show
       // TODO override
+#ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
       epd_lock ();
       gfx_clear (0);
       // Main temp display
@@ -1075,6 +1082,7 @@ app_main ()
       } else
          show_clock ();
       epd_unlock ();
+#endif
       sleep (1);                // TODO needs keypad fast response
    }
    b.die = 1;
