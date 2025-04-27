@@ -887,7 +887,7 @@ show_rh (uint8_t rh)
 {
    rh_colour (rh);
    // Assumes right align
-   gfx_text (0, 6, "%%");
+   gfx_text (0, 4, "%%");
    if (!rh || rh >= 100)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--");
    else
@@ -1012,18 +1012,20 @@ app_main ()
       // Main temp display
       gfx_pos (gfx_width () - 1, 0, GFX_R);
       show_temp (c);
-      gfx_pos (0, 140, GFX_L | GFX_T | GFX_H);
+      gfx_pos (0, 130, GFX_L | GFX_T | GFX_H);
       if (edit == EDIT_START || edit == EDIT_STOP)
       {
          show_start ();
+         gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
          show_stop ();
       } else
       {
          show_target ((float) actarget / actarget_scale);
-         show_mode ();
+         gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
          show_fan ();
+         show_mode ();
       }
-      gfx_pos (0, 220, GFX_L | GFX_T | GFX_H);
+      gfx_pos (0, 230, GFX_L | GFX_T | GFX_H);
       if (message)
       {
          const char *m = message;
