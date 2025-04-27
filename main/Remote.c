@@ -1071,7 +1071,7 @@ app_main ()
             gfx_foreground (0xFF0000);
          } else
             gfx_foreground (0xFFFFFF);
-         gfx_text (1, 4, "%s", message);
+         gfx_text (1, 4, "%s", m);
       } else
          show_clock ();
       epd_unlock ();
