@@ -18,5 +18,10 @@ target_add_binary_data(Remote.elf "icons/modefan.png" BINARY)
 target_add_binary_data(Remote.elf "icons/modeheat.png" BINARY)
 target_add_binary_data(Remote.elf "icons/modeoff.png" BINARY)
 target_add_binary_data(Remote.elf "icons/moderad.png" BINARY)
+<<<<<<< HEAD
+=======
+target_add_binary_data(Remote.elf "icons/select2.png" BINARY)
+target_add_binary_data(Remote.elf "icons/select3.png" BINARY)
+>>>>>>> 2c5d08f05fef6d508178dcee431bf29c8b3c5c51
 target_add_binary_data(Remote.elf "icons/select.png" BINARY)
 target_add_binary_data(Remote.elf "icons/select2.png" BINARY)

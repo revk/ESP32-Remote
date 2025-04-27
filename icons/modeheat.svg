@@ -59,36 +59,41 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-281.12499)">
-    <path
-       id="path2-0"
-       style="fill:none;stroke:#ff0000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-       d="m 13.567451,289.06249 h 1.778257 m -14.81641563,0 H 2.3075505" />
-    <path
-       id="path2-0-7"
-       style="fill:none;stroke:#ff0000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-       d="m 12.813181,286.24751 1.540015,-0.88912 m -12.831392,7.4082 1.5400167,-0.88913" />
-    <path
-       id="path2-0-2"
-       style="fill:none;stroke:#ff0000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-       d="m 10.752475,284.18681 0.889129,-1.54002 m -7.4082078,12.8314 0.8891291,-1.54002" />
-    <path
-       id="path2-0-7-7"
-       style="fill:none;stroke:#ff0000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-       d="m 7.9374967,283.43254 7e-6,-1.77826 m -6.6e-6,14.81642 -8e-7,-1.77826" />
-    <path
-       id="path2-0-2-2"
-       style="fill:none;stroke:#ff0000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-       d="m 5.1225253,284.18681 -0.8891325,-1.54002 m 7.4082142,12.8314 -0.889131,-1.54002" />
-    <path
-       id="path2-0-7-7-1"
-       style="fill:none;stroke:#ff0000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-       d="m 3.0618183,286.24752 -1.5400148,-0.88914 m 12.8313925,7.40822 -1.540019,-0.88913" />
-    <ellipse
-       style="fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.529166;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="path1-3"
-       cx="7.9375"
-       cy="289.0625"
-       rx="4.3656259"
-       ry="4.3656263" />
+    <g
+       id="g1"
+       transform="matrix(0.96430206,0,0,0.96430206,0.28335222,10.318935)"
+       style="stroke-width:1.03702">
+      <path
+         id="path2-0"
+         style="fill:none;stroke:#ff0000;stroke-width:1.09751;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+         d="m 13.567451,289.06249 h 1.778257 m -14.81641563,0 H 2.3075505" />
+      <path
+         id="path2-0-7"
+         style="fill:none;stroke:#ff0000;stroke-width:1.09751;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+         d="m 12.813181,286.24751 1.540015,-0.88912 m -12.831392,7.4082 1.5400167,-0.88913" />
+      <path
+         id="path2-0-2"
+         style="fill:none;stroke:#ff0000;stroke-width:1.09751;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+         d="m 10.752475,284.18681 0.889129,-1.54002 m -7.4082078,12.8314 0.8891291,-1.54002" />
+      <path
+         id="path2-0-7-7"
+         style="fill:none;stroke:#ff0000;stroke-width:1.09751;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+         d="m 7.9374967,283.43254 7e-6,-1.77826 m -6.6e-6,14.81642 -8e-7,-1.77826" />
+      <path
+         id="path2-0-2-2"
+         style="fill:none;stroke:#ff0000;stroke-width:1.09751;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+         d="m 5.1225253,284.18681 -0.8891325,-1.54002 m 7.4082142,12.8314 -0.889131,-1.54002" />
+      <path
+         id="path2-0-7-7-1"
+         style="fill:none;stroke:#ff0000;stroke-width:1.09751;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+         d="m 3.0618183,286.24752 -1.5400148,-0.88914 m 12.8313925,7.40822 -1.540019,-0.88913" />
+      <ellipse
+         style="fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:1.09751;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="path1-3"
+         cx="7.9375"
+         cy="289.0625"
+         rx="4.3656259"
+         ry="4.3656263" />
+    </g>
   </g>
 </svg>
