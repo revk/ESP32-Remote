@@ -22,7 +22,7 @@ managed_components
 dependencies.lock
 settings.h
 settings.c
-icons.m
+icons.c
 backups
 *-backups
 fp-info-cache

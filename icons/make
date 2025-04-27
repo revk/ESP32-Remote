@@ -1,12 +1,31 @@
 #!/bin/csh -f
 
-echo 'target_add_binary_data(Remote.elf "icons/favicon.ico" BINARY)' > icons/CMakeLists.txt
-rm -f main/icons.m
+set icons=()
 foreach f (icons/*.png)
-	if("$f:t:r" != "favicon") then
-		echo 'target_add_binary_data(Remote.elf "'"$f"'" BINARY)' >> icons/CMakeLists.txt
-		if("$f:t:r" != "apple-touch-icon") then
-			echo 'icon('"$f:t:r"');' >> main/icons.m
-		endif
+	if("$f:t:r" != "favicon" && "$f:r:t" != "apple-touch-icon") then
+		set icons=($icons "$f:t:r")
 	endif
 end
+
+echo 'target_add_binary_data(Remote.elf "icons/favicon.ico" BINARY)' > icons/CMakeLists.txt
+echo 'target_add_binary_data(Remote.elf "icons/apple-touch-icon.png" BINARY)' >> icons/CMakeLists.txt
+foreach i ($icons)
+	echo 'target_add_binary_data(Remote.elf "'"icons/$i.png"'" BINARY)' >> icons/CMakeLists.txt
+endif
+
+echo '// Icons' > main/icons.c
+foreach i ($icons)
+	echo 'extern const uint8_t icon_'"$i"'_start[] asm("_binary_'"$i"'_png_start");' >> main/icons.c
+	echo 'extern const uint8_t icon_'"$i"'_end[] asm("_binary_'"$i"'_png_end");' >> main/icons.c
+end
+echo 'const struct {const char *name;const uint8_t *start;const uint8_t *end;} icons[]={' >> main/icons.c
+foreach i ($icons)
+	echo '{"'"$i"'",icon_'"$i"'_start,icon_'"$i"'_end},' >> main/icons.c
+end
+echo '};' >> main/icons.c
+echo 'enum {'  >> main/icons.c
+foreach i ($icons)
+	echo 'icon_'"$i"',' >> main/icons.c
+end
+echo '};' >> main/icons.c
+

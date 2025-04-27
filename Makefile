@@ -32,7 +32,6 @@ components/ESP32-RevK/revk_settings: components/ESP32-RevK/revk_settings.c
 
 %.png: %.svg
 	inkscape $< -o $@
-	echo "Made $@"
 
 icons/CMakeLists.txt:	$(patsubst %.svg,%.png,$(wildcard icons/*.svg))
 	icons/make

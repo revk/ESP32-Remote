@@ -15,6 +15,7 @@ const char TAG[] = "Remote";
 #include "bleenv.h"
 #include "halib.h"
 #include <lwpng.h>
+#include "icons.c"
 
 struct
 {
@@ -700,14 +701,19 @@ web_apple (httpd_req_t * req)
 static esp_err_t
 web_icon (httpd_req_t * req)
 {                               // serve image -  maybe make more generic file serve
-#define	icon(x)
-#include "icons.m"
-#undef	icon
-   ESP_LOGE (TAG, "HTTP %s", req->uri);
-   httpd_resp_set_type (req, "image/png");
-   extern const char istart[] asm ("_binary_apple_touch_icon_png_start");
-   extern const char iend[] asm ("_binary_apple_touch_icon_png_end");
-   httpd_resp_send (req, istart, iend - istart);
+   char *name = strrchr (req->uri, '?');
+   if (name)
+   {
+      name++;
+      for (int i = 0; i < sizeof (icons) / sizeof (*icons); i++)
+         if (!strcasecmp (icons[i].name, name))
+         {
+            httpd_resp_set_type (req, "image/png");
+            httpd_resp_send (req, (const char*)icons[i].start, icons[i].end - icons[i].start);
+            return ESP_OK;
+         }
+   }
+   httpd_resp_send_404 (req);
    return ESP_OK;
 }
 
@@ -745,7 +751,7 @@ app_main ()
 #endif
       register_get_uri ("/apple-touch-icon.png", web_apple);
       register_get_uri ("/favicon.ico", web_favicon);
-      register_get_uri ("/icon", web_icon);
+      register_get_uri ("/icon.png", web_icon); // expects ?name
       revk_web_settings_add (webserver);
    }
    if (sda.set && scl.set)
