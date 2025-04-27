@@ -534,9 +534,9 @@ i2c_task (void *x)
       }
       if (mcp9808.found)
       {
-         static int16_t last1 = 20,
-            last2 = 20,
-            last3 = 20;
+         static int16_t last1 = 20 * 128,
+            last2 = 20 * 128,
+            last3 = 20 * 128;
          int32_t v = i2c_read_16hl (mcp9808i2c, 5);
          if (v < 0)
          {
@@ -601,8 +601,9 @@ i2c_task (void *x)
       if (scd41.found)
       {
          uint8_t buf[9];
-         if (!scd41_read (0xE4B8, 3, buf) && scd41_crc (buf[0], buf[1]) == buf[2] && ((buf[0] & 0x7) || buf[1]) &&
-             !scd41_read (0xEC05, sizeof (buf), buf) &&
+         esp_err_t err = 0;
+         if (!(err = scd41_read (0xE4B8, 3, buf)) && scd41_crc (buf[0], buf[1]) == buf[2] && ((buf[0] & 0x7) || buf[1]) &&
+             !(err = scd41_read (0xEC05, sizeof (buf), buf)) &&
              scd41_crc (buf[0], buf[1]) == buf[2] && scd41_crc (buf[3], buf[4]) == buf[5] && scd41_crc (buf[6], buf[7]) == buf[8])
          {
             scd41.ppm = (buf[0] << 8) + buf[1];
@@ -610,7 +611,7 @@ i2c_task (void *x)
                scd41.c = -45.0 + 175.0 * (float) ((buf[3] << 8) + buf[4]) / 65536.0 + (float) scd41dt / scd41dt_scale;
             scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
             scd41.ok = 1;
-         } else
+         } else if (err)
          {
             scd41.ok = 0;
             scd41.c = NAN;
@@ -886,7 +887,9 @@ show_co2 (uint16_t co2)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "----");
    else
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%4u", co2);
-   // TODO edit/message
+   // TODO message
+   if (!message && co2 >= co2red)
+      message = "*High CO₂";
 }
 
 void
@@ -901,7 +904,9 @@ show_rh (uint8_t rh)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--");
    else
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%2u", rh);
-   // TODO edit/message
+   // TODO message
+   if (!message && rh >= rhred)
+      message = "*High humidity";
 }
 
 void
@@ -1024,6 +1029,13 @@ app_main ()
       }
       uint16_t co2 = 0;
       uint8_t rh = 0;
+      // TODO BLE RH
+      if (scd41.ok)
+      {
+         co2 = scd41.ppm;
+         rh = scd41.rh;
+      } else if (t6793.ok)
+         co2 = t6793.ppm;
       // Show
       // TODO override
       epd_lock ();
@@ -1042,9 +1054,10 @@ app_main ()
          show_target ((float) actarget / actarget_scale);
          gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
          show_fan ();
+         gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
          show_mode ();
       }
-      gfx_pos (0, 215, GFX_L | GFX_T | GFX_H);
+      gfx_pos (0, 210, GFX_L | GFX_T | GFX_H);
       show_co2 (co2);
       gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
       show_rh (rh);
@@ -1058,7 +1071,7 @@ app_main ()
             gfx_foreground (0xFF0000);
          } else
             gfx_foreground (0xFFFFFF);
-         gfx_text (1, 10, "%s", message);
+         gfx_text (1, 4, "%s", message);
       } else
          show_clock ();
       epd_unlock ();

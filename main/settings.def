@@ -62,11 +62,11 @@ u8	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
 s8	temp.blue	15	.live .unit="°"		// Temp considered cold 
 s8	temp.red	25	.live .unit="°"		// Temp considered hot
 
-s8	rh.green	10	.live .unit="%"		// RH considered low
-s8	rh.red		50	.live .unit="%"		// RH considered high
+u8	rh.green	10	.live .unit="%"		// RH considered low
+u8	rh.red		50	.live .unit="%"		// RH considered high
 
-s8	co2.green	10	.live .unit="ppm"	// CO2 considered low
-s8	co2.red		50	.live .unit="ppm"	// CO2 considered high
+u16	co2.green	800	.live .unit="ppm"	// CO2 considered low
+u16	co2.red		1200	.live .unit="ppm"	// CO2 considered high
 
 s	mqtt.fan		.live			// MQTT to control Fan
 s	mqtt.rad		.live			// MQTT to control Radiator
