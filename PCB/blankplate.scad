@@ -1,6 +1,7 @@
 // UK 1 gang blank plate
 module blankplate()
 {
+    translate([-43,-43,0])  // Centre
 	difference()
 	{ // UK socket blank plate
 		union()
@@ -24,3 +25,4 @@ module blankplate()
 		}
 	}
 }
+blankplate();

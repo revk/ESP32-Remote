@@ -1,6 +1,6 @@
 all:	png stl
 
-stl:	Remote/Remote.stl
+stl:	Remote/Remote.stl $(patsubst %.scad,%.stl,$(wildcard *.scad))
 
 PCBCase/clean: PCBCase/clean.c
 	make -C PCBCase
