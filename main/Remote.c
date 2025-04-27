@@ -725,7 +725,7 @@ web_root (httpd_req_t * req)
       return revk_web_settings (req);   // Direct to web set up
    revk_web_head (req, *hostname ? hostname : appname);
 #ifdef	CONFIG_LWPNG_ENCODE
-   revk_web_send (req, "<p><img src=frame.png></p>");
+   revk_web_send (req, "<p><img src=frame.png style='border:10px solid black;'></p>");
    revk_web_send (req, "<p><a href=/>Reload</a></p>");
 #endif
    return revk_web_foot (req, 0, 1, NULL);
