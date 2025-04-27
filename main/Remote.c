@@ -860,13 +860,18 @@ show_target (float t)
 void
 show_mode (void)
 {
+   if (nomode)
+      return;
    icon_plot (icon_mode[acmode]);
+   // TODO radiator
    // TODO edit/message
 }
 
 void
 show_fan (void)
 {
+   if (nofan)
+      return;
    icon_plot (icon_fans5[acfan]);       // TODO 3 or 5 levels
    // TODO edit/message
 }
@@ -874,6 +879,8 @@ show_fan (void)
 void
 show_co2 (uint16_t co2)
 {
+   if (noco2)
+      return;
    co2_colour (co2);
    if (co2 < 400 || co2 > 10000)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "----");
@@ -885,6 +892,8 @@ show_co2 (uint16_t co2)
 void
 show_rh (uint8_t rh)
 {
+   if (norh)
+      return;
    rh_colour (rh);
    // Assumes right align
    gfx_text (0, 4, "%%");
@@ -907,6 +916,16 @@ show_stop (void)
 {
    gfx_foreground (0xFFFFFF);
    // TODO edit/message
+}
+
+void
+show_clock (void)
+{
+   gfx_foreground (0xFFFFFF);
+   struct tm t;
+   time_t now = time (0);
+   localtime_r (&now, &t);
+   gfx_7seg (0, 5, "%02d:%02d:%02d", t.tm_hour, t.tm_min, t.tm_sec);
 }
 
 void
@@ -1025,7 +1044,11 @@ app_main ()
          show_fan ();
          show_mode ();
       }
-      gfx_pos (0, 230, GFX_L | GFX_T | GFX_H);
+      gfx_pos (0, 215, GFX_L | GFX_T | GFX_H);
+      show_co2 (co2);
+      gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
+      show_rh (rh);
+      gfx_pos (gfx_width () / 2, gfx_height () - 1, GFX_C | GFX_B);
       if (message)
       {
          const char *m = message;
@@ -1037,11 +1060,7 @@ app_main ()
             gfx_foreground (0xFFFFFF);
          gfx_text (1, 10, "%s", message);
       } else
-      {
-         show_co2 (co2);
-         gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
-         show_rh (rh);
-      }
+         show_clock ();
       epd_unlock ();
       sleep (1);                // TODO needs keypad fast response
    }

@@ -43,6 +43,8 @@ s16	t6793.dt		.live .decimal=2	// T6793 Temp offset
 
 bit	no.mode			.live			// No mode control
 bit	no.fan			.live			// No fan control
+bit	no.co2			.live			// No CO2 display
+bit	no.rh			.live			// No RH display
 
 bit	fahrenheit					// Fahrenheit
 
