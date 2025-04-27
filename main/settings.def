@@ -58,9 +58,13 @@ enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,DS18B200,DS
 s8	temp.margin	1	.live .unit="°" .decimal=1	// Temp target ± margin
 u8	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
 u8	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
+u8	temp.step	0.5	.live .unit="°" .decimal=1      // Target steps
 
 s8	temp.blue	15	.live .unit="°"		// Temp considered cold 
 s8	temp.red	25	.live .unit="°"		// Temp considered hot
+
+u8	early.cool	5	.live .unit="°/h" .decimal=1      // Early on assumed cool rate
+u8	early.heat	5	.live .unit="°/h" .decimal=1      // Early on assumed heat rate
 
 u8	rh.green	10	.live .unit="%"		// RH considered low
 u8	rh.red		50	.live .unit="%"		// RH considered high
