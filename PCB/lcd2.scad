@@ -15,15 +15,14 @@ module lcd2(m)
                 // Ribbon
                 translate([3.5,7.5,6])cube([2,20,3.5]);
                 translate([3.5,4,6])cube([2,2,3.5]);
-                // Screws
+                // Screws / Pillars
                 for(x=[2.5,55.5])for(y=[2.5,32.5])translate([x,y,0])
                 {
                     translate([0,0,7.5])cylinder(d=4,h=1.5,$fn=24);
                     translate([0,0,-2.4])cylinder(d=4,h=1.5,$fn=24);
                     translate([0,0,-2])cylinder(d=2,h=3,$fn=24);
+	    	    cylinder(d=2.5,h=6,$fn=24);
                 }
-                // Pillars
-                for(x=[2.5,55.5])for(y=[2.5,32.5])translate([x,y,0])cylinder(d=2.5,h=6,$fn=24);
                 // Pins
                 for(x=[0:1:7])translate([2.4,8.61+x*2.54,0])
                 {

@@ -8,7 +8,7 @@ PCBCase/clean: PCBCase/clean.c
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
 
-%.png:	%.kicad_pcb PCBCase/clean PCBCase/render Makefile
+%.png:	%.kicad_pcb PCBCase/clean PCBCase/render
 	PCBCase/render $<
 
 png:	$(patsubst %.kicad_pcb,%.png,$(wildcard */*.kicad_pcb))
