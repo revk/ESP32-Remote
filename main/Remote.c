@@ -936,6 +936,8 @@ select_icon_plot (uint8_t i)
       wy = gfx_y ();
    gfx_align_t wa = gfx_a ();
    gfx_draw (w, h, 0, 0, &ox, &oy);
+   if (i == icon_select2 || i == icon_select3)
+      oy -= 2;
    plot_t settings = { ox, oy };
    lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
    lwpng_data (p, icons[i].end - icons[i].start, icons[i].start);
@@ -965,6 +967,7 @@ temp_colour (float t)
       else
          c = 0xFF0000;
    }
+   gfx_background (c);
    gfx_foreground (c);
 }
 
@@ -981,6 +984,7 @@ co2_colour (uint16_t co2)
       else
          c = 0xFF0000;
    }
+   gfx_background (c);
    gfx_foreground (c);
 }
 
@@ -997,6 +1001,7 @@ rh_colour (uint8_t rh)
       else
          c = 0xFF0000;
    }
+   gfx_background (c);
    gfx_foreground (c);
 }
 
@@ -1098,6 +1103,7 @@ show_start (void)
       select_icon_plot (icon_select3);
       message = "Start time";
    }
+   gfx_background (0xFFFFFF);
    gfx_foreground (0xFFFFFF);
    gfx_7seg (GFX_7SEG_SMALL_DOT, 4, "%02u:%02u", acstart / 100, acstart % 100);
 }
@@ -1110,6 +1116,7 @@ show_stop (void)
       select_icon_plot (icon_select3);
       message = "Stop time";
    }
+   gfx_background (0xFFFFFF);
    gfx_foreground (0xFFFFFF);
    gfx_7seg (GFX_7SEG_SMALL_DOT, 4, "%02u:%02u", acstop / 100, acstop % 100);
 }
@@ -1117,6 +1124,7 @@ show_stop (void)
 void
 show_clock (struct tm *t)
 {
+   gfx_background (0xFFFFFF);
    gfx_foreground (0xFFFFFF);
    gfx_7seg (0, 5, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
 }
