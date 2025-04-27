@@ -730,11 +730,56 @@ web_root (httpd_req_t * req)
    return revk_web_foot (req, 0, 1, NULL);
 }
 
+typedef struct plot_s
+{
+   gfx_pos_t ox,
+     oy;
+} plot_t;
+
+static const char *
+pixel (void *opaque, uint32_t x, uint32_t y, uint16_t r, uint16_t g, uint16_t b, uint16_t a)
+{
+   plot_t *p = opaque;
+   gfx_pixel_argb (p->ox + x, p->oy + y, ((a >> 8) << 24) | ((r >> 8) << 16) | ((g >> 8) << 8) | (b >> 8));
+   return NULL;
+}
+
+void
+icon_plot (uint8_t i)
+{
+   if (i >= sizeof (icons) / sizeof (*icons))
+      return;
+   uint32_t w,
+     h;
+   const char *e = lwpng_get_info (icons[i].end - icons[i].start, icons[i].start, &w, &h);
+   if (e)
+      return;
+   gfx_pos_t ox,
+     oy;
+   gfx_draw (w, h, 0, 0, &ox, &oy);
+   plot_t settings = { ox, oy, invert };
+   lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
+   lwpng_data (p, icons[i].end - icons[i].start, icons[i].start);
+   e = lwpng_decoded (&p);
+}
+
+const char *message = NULL;
+enum
+{
+   EDIT_NONE,
+   EDIT_TARGET,
+   EDIT_MODE,
+   EDIT_FAN,
+   EDIT_START,
+   EDIT_STOP,
+};
+uint8_t edit = EDIT_NONE;
+
 void
 temp_colour (float t)
 {
    gfx_colour_t c = 0x888888;
-   if (isnan (t))
+   if (!isnan (t))
    {
       if (t < tempblue - 0.5)
          c = 0x0000FF;
@@ -751,38 +796,113 @@ temp_colour (float t)
 }
 
 void
+co2_colour (uint16_t co2)
+{
+   gfx_colour_t c = 0x888888;
+   if (co2)
+   {
+      if (co2 < co2green)
+         c = 0x00FF00;
+      else if (co2 < co2red)
+         c = 0xFFFF00;
+      else
+         c = 0xFF0000;
+   }
+   gfx_foreground (c);
+}
+
+void
+rh_colour (uint8_t rh)
+{
+   gfx_colour_t c = 0x888888;
+   if (rh)
+   {
+      if (rh < rhgreen)
+         c = 0x00FF00;
+      else if (rh < rhred)
+         c = 0xFFFF00;
+      else
+         c = 0xFF0000;
+   }
+   gfx_foreground (c);
+}
+
+void
 show_temp (float t)
-{	// Show current temp
+{                               // Show current temp
    if (fahrenheit && !isnan (t))
-      t = (t + 40) * 1.7 - 40;
+      t = (t + 40) * 1.8 - 40;
    temp_colour (t);
    if (isnan (t) || t <= -100 || t >= 1000)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "---.-%c", fahrenheit ? 'F' : 'C');
    else
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%3.1f%c", t, fahrenheit ? 'F' : 'C');
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%5.1f%c", t, fahrenheit ? 'F' : 'C');
+   // TODO edit/message
 }
 
 void
 show_target (float t)
-{	// Show target temp
+{                               // Show target temp
    if (fahrenheit && !isnan (t))
-      t = (t + 40) * 1.7 - 40;
+      t = (t + 40) * 1.8 - 40;
    temp_colour (t);
    if (isnan (t) || t <= -10 || t >= 100)
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "--.-%c", fahrenheit ? 'F' : 'C');
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 6, "--.-%c", fahrenheit ? 'F' : 'C');
    else
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%2.1f%c", t, fahrenheit ? 'F' : 'C');
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 6, "%4.1f%c", t, fahrenheit ? 'F' : 'C');
+   // TODO edit/message
 }
 
-void show_mode(void)
+void
+show_mode (void)
 {
+   // TODO edit/message
 }
 
-void show_fan(void)
+void
+show_fan (void)
 {
+   // TODO edit/message
 }
 
-void app_main ()
+void
+show_co2 (uint16_t co2)
+{
+   co2_colour (co2);
+   if (co2 < 400 || co2 > 10000)
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "----");
+   else
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%4u", co2);
+   // TODO edit/message
+}
+
+void
+show_rh (uint8_t rh)
+{
+   rh_colour (rh);
+   if (!rh || rh >= 100)
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--%");
+   else
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%2u%", rh);
+   // TODO edit/message
+}
+
+void
+show_start (void)
+{
+   gfx_foreground (0xFFFFFF);
+   // TODO edit/message
+}
+
+void
+show_stop (void)
+{
+   gfx_foreground (0xFFFFFF);
+   // TODO edit/message
+}
+
+void
+app_main ()
 {
    epd_mutex = xSemaphoreCreateMutex ();
    xSemaphoreGive (epd_mutex);
@@ -830,10 +950,11 @@ void app_main ()
 
    while (!revk_shutting_down (NULL))
    {
+      message = NULL;           // set by Show functions
       // TODO do we mutex this
       // TODO override
-      // TODO message and message colour
       // TODO landscape
+      // Work out current values to show / test
       float c = NAN;
       switch (tempref)
       {
@@ -874,16 +995,42 @@ void app_main ()
          if (isnan (c) && gzp6816d.ok)
             c = gzp6816d.c;
       }
+      uint16_t co2 = 0;
+      uint8_t rh = 0;
+      // Show
+      // TODO override
       epd_lock ();
       gfx_clear (0);
       // Main temp display
-      gfx_pos (gfx_width () - 1, 0, GFX_R | GFX_V);
+      gfx_pos (gfx_width () - 1, 0, GFX_R);
       show_temp (c);
-      gfx_pos(0,gfx_y()+30,GFX_L|GFX_M|GFX_V);
-      show_target(actarget);
-      show_mode();
-      show_fan();
-
+      gfx_pos (0, 140, GFX_L | GFX_T | GFX_H);
+      if (edit == EDIT_START || edit == EDIT_STOP)
+      {
+         show_start ();
+         show_stop ();
+      } else
+      {
+         show_target ((float) actarget / actarget_scale);
+         show_mode ();
+         show_fan ();
+      }
+      gfx_pos (0, 220, GFX_L | GFX_T | GFX_H);
+      if (message)
+      {
+         const char *m = message;
+         if (*m == '*')
+         {
+            m++;
+            gfx_foreground (0xFF0000);
+         } else
+            gfx_foreground (0xFFFFFF);
+         gfx_text (1, 10, "%s", message);
+      } else
+      {
+         show_co2 (co2);
+         show_rh (rh);
+      }
       epd_unlock ();
       sleep (1);                // TODO needs keypad fast response
    }

@@ -48,21 +48,23 @@ bit	fahrenheit					// Fahrenheit
 
 u16	ac.start		.live .digits=4 .unit="HHMM"		// Start time
 u16	ac.stop			.live .digits=4 .unit="HHMM"		// Stop time
-s16	ac.target		.live unit="°" .decimal=1      // Target
+s16	ac.target	22	.live .unit="°" .decimal=1      // Target
 enum	ac.mode			.live .enums="Auto,Fan,Dry,Cool,Heat,Faikin"	// Mode
 enum	ac.fan			.live .enums="Auto,1,2,3,4,5,Quiet"		// Fan
 
 enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,DS18B200,DS18B201"	// Primary reference temperature
 s8	temp.margin	1	.live .unit="°" .decimal=1	// Temp target ± margin
+u8	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
+u8	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
 
-s8	temp.blue	15	.live			// Temp considered cold 
-s8	temp.red	25	.live			// Temp considered hot
+s8	temp.blue	15	.live .unit="°"		// Temp considered cold 
+s8	temp.red	25	.live .unit="°"		// Temp considered hot
 
-s8	rh.green	10	.live			// RH considered low
-s8	rh.red		50	.live			// RH considered high
+s8	rh.green	10	.live .unit="%"		// RH considered low
+s8	rh.red		50	.live .unit="%"		// RH considered high
 
-s8	co2.green	10	.live			// CO2 considered low
-s8	co2.red		50	.live			// CO2 considered high
+s8	co2.green	10	.live .unit="ppm"	// CO2 considered low
+s8	co2.red		50	.live .unit="ppm"	// CO2 considered high
 
 s	mqtt.fan		.live			// MQTT to control Fan
 s	mqtt.rad		.live			// MQTT to control Radiator
