@@ -757,7 +757,7 @@ icon_plot (uint8_t i)
    gfx_pos_t ox,
      oy;
    gfx_draw (w, h, 0, 0, &ox, &oy);
-   plot_t settings = { ox, oy, invert };
+   plot_t settings = { ox, oy };
    lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
    lwpng_data (p, icons[i].end - icons[i].start, icons[i].start);
    e = lwpng_decoded (&p);
@@ -774,6 +774,10 @@ enum
    EDIT_STOP,
 };
 uint8_t edit = EDIT_NONE;
+
+const uint8_t icon_mode[] = { icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_modefaikin };       // order same as acmode
+const uint8_t icon_fans5[] = { icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };    // order same as acfan
+const uint8_t icon_fans3[] = { icon_fanauto, icon_fanlow, 0xFF, icon_fanmedium, 0xFF, icon_fanhigh, icon_fanquiet };    // order same as acfan
 
 void
 temp_colour (float t)
@@ -856,12 +860,14 @@ show_target (float t)
 void
 show_mode (void)
 {
+   icon_plot (icon_mode[acmode]);
    // TODO edit/message
 }
 
 void
 show_fan (void)
 {
+   icon_plot (icon_fans5[acfan]);       // TODO 3 or 5 levels
    // TODO edit/message
 }
 
@@ -880,10 +886,12 @@ void
 show_rh (uint8_t rh)
 {
    rh_colour (rh);
+   // Assumes right align
+   gfx_text (0, 6, "%%");
    if (!rh || rh >= 100)
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--%");
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--");
    else
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%2u%", rh);
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%2u", rh);
    // TODO edit/message
 }
 
@@ -1029,6 +1037,7 @@ app_main ()
       } else
       {
          show_co2 (co2);
+         gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
          show_rh (rh);
       }
       epd_unlock ();
