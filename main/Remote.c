@@ -850,6 +850,8 @@ btnH (void)
       return;
    edit = 0;
    b.away = 1;
+   b.manualon = b.poweron = 0;
+   b.manual = 1;
 }
 
 static esp_err_t
@@ -1192,6 +1194,11 @@ app_main ()
          edit = 0;
       }
       b.display = 0;
+      // On/off based on time and early
+      // TODO
+      // Manual
+      if (b.manual && b.manualon == b.poweron)
+         b.manual = 0;
       // TODO do we mutex this
       // TODO override
       // Work out current values to show / test
@@ -1262,16 +1269,16 @@ app_main ()
       show_temp (c);
       if (gfx_width () < gfx_height ())
       {
-         gfx_pos (3, 130, GFX_L | GFX_T | GFX_H);
+         gfx_pos (2, 130, GFX_L | GFX_T | GFX_H);
          if (edit == EDIT_START || edit == EDIT_STOP)
          {
             show_start ();
-            gfx_pos (gfx_width () - 2, gfx_y (), GFX_R | GFX_T | GFX_H);
+            gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_stop ();
          } else
          {
             show_target ((float) actarget / actarget_scale);
-            gfx_pos (gfx_width () - 2, gfx_y (), GFX_R | GFX_T | GFX_H);
+            gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_fan ();
             gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_mode ();
@@ -1290,6 +1297,7 @@ app_main ()
                gfx_foreground (0xFF0000);
             } else
                gfx_foreground (0xFFFFFF);
+            gfx_background (0);
             gfx_text (1, 3, "%s", m);
          } else
             show_clock (&t);
@@ -1304,6 +1312,6 @@ app_main ()
    b.die = 1;
    epd_lock ();
    gfx_clear (0);
-   gfx_text (0, 3, "Reboot");
+   gfx_text (0, 5, "Reboot");
    epd_unlock ();
 }
