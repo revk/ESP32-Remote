@@ -45,6 +45,7 @@ bit	no.mode			.live			// No mode control
 bit	no.fan			.live			// No fan control
 bit	no.co2			.live			// No CO2 display
 bit	no.rh			.live			// No RH display
+bit	fan3			.live			// Fan is L/M/H not 5 level
 
 bit	fahrenheit					// Fahrenheit
 

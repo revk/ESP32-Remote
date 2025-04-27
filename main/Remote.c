@@ -826,6 +826,7 @@ btnH (void)
 {
    if (btnwake ())
       return;
+   edit = 0;
    b.away = 1;
 }
 
@@ -987,7 +988,6 @@ show_temp (float t)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "---.-%c", fahrenheit ? 'F' : 'C');
    else
       gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%5.1f%c", t, fahrenheit ? 'F' : 'C');
-   // TODO edit/message
 }
 
 void
@@ -998,7 +998,7 @@ show_target (float t)
    if (edit == EDIT_TARGET)
    {
       select_icon_plot (icon_select2);
-      message = "Mode:";        // TODO
+      message = "Target temp"; 
    }
    temp_colour (t);
    if (isnan (t) || t <= -10 || t >= 100)
