@@ -1262,16 +1262,16 @@ app_main ()
       show_temp (c);
       if (gfx_width () < gfx_height ())
       {
-         gfx_pos (2, 130, GFX_L | GFX_T | GFX_H);
+         gfx_pos (3, 130, GFX_L | GFX_T | GFX_H);
          if (edit == EDIT_START || edit == EDIT_STOP)
          {
             show_start ();
-            gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
+            gfx_pos (gfx_width () - 2, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_stop ();
          } else
          {
             show_target ((float) actarget / actarget_scale);
-            gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
+            gfx_pos (gfx_width () - 2, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_fan ();
             gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_mode ();
