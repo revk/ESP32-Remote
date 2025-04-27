@@ -709,7 +709,7 @@ web_icon (httpd_req_t * req)
          if (!strcasecmp (icons[i].name, name))
          {
             httpd_resp_set_type (req, "image/png");
-            httpd_resp_send (req, (const char*)icons[i].start, icons[i].end - icons[i].start);
+            httpd_resp_send (req, (const char *) icons[i].start, icons[i].end - icons[i].start);
             return ESP_OK;
          }
    }
@@ -730,27 +730,59 @@ web_root (httpd_req_t * req)
    return revk_web_foot (req, 0, 1, NULL);
 }
 
-void temp_colour(float t)
+void
+temp_colour (float t)
 {
-	if(!isnan(t))gfx_foreground(0x888888);
-}
-
-void show_temp(float t)
-{
-	if(fahrenheit&&!isnan(t))t=(t+40)*1.7-40;
-	temp(colour(t));
-         if (c <= tempblue)
-            gfx_foreground (gfx_rgb ('B'));
-         else if (c >= tempred)
-            gfx_foreground (gfx_rgb ('R'));
-         else
-            gfx_foreground (gfx_rgb ('G'));
-         gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%3.1fC", c);
-      epd_unlock ();
+   gfx_colour_t c = 0x888888;
+   if (isnan (t))
+   {
+      if (t < tempblue - 0.5)
+         c = 0x0000FF;
+      else if (t < tempblue + 0.5)
+         c = gfx_blend (0x0000FF, 0x00FF00, 255 * (t - tempblue + 0.5));
+      else if (t < tempred - 0.5)
+         c = 0x00FF00;
+      else if (t < tempred + 0.5)
+         c = gfx_blend (0x00FF00, 0xFF0000, 255 * (t - tempred + 0.5));
+      else
+         c = 0xFF0000;
+   }
+   gfx_foreground (c);
 }
 
 void
-app_main ()
+show_temp (float t)
+{	// Show current temp
+   if (fahrenheit && !isnan (t))
+      t = (t + 40) * 1.7 - 40;
+   temp_colour (t);
+   if (isnan (t) || t <= -100 || t >= 1000)
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "---.-%c", fahrenheit ? 'F' : 'C');
+   else
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%3.1f%c", t, fahrenheit ? 'F' : 'C');
+}
+
+void
+show_target (float t)
+{	// Show target temp
+   if (fahrenheit && !isnan (t))
+      t = (t + 40) * 1.7 - 40;
+   temp_colour (t);
+   if (isnan (t) || t <= -10 || t >= 100)
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "--.-%c", fahrenheit ? 'F' : 'C');
+   else
+      gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "%2.1f%c", t, fahrenheit ? 'F' : 'C');
+}
+
+void show_mode(void)
+{
+}
+
+void show_fan(void)
+{
+}
+
+void app_main ()
 {
    epd_mutex = xSemaphoreCreateMutex ();
    xSemaphoreGive (epd_mutex);
@@ -845,8 +877,14 @@ app_main ()
       epd_lock ();
       gfx_clear (0);
       // Main temp display
-      gfx_pos (gfx_width () - 1, 0, GFX_R|GFX_V);
-      show_temp(c);
+      gfx_pos (gfx_width () - 1, 0, GFX_R | GFX_V);
+      show_temp (c);
+      gfx_pos(0,gfx_y()+30,GFX_L|GFX_M|GFX_V);
+      show_target(actarget);
+      show_mode();
+      show_fan();
+
+      epd_unlock ();
       sleep (1);                // TODO needs keypad fast response
    }
    b.die = 1;
