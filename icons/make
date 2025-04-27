@@ -1,0 +1,13 @@
+#!/bin/csh -f
+
+echo 'target_add_binary_data(Remote.elf "icons/favicon.ico" BINARY)' > icons/CMakeLists.txt
+echo 'const char *icons[]={' > main/icons.c
+foreach f (icons/*.png)
+	if("$f:t:r" != "favicon") then
+		echo 'target_add_binary_data(Remote.elf "'"$f"'" BINARY)' >> icons/CMakeLists.txt
+		if("$f:t:r" != "apple-touch-icon") then
+			echo '"'"$f:t:r"'",' >> main/icons.c
+		endif
+	endif
+end
+echo '};' >> main/icons.c

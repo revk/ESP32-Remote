@@ -678,6 +678,26 @@ ds18b20_task (void *x)
 }
 
 static esp_err_t
+web_favicon (httpd_req_t * req)
+{                               // serve image -  maybe make more generic file serve
+   httpd_resp_set_type (req, "image/x-icon");
+   extern const char fistart[] asm ("_binary_favicon_ico_start");
+   extern const char fiend[] asm ("_binary_favicon_ico_end");
+   httpd_resp_send (req, fistart, fiend - fistart);
+   return ESP_OK;
+}
+
+static esp_err_t
+web_icon (httpd_req_t * req)
+{                               // serve image -  maybe make more generic file serve
+   httpd_resp_set_type (req, "image/png");
+   extern const char istart[] asm ("_binary_apple_touch_icon_png_start");
+   extern const char iend[] asm ("_binary_apple_touch_icon_png_end");
+   httpd_resp_send (req, istart, iend - istart);
+   return ESP_OK;
+}
+
+static esp_err_t
 web_root (httpd_req_t * req)
 {
    if (revk_link_down ())
@@ -702,13 +722,15 @@ app_main ()
    httpd_config_t config = HTTPD_DEFAULT_CONFIG ();
    config.stack_size += 1024 * 4;
    config.lru_purge_enable = true;
-   config.max_uri_handlers = 2 + revk_num_web_handlers ();
+   config.max_uri_handlers = 4 + revk_num_web_handlers ();
    if (!httpd_start (&webserver, &config))
    {
       register_get_uri ("/", web_root);
 #ifdef	CONFIG_LWPNG_ENCODE
       register_get_uri ("/frame.png", web_frame);
 #endif
+      register_get_uri ("/apple-touch-icon.png", web_icon);
+      register_get_uri ("/favicon.ico", web_favicon);
       revk_web_settings_add (webserver);
    }
    if (sda.set && scl.set)
@@ -737,6 +759,9 @@ app_main ()
    while (!revk_shutting_down (NULL))
    {
       // TODO do we mutex this
+      // TODO override
+      // TODO message and message colour
+      // TODO landscape
       float c = NAN;
       switch (tempref)
       {
@@ -797,6 +822,6 @@ app_main ()
    b.die = 1;
    epd_lock ();
    gfx_clear (0);
-   gfx_text(0,3,"Reboot");
+   gfx_text (0, 3, "Reboot");
    epd_unlock ();
 }

@@ -12,8 +12,6 @@ u8	gfx.flip					// Display Flip
 
 bit	ha.announce	1				// Home Assistant announce
 
-u16	reporting	60	.live .unit="s"		// Report interval
-
 gpio	btn.n		-38				// Button N
 gpio	btn.s		-37				// Button S
 gpio	btn.e		-39				// Button E
@@ -43,7 +41,20 @@ u16	veml6040.dark		.live .decimal=1 .unit="lux"	// Level below which we turn off
 u8	t6793.i2c	"15"	.set .hex		// T6793 CO2 sensor
 s16	t6793.dt		.live .decimal=2	// T6793 Temp offset
 
+bit	no.mode			.live			// No mode control
+bit	no.fan			.live			// No fan control
+
+bit	fahrenheit					// Fahrenheit
+
+u16	ac.start		.live .digits=4 .unit="HHMM"		// Start time
+u16	ac.stop			.live .digits=4 .unit="HHMM"		// Stop time
+s16	ac.target		.live unit="°" .decimal=1      // Target
+enum	ac.mode			.live .enums="Auto,Fan,Dry,Cool,Heat,Faikin"	// Mode
+enum	ac.fan			.live .enums="Auto,1,2,3,4,5,Quiet"		// Fan
+
 enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,DS18B200,DS18B201"	// Primary reference temperature
+s8	temp.margin	1	.live .unit="°" .decimal=1	// Temp target ± margin
+
 s8	temp.blue	15	.live			// Temp considered cold 
 s8	temp.red	25	.live			// Temp considered hot
 
@@ -52,3 +63,6 @@ s8	rh.red		50	.live			// RH considered high
 
 s8	co2.green	10	.live			// CO2 considered low
 s8	co2.red		50	.live			// CO2 considered high
+
+s	mqtt.fan		.live			// MQTT to control Fan
+s	mqtt.rad		.live			// MQTT to control Radiator

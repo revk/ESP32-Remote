@@ -2,7 +2,7 @@
 PROJECT_NAME := Remote
 SUFFIX := $(shell components/ESP32-RevK/buildsuffix)
 
-all:	main/settings.h
+all:	main/settings.h icons/CMakeLists.txt
 	@echo Make: $(PROJECT_NAME)$(SUFFIX).bin
 	@idf.py build
 	@cp build/$(PROJECT_NAME).bin $(PROJECT_NAME)$(SUFFIX).bin
@@ -29,6 +29,13 @@ main/settings.h:     components/ESP32-RevK/revk_settings main/settings.def compo
 
 components/ESP32-RevK/revk_settings: components/ESP32-RevK/revk_settings.c
 	make -C components/ESP32-RevK revk_settings
+
+%.png: %.svg
+	inkscape $< -o $@
+	echo "Made $@"
+
+icons/CMakeLists.txt:	$(patsubst %.svg,%.png,$(wildcard icons/*.svg))
+	icons/make
 
 set:    main/settings.h s3-blind s3-lcd24 s3-lcd2
 
