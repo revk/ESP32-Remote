@@ -21,12 +21,31 @@ struct
 {
    uint8_t die:1;               // Shutting down
    uint8_t ha:1;                // HA update
+   uint8_t display:1;           // Display update
+   uint8_t night:1;             // Display dark
+   uint8_t away:1;              // Away mode
+   uint8_t poweron:1;           // Logical power on
+   uint8_t manual:1;            // Manual set power
+   uint8_t manualon:1;          // Manual is on
 } b = { 0 };
 
 httpd_handle_t webserver = NULL;
 SemaphoreHandle_t epd_mutex = NULL;
 int8_t i2cport = 0;
 uint8_t ds18b20_num = 0;
+const char *message = NULL;
+enum
+{
+   EDIT_NONE,
+   EDIT_TARGET,
+   EDIT_MODE,
+   EDIT_FAN,
+   EDIT_START,
+   EDIT_STOP,
+   EDIT_NUM,
+};
+uint8_t edit = EDIT_NONE;       // Edit mode
+uint32_t wake = 0;              // Wake (uptime) timeout
 
 struct
 {
@@ -725,10 +744,119 @@ web_root (httpd_req_t * req)
       return revk_web_settings (req);   // Direct to web set up
    revk_web_head (req, *hostname ? hostname : appname);
 #ifdef	CONFIG_LWPNG_ENCODE
-   revk_web_send (req, "<p><img src=frame.png style='border:10px solid black;'></p>");
-   revk_web_send (req, "<p><a href=/>Reload</a></p>");
+   revk_web_send (req, "<p><img src=frame.png style='border:10px solid black;'></p>"    //
+                  "<table border=1>"    //
+                  "<tr><td></td><td><a href='btn?N'>N</a></td><td></td></tr>"   //
+                  "<tr><td><a href='btn?W'>W</a></td><td><a href='btn?P'>P</a></td><td><a href='btn?E'>E</a></td></tr>" //
+                  "<tr><td></td><td><a href='btn?S'>S</a></td><td></td><td><a href='btn?H'>Hold</a></td></tr>"  //
+                  "</table>"    //
+                  "<p><a href=/>Reload</a></p>");
 #endif
    return revk_web_foot (req, 0, 1, NULL);
+}
+
+uint8_t
+btnwake (void)
+{
+   b.display = 1;
+   b.away = 0;
+   if (!wake)
+   {
+      if (b.night)
+      {
+         edit = 0;
+         wake = uptime () + 10;
+         return 1;              // Woken up
+      }
+   }
+   if (!edit)
+      edit = EDIT_TARGET;
+   wake = uptime () + 10;
+   return 0;
+}
+
+void
+btnNS (int8_t d)
+{
+   if (btnwake ())
+      return;
+   switch (edit)
+   {
+   case EDIT_TARGET:
+      break;
+   case EDIT_MODE:
+      break;
+   case EDIT_FAN:
+      break;
+   case EDIT_START:
+      break;
+   case EDIT_STOP:
+      break;
+   }
+}
+
+void
+btnEW (int8_t d)
+{
+   if (btnwake ())
+      return;
+   edit += d;
+   if (!edit)
+      edit = EDIT_NUM - 1;
+   while ((nomode && edit == EDIT_MODE) || (nofan && edit == EDIT_FAN))
+      edit += d;
+   if (edit == EDIT_NUM)
+      edit = 1;
+}
+
+void
+btnP (void)
+{
+   if (btnwake ())
+      return;
+   if (!b.manual)
+      b.manualon = b.poweron;
+   b.manualon ^= 1;
+   b.manual = 1;
+   edit = 0;
+}
+
+void
+btnH (void)
+{
+   if (btnwake ())
+      return;
+   b.away = 1;
+}
+
+static esp_err_t
+web_btn (httpd_req_t * req)
+{
+   char *name = strrchr (req->uri, '?');
+   if (name)
+      switch (name[1])
+      {
+      case 'N':
+         btnNS (1);
+         break;
+      case 'S':
+         btnNS (-1);
+         break;
+      case 'E':
+         btnEW (1);
+         break;
+      case 'W':
+         btnEW (-1);
+         break;
+      case 'P':
+         btnP ();
+         break;
+      case 'H':
+         btnH ();
+         break;
+      }
+   usleep (500000);
+   return web_root (req);
 }
 
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
@@ -758,8 +886,8 @@ icon_plot (uint8_t i)
    const char *e = lwpng_get_info (icons[i].end - icons[i].start, icons[i].start, &w, &h);
    if (e)
       return;
-   gfx_pos_t ox=0,
-     oy=0;
+   gfx_pos_t ox = 0,
+      oy = 0;
    gfx_draw (w, h, 0, 0, &ox, &oy);
    plot_t settings = { ox, oy };
    lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
@@ -768,17 +896,30 @@ icon_plot (uint8_t i)
 #endif
 }
 
-const char *message = NULL;
-enum
+void
+select_icon_plot (uint8_t i)
 {
-   EDIT_NONE,
-   EDIT_TARGET,
-   EDIT_MODE,
-   EDIT_FAN,
-   EDIT_START,
-   EDIT_STOP,
-};
-uint8_t edit = EDIT_NONE;
+#ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
+   if (i >= sizeof (icons) / sizeof (*icons))
+      return;
+   uint32_t w,
+     h;
+   const char *e = lwpng_get_info (icons[i].end - icons[i].start, icons[i].start, &w, &h);
+   if (e)
+      return;
+   gfx_pos_t ox = 0,
+      oy = 0,
+      wx = gfx_x (),
+      wy = gfx_y ();
+   gfx_align_t wa = gfx_a ();
+   gfx_draw (w, h, 0, 0, &ox, &oy);
+   plot_t settings = { ox, oy };
+   lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
+   lwpng_data (p, icons[i].end - icons[i].start, icons[i].start);
+   e = lwpng_decoded (&p);
+   gfx_pos (wx, wy, wa);
+#endif
+}
 
 const uint8_t icon_mode[] = { icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_modefaikin };       // order same as acmode
 const uint8_t icon_fans5[] = { icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };    // order same as acfan
@@ -854,12 +995,16 @@ show_target (float t)
 {                               // Show target temp
    if (fahrenheit && !isnan (t))
       t = (t + 40) * 1.8 - 40;
+   if (edit == EDIT_TARGET)
+   {
+      select_icon_plot (icon_select2);
+      message = "Mode:";        // TODO
+   }
    temp_colour (t);
    if (isnan (t) || t <= -10 || t >= 100)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 6, "--.-%c", fahrenheit ? 'F' : 'C');
    else
       gfx_7seg (GFX_7SEG_SMALL_DOT, 6, "%4.1f%c", t, fahrenheit ? 'F' : 'C');
-   // TODO edit/message
 }
 
 void
@@ -867,9 +1012,15 @@ show_mode (void)
 {
    if (nomode)
       return;
-   icon_plot (icon_mode[acmode]);
-   // TODO radiator
-   // TODO edit/message
+   if (edit == EDIT_MODE)
+   {
+      select_icon_plot (icon_select);
+      message = "Mode:";        // TODO
+   }
+   if (edit != EDIT_MODE && !(b.manual ? b.manualon : b.poweron))
+      icon_plot (icon_modeoff);
+   else
+      icon_plot (icon_mode[acmode]);
 }
 
 void
@@ -877,8 +1028,12 @@ show_fan (void)
 {
    if (nofan)
       return;
+   if (edit == EDIT_FAN)
+   {
+      select_icon_plot (icon_select);
+      message = "Fan:";         // TODO
+   }
    icon_plot (icon_fans5[acfan]);       // TODO 3 or 5 levels
-   // TODO edit/message
 }
 
 void
@@ -891,7 +1046,6 @@ show_co2 (uint16_t co2)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "----");
    else
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%4u", co2);
-   // TODO message
    if (!message && co2 >= co2red)
       message = "*High CO₂";
 }
@@ -908,7 +1062,6 @@ show_rh (uint8_t rh)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--");
    else
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%2u", rh);
-   // TODO message
    if (!message && rh >= rhred)
       message = "*High humidity";
 }
@@ -916,25 +1069,32 @@ show_rh (uint8_t rh)
 void
 show_start (void)
 {
+   if (edit == EDIT_START)
+   {
+      select_icon_plot (icon_select3);
+      message = "Start time";
+   }
    gfx_foreground (0xFFFFFF);
-   // TODO edit/message
+   gfx_7seg (GFX_7SEG_SMALL_DOT, 4, "%02u:%02u", acstart / 100, acstart % 100);
 }
 
 void
 show_stop (void)
 {
+   if (edit == EDIT_STOP)
+   {
+      select_icon_plot (icon_select3);
+      message = "Stop time";
+   }
    gfx_foreground (0xFFFFFF);
-   // TODO edit/message
+   gfx_7seg (GFX_7SEG_SMALL_DOT, 4, "%02u:%02u", acstop / 100, acstop % 100);
 }
 
 void
-show_clock (void)
+show_clock (struct tm *t)
 {
    gfx_foreground (0xFFFFFF);
-   struct tm t;
-   time_t now = time (0);
-   localtime_r (&now, &t);
-   gfx_7seg (0, 5, "%02d:%02d:%02d", t.tm_hour, t.tm_min, t.tm_sec);
+   gfx_7seg (0, 5, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
 }
 
 void
@@ -949,7 +1109,7 @@ app_main ()
    httpd_config_t config = HTTPD_DEFAULT_CONFIG ();
    config.stack_size += 1024 * 4;
    config.lru_purge_enable = true;
-   config.max_uri_handlers = 5 + revk_num_web_handlers ();
+   config.max_uri_handlers = 6 + revk_num_web_handlers ();
    if (!httpd_start (&webserver, &config))
    {
       register_get_uri ("/", web_root);
@@ -959,6 +1119,7 @@ app_main ()
       register_get_uri ("/apple-touch-icon.png", web_apple);
       register_get_uri ("/favicon.ico", web_favicon);
       register_get_uri ("/icon.png", web_icon); // expects ?name
+      register_get_uri ("/btn", web_btn);       // expects ?D
       revk_web_settings_add (webserver);
    }
    if (sda.set && scl.set)
@@ -983,13 +1144,28 @@ app_main ()
    revk_gfx_init (5);
    xSemaphoreGive (epd_mutex);
 #endif
-
+   int8_t lastsec = -1;
    while (!revk_shutting_down (NULL))
    {
       message = NULL;           // set by Show functions
+      struct tm t;
+      uint32_t up = uptime ();
+      time_t now = time (0);
+      localtime_r (&now, &t);
+      if (!b.display && (now & 0x7F) == lastsec)
+         continue;
+      if (veml6040.ok && veml6040dark)
+         b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
+      if (wake && wake < up)
+      {
+         wake = 0;
+         edit = 0;
+      }
+      revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
+      b.display = 0;
+      lastsec = (now & 0x7F);
       // TODO do we mutex this
       // TODO override
-      // TODO landscape
       // Work out current values to show / test
       float c = NAN;
       switch (tempref)
@@ -1042,7 +1218,6 @@ app_main ()
          co2 = t6793.ppm;
       // TODO rad control
       // TODO fan control
-      // Show
       // TODO override
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
       epd_lock ();
@@ -1050,40 +1225,46 @@ app_main ()
       // Main temp display
       gfx_pos (gfx_width () - 1, 0, GFX_R);
       show_temp (c);
-      gfx_pos (0, 130, GFX_L | GFX_T | GFX_H);
-      if (edit == EDIT_START || edit == EDIT_STOP)
+      if (gfx_width () < gfx_height ())
       {
-         show_start ();
-         gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
-         show_stop ();
-      } else
-      {
-         show_target ((float) actarget / actarget_scale);
-         gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
-         show_fan ();
-         gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
-         show_mode ();
-      }
-      gfx_pos (0, 210, GFX_L | GFX_T | GFX_H);
-      show_co2 (co2);
-      gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
-      show_rh (rh);
-      gfx_pos (gfx_width () / 2, gfx_height () - 1, GFX_C | GFX_B);
-      if (message)
-      {
-         const char *m = message;
-         if (*m == '*')
+         gfx_pos (0, 130, GFX_L | GFX_T | GFX_H);
+         if (edit == EDIT_START || edit == EDIT_STOP)
          {
-            m++;
-            gfx_foreground (0xFF0000);
+            show_start ();
+            gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
+            show_stop ();
          } else
-            gfx_foreground (0xFFFFFF);
-         gfx_text (1, 4, "%s", m);
+         {
+            show_target ((float) actarget / actarget_scale);
+            gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
+            show_fan ();
+            gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
+            show_mode ();
+         }
+         gfx_pos (0, 210, GFX_L | GFX_T | GFX_H);
+         show_co2 (co2);
+         gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
+         show_rh (rh);
+         gfx_pos (gfx_width () / 2, gfx_height () - 1, GFX_C | GFX_B);
+         if (message)
+         {
+            const char *m = message;
+            if (*m == '*')
+            {
+               m++;
+               gfx_foreground (0xFF0000);
+            } else
+               gfx_foreground (0xFFFFFF);
+            gfx_text (1, 4, "%s", m);
+         } else
+            show_clock (&t);
       } else
-         show_clock ();
+      {                         // Landscape
+         // TODO
+      }
       epd_unlock ();
 #endif
-      sleep (1);                // TODO needs keypad fast response
+      usleep (10000);
    }
    b.die = 1;
    epd_lock ();
