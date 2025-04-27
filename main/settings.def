@@ -57,8 +57,8 @@ enum	ac.fan			.live .enums="Auto,1,2,3,4,5,Quiet"		// Fan
 
 enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,DS18B200,DS18B201"	// Primary reference temperature
 s8	temp.margin	1	.live .unit="°" .decimal=1	// Temp target ± margin
-u8	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
-u8	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
+s16	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
+s16	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
 u8	temp.step	0.5	.live .unit="°" .decimal=1      // Target steps
 
 s8	temp.blue	15	.live .unit="°"		// Temp considered cold 

@@ -780,19 +780,41 @@ btnNS (int8_t d)
 {
    if (btnwake ())
       return;
+   jo_t j = jo_object_alloc ();
    switch (edit)
    {
    case EDIT_TARGET:
+      if (tempstep)
+      {
+         int16_t t = actarget;
+         t = t / tempstep * tempstep;
+         t += d * tempstep;
+         if (t < tempmin)
+            t = tempmin;
+         if (t > tempmax)
+            t = tempmax;
+         jo_litf (j, "actarget", "%.1f", (float) t / actarget_scale);
+      }
       break;
    case EDIT_MODE:
+      {
+      }
       break;
    case EDIT_FAN:
+      {
+      }
       break;
    case EDIT_START:
+      {
+      }
       break;
    case EDIT_STOP:
+      {
+      }
       break;
    }
+   revk_setting (j);
+   jo_free (&j);
 }
 
 void
@@ -998,7 +1020,7 @@ show_target (float t)
    if (edit == EDIT_TARGET)
    {
       select_icon_plot (icon_select2);
-      message = "Target temp"; 
+      message = "Target temp";
    }
    temp_colour (t);
    if (isnan (t) || t <= -10 || t >= 100)
@@ -1232,16 +1254,16 @@ app_main ()
       show_temp (c);
       if (gfx_width () < gfx_height ())
       {
-         gfx_pos (0, 130, GFX_L | GFX_T | GFX_H);
+         gfx_pos (2, 130, GFX_L | GFX_T | GFX_H);
          if (edit == EDIT_START || edit == EDIT_STOP)
          {
             show_start ();
-            gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
+            gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_stop ();
          } else
          {
             show_target ((float) actarget / actarget_scale);
-            gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
+            gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_fan ();
             gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_mode ();
@@ -1260,7 +1282,7 @@ app_main ()
                gfx_foreground (0xFF0000);
             } else
                gfx_foreground (0xFFFFFF);
-            gfx_text (1, 4, "%s", m);
+            gfx_text (1, 3, "%s", m);
          } else
             show_clock (&t);
       } else
