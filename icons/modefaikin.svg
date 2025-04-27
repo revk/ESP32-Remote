@@ -40,17 +40,11 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-281.12499)">
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.8253px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="3.5398583"
-       y="294.35413"
-       id="text1"><tspan
-         sodipodi:role="line"
-         id="tspan1"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.8253px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
-         x="3.5398583"
-         y="294.35413">F</tspan></text>
+    <path
+       d="M 6.3123632,294.35413 H 4.9804026 v -10.5833 h 5.9141944 v 1.17271 H 6.3123632 v 3.74975 h 4.2999158 v 1.16547 H 6.3123632 Z"
+       id="text1"
+       style="font-size:14.8253px;line-height:1.25;-inkscape-font-specification:'sans-serif, Normal';fill:#ffffff;stroke-width:0.264583"
+       aria-label="F" />
     <ellipse
        style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.529164;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path1"

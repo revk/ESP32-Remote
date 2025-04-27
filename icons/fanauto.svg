@@ -24,8 +24,8 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="13.344597"
-     inkscape:cx="29.974677"
-     inkscape:cy="30.012145"
+     inkscape:cx="29.974678"
+     inkscape:cy="30.012146"
      inkscape:window-width="1664"
      inkscape:window-height="1248"
      inkscape:window-x="2560"
@@ -40,16 +40,10 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-281.12499)">
-    <text
-       xml:space="preserve"
-       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.4968px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="3.0356419"
-       y="296.73541"
-       id="text1"><tspan
-         sodipodi:role="line"
-         id="tspan1"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.4968px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;fill:#ffffff;fill-opacity:1"
-         x="3.0356419"
-         y="296.73541">A</tspan></text>
+    <path
+       d="M 11.590276,291.95951 H 6.4155098 l -2.4981632,4.7759 H 1.8075533 l 8.3447047,-15.34586 h 2.015325 l 1.899864,15.34586 h -1.899864 z m -0.188936,-1.71092 -0.346384,-3.21193 q -0.283405,-2.3827 -0.283405,-3.61079 -0.335888,0.80823 -0.734754,1.62696 -0.3988666,0.80823 -2.6975966,5.19576 z"
+       id="text1"
+       style="font-style:italic;font-size:21.4968px;line-height:1.25;-inkscape-font-specification:'sans-serif, Italic';fill:#ffffff;stroke-width:0.264583"
+       aria-label="A" />
   </g>
 </svg>

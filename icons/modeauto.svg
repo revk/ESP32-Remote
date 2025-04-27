@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="12.9"
-     inkscape:cx="30"
-     inkscape:cy="30.03876"
+     inkscape:zoom="13.344829"
+     inkscape:cx="29.974157"
+     inkscape:cy="30.011624"
      inkscape:window-width="1664"
      inkscape:window-height="1248"
      inkscape:window-x="2560"
@@ -40,17 +40,11 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-281.12499)">
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.8253px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="3.206852"
-       y="293.55899"
-       id="text1"><tspan
-         sodipodi:role="line"
-         id="tspan1"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.8253px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
-         x="3.206852"
-         y="293.55899">A</tspan></text>
+    <path
+       d="m 11.285482,293.55899 -1.274049,-3.27923 H 5.8128618 l -1.2595714,3.27923 H 3.206852 l 4.1334211,-10.62673 h 1.20166 l 4.1261819,10.62673 z m -1.6721893,-4.45917 -1.1871822,-3.20684 -0.5067241,-1.58532 q -0.2171675,0.86867 -0.4560518,1.58532 l -1.20166,3.20684 z"
+       id="text1"
+       style="font-size:14.8253px;line-height:1.25;-inkscape-font-specification:'sans-serif, Normal';fill:#ffffff;stroke-width:0.264583"
+       aria-label="A" />
     <ellipse
        style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.529164;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path1"
