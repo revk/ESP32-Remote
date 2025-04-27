@@ -11,7 +11,7 @@ echo 'target_add_binary_data(Remote.elf "icons/favicon.ico" BINARY)' > icons/CMa
 echo 'target_add_binary_data(Remote.elf "icons/apple-touch-icon.png" BINARY)' >> icons/CMakeLists.txt
 foreach i ($icons)
 	echo 'target_add_binary_data(Remote.elf "'"icons/$i.png"'" BINARY)' >> icons/CMakeLists.txt
-endif
+end
 
 echo '// Icons' > main/icons.c
 foreach i ($icons)

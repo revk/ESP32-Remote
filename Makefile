@@ -31,7 +31,11 @@ components/ESP32-RevK/revk_settings: components/ESP32-RevK/revk_settings.c
 	make -C components/ESP32-RevK revk_settings
 
 %.png: %.svg
+ifeq ($(shell uname),Linux)
 	inkscape $< -o $@
+else
+	/Applications/Inkscape.app/Contents/MacOS/inkscape $< -o $@
+endif
 
 icons/CMakeLists.txt:	$(patsubst %.svg,%.png,$(wildcard icons/*.svg))
 	icons/make
