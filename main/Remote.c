@@ -1017,7 +1017,9 @@ show_mode (void)
       select_icon_plot (icon_select);
       message = "Mode:";        // TODO
    }
-   if (edit != EDIT_MODE && !(b.manual ? b.manualon : b.poweron))
+   if (b.away && !b.manual && !b.manualon)
+      icon_plot (icon_modeaway);
+   else if (edit != EDIT_MODE && !(b.manual ? b.manualon : b.poweron))
       icon_plot (icon_modeoff);
    else
       icon_plot (icon_mode[acmode]);
@@ -1154,16 +1156,12 @@ app_main ()
       localtime_r (&now, &t);
       if (!b.display && (now & 0x7F) == lastsec)
          continue;
-      if (veml6040.ok && veml6040dark)
-         b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
       if (wake && wake < up)
       {
          wake = 0;
          edit = 0;
       }
-      revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
       b.display = 0;
-      lastsec = (now & 0x7F);
       // TODO do we mutex this
       // TODO override
       // Work out current values to show / test
@@ -1216,8 +1214,15 @@ app_main ()
          rh = scd41.rh;
       } else if (t6793.ok)
          co2 = t6793.ppm;
-      // TODO rad control
-      // TODO fan control
+      if (lastsec != (now & 0x7F))
+      {                         // Once per second
+         if (veml6040.ok && veml6040dark)
+            b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
+         revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
+         // TODO rad control
+         // TODO fan control
+      }
+      lastsec = (now & 0x7F);
       // TODO override
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
       epd_lock ();
