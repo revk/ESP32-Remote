@@ -46,6 +46,12 @@ enum
 };
 uint8_t edit = EDIT_NONE;       // Edit mode
 uint32_t wake = 0;              // Wake (uptime) timeout
+const uint8_t icon_mode[] = { icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_modefaikin };       // order same as acmode
+const uint8_t icon_fans5[] = { icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };    // order same as acfan
+const uint8_t icon_fans3[] = { icon_fanauto, icon_fanlow, 0xFF, icon_fanmid, 0xFF, icon_fanhigh, icon_fanquiet };       // order same as acfan
+const char *const icon_mode_message[] = { "Mode: Auto", "Mode: Fan", "Mode: Dry", "Mode: Cool", "Mode: Heat", "Mode: Faikin" };
+const char *const icon_fan5_message[] = { "Fan: Auto", "Fan: 1", "Fan: 2", "Fan: 3", "Fan: 4", "Fan: 5", "Fan: Quiet" };
+const char *const icon_fan3_message[] = { "Fan: Auto", "Fan: Low", NULL, "Fan: Mid", NULL, "Fan: High", "Fan: Quiet" };
 
 struct
 {
@@ -798,18 +804,51 @@ btnNS (int8_t d)
       break;
    case EDIT_MODE:
       {
+         int8_t m = acmode;
+         m += d;
+         if (m < 0)
+            m = REVK_SETTINGS_ACMODE_FAIKIN;
+         else if (m > REVK_SETTINGS_ACMODE_FAIKIN)
+            m = 0;
+         acmode = m;
       }
       break;
    case EDIT_FAN:
       {
+         int8_t f = acfan;
+         f += d;
+         if (f < 0)
+            f = REVK_SETTINGS_ACFAN_QUIET;
+         else if (f > REVK_SETTINGS_ACFAN_QUIET)
+            f = 0;
+         if (fan3)
+            while (!icon_fan3_message[f])
+               f += d;
+         acfan = f;
       }
       break;
    case EDIT_START:
       {
+         int16_t t = acstart / 100 * 60 + acstart % 100;
+         t = t / timestep * timestep;
+         t += d * timestep;
+         if (t < 0)
+            t = 24 * 60 - timestep;
+         else if (t >= 24 * 60)
+            t = 0;
+         acstart = t / 60 * 100 + t % 60;
       }
       break;
    case EDIT_STOP:
       {
+         int16_t t = acstop / 100 * 60 + acstop % 100;
+         t = t / timestep * timestep;
+         t += d * timestep;
+         if (t < 0)
+            t = 24 * 60 - timestep;
+         else if (t >= 24 * 60)
+            t = 0;
+         acstop = t / 60 * 100 + t % 60;
       }
       break;
    }
@@ -854,32 +893,38 @@ btnH (void)
    b.manual = 1;
 }
 
+void
+btn (char c)
+{
+   switch (c)
+   {
+   case 'N':
+      btnNS (1);
+      break;
+   case 'S':
+      btnNS (-1);
+      break;
+   case 'E':
+      btnEW (1);
+      break;
+   case 'W':
+      btnEW (-1);
+      break;
+   case 'P':
+      btnP ();
+      break;
+   case 'H':
+      btnH ();
+      break;
+   }
+}
+
 static esp_err_t
 web_btn (httpd_req_t * req)
 {
    char *name = strrchr (req->uri, '?');
    if (name)
-      switch (name[1])
-      {
-      case 'N':
-         btnNS (1);
-         break;
-      case 'S':
-         btnNS (-1);
-         break;
-      case 'E':
-         btnEW (1);
-         break;
-      case 'W':
-         btnEW (-1);
-         break;
-      case 'P':
-         btnP ();
-         break;
-      case 'H':
-         btnH ();
-         break;
-      }
+      btn (name[1]);
    usleep (500000);
    return web_root (req);
 }
@@ -922,7 +967,7 @@ icon_plot (uint8_t i)
 }
 
 void
-select_icon_plot (uint8_t i,int8_t dx,int8_t dy)
+select_icon_plot (uint8_t i, int8_t dx, int8_t dy)
 {
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (i >= sizeof (icons) / sizeof (*icons))
@@ -938,17 +983,13 @@ select_icon_plot (uint8_t i,int8_t dx,int8_t dy)
       wy = gfx_y ();
    gfx_align_t wa = gfx_a ();
    gfx_draw (w, h, 0, 0, &ox, &oy);
-   plot_t settings = { ox+dx, oy+dy };
+   plot_t settings = { ox + dx, oy + dy };
    lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
    lwpng_data (p, icons[i].end - icons[i].start, icons[i].start);
    e = lwpng_decoded (&p);
    gfx_pos (wx, wy, wa);
 #endif
 }
-
-const uint8_t icon_mode[] = { icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_modefaikin };       // order same as acmode
-const uint8_t icon_fans5[] = { icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };    // order same as acfan
-const uint8_t icon_fans3[] = { icon_fanauto, icon_fanlow, 0xFF, icon_fanmedium, 0xFF, icon_fanhigh, icon_fanquiet };    // order same as acfan
 
 void
 temp_colour (float t)
@@ -1024,7 +1065,7 @@ show_target (float t)
       t = (t + 40) * 1.8 - 40;
    if (edit == EDIT_TARGET)
    {
-      select_icon_plot (icon_select2,-2,-2);
+      select_icon_plot (icon_select2, -2, -2);
       message = "Target temp";
    }
    temp_colour (t);
@@ -1041,10 +1082,10 @@ show_mode (void)
       return;
    if (edit == EDIT_MODE)
    {
-      select_icon_plot (icon_select,0,0);
-      message = "Mode:";        // TODO
+      select_icon_plot (icon_select, 0, 0);
+      message = icon_mode_message[acmode];
    }
-   if (b.away && !b.manual && !b.manualon)
+   if (edit != EDIT_MODE && b.away && !b.manual && !b.manualon)
       icon_plot (icon_modeaway);
    else if (edit != EDIT_MODE && !(b.manual ? b.manualon : b.poweron))
       icon_plot (icon_modeoff);
@@ -1059,10 +1100,10 @@ show_fan (void)
       return;
    if (edit == EDIT_FAN)
    {
-      select_icon_plot (icon_select,0,0);
-      message = "Fan:";         // TODO
+      select_icon_plot (icon_select, 0, 0);
+      message = (fan3 ? icon_fan3_message : icon_fan5_message)[acfan];
    }
-   icon_plot (icon_fans5[acfan]);       // TODO 3 or 5 levels
+   icon_plot ((fan3 ? icon_fans3 : icon_fans5)[acfan]);
 }
 
 void
@@ -1100,7 +1141,7 @@ show_start (void)
 {
    if (edit == EDIT_START)
    {
-      select_icon_plot (icon_select3,-2,-2);
+      select_icon_plot (icon_select3, -2, -2);
       message = "Start time";
    }
    gfx_background (0xFFFFFF);
@@ -1113,7 +1154,7 @@ show_stop (void)
 {
    if (edit == EDIT_STOP)
    {
-      select_icon_plot (icon_select3,2,-2);
+      select_icon_plot (icon_select3, 2, -2);
       message = "Stop time";
    }
    gfx_background (0xFFFFFF);
