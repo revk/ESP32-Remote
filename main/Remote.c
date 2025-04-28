@@ -46,6 +46,7 @@ enum
 };
 uint8_t edit = EDIT_NONE;       // Edit mode
 uint32_t wake = 0;              // Wake (uptime) timeout
+
 const uint8_t icon_mode[] = { icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_modefaikin };       // order same as acmode
 const uint8_t icon_fans5[] = { icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };    // order same as acfan
 const uint8_t icon_fans3[] = { icon_fanauto, icon_fanlow, 0xFF, icon_fanmid, 0xFF, icon_fanhigh, icon_fanquiet };       // order same as acfan
@@ -145,11 +146,50 @@ app_callback (int client, const char *prefix, const char *target, const char *su
 void
 revk_state_extra (jo_t j)
 {
+
+}
+
+static void
+settings_bletemp (httpd_req_t * req)
+{
+   revk_web_send (req, "<tr><td>BLE</td><td>"   //
+                  "<select name=bletemp>");
+   if (!*bletemp)
+      revk_web_send (req, "<option value=\"\">-- None --");
+   char found = 0;
+   for (bleenv_t * e = bleenv; e; e = e->next)
+   {
+      revk_web_send (req, "<option value=\"%s\"", e->name);
+      if (*bletemp && !strcmp (bletemp, e->name))
+      {
+         revk_web_send (req, " selected");
+         found = 1;
+      }
+      revk_web_send (req, ">%s", e->name);
+      if (!e->missing && e->rssi)
+         revk_web_send (req, " %ddB", e->rssi);
+   }
+   if (!found && *bletemp)
+   {
+      revk_web_send (req, "<option selected value=\"%s\">%s", bletemp, bletemp);
+   }
+   revk_web_send (req, "</select>");
+   revk_web_send (req, "</td><td>External BLE temperature reference</td></tr>");
 }
 
 void
 revk_web_extra (httpd_req_t * req, int page)
 {
+   revk_web_setting (req, "Target", "actarget");
+   revk_web_setting (req, "Mode", "acmode");
+   revk_web_setting (req, "Fan", "acfan");
+   revk_web_setting (req, "Start", "acstart");
+   revk_web_setting (req, "Stop", "acstop");
+   revk_web_setting (req, "Temp", "tempref");
+   settings_bletemp (req);
+   revk_web_setting (req, "±", "tempmargin");
+   revk_web_setting (req, "HA", "haannounce");
+   revk_web_setting (req, "Fahrenheit", "fahrenheit");
 }
 
 static void
@@ -1201,6 +1241,9 @@ app_main ()
       revk_task ("btn", btn_task, NULL, 10);
    if (ds18b20.set)
       revk_task ("18b20", ds18b20_task, NULL, 10);
+   bleenv_run ();
+   bleenv_t *bleidtemp = NULL;
+   bleenv_t *bleidfaikin = NULL;
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)
    {
@@ -1218,6 +1261,8 @@ app_main ()
    xSemaphoreGive (epd_mutex);
 #endif
    int8_t lastsec = -1;
+   float blec = NAN;
+   uint8_t blerh = 0;
    while (!revk_shutting_down (NULL))
    {
       message = NULL;           // set by Show functions
@@ -1227,12 +1272,55 @@ app_main ()
       localtime_r (&now, &t);
       if (!b.display && (now & 0x7F) == lastsec)
          continue;
-      if (wake && wake < up)
-      {
-         wake = 0;
-         edit = 0;
-      }
       b.display = 0;
+      if (lastsec != (now & 0x7F))
+      {                         // Once per second
+         if (veml6040.ok && veml6040dark)
+            b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
+         revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
+         if (wake && wake < up)
+         {
+            wake = 0;
+            edit = 0;
+         }
+         // TODO rad control
+         // TODO fan control
+         // TODO update
+         bleenv_expire (120);
+         if (!bleidtemp || strcmp (bleidtemp->name, bletemp))
+         {
+            bleidtemp = NULL;
+            bleenv_clean ();
+            for (bleenv_t * e = bleenv; e; e = e->next)
+               if (!strcmp (e->name, bletemp))
+               {
+                  bleidtemp = e;
+                  break;
+               }
+         }
+         if (!bleidfaikin || strcmp (bleidfaikin->name, blefaikin))
+         {
+            bleidfaikin = NULL;
+            bleenv_clean ();
+            for (bleenv_t * e = bleenv; e; e = e->next)
+               if (!strcmp (e->name, blefaikin))
+               {
+                  bleidfaikin = e;
+                  break;
+               }
+         }
+         if (bleidtemp && !bleidtemp->missing)
+         {                      // Use temp
+            if (bleidtemp->tempset)
+               blec = bleidtemp->temp / 100.0;
+            if (bleidtemp->humset)
+               blerh = bleidtemp->hum / 100;
+         } else
+         {
+            blec = NAN;
+            blerh = 0;
+         }
+      }
       // On/off based on time and early
       // TODO
       // Manual
@@ -1241,6 +1329,7 @@ app_main ()
       // TODO do we mutex this
       // TODO override
       // Work out current values to show / test
+      uint8_t tempfrom = tempref;
       float c = NAN;
       switch (tempref)
       {
@@ -1257,7 +1346,8 @@ app_main ()
          c = gzp6816d.c;
          break;
       case REVK_SETTINGS_TEMPREF_BLE:
-         break;                 // TODO
+         c = blec;
+         break;
       case REVK_SETTINGS_TEMPREF_DS18B200:
          if (ds18b20_num >= 1)
             c = ds18b20s[0].c;
@@ -1269,35 +1359,30 @@ app_main ()
       }
       if (isnan (c))
       {                         // Auto
-         // TODO BLE first
-         if (isnan (c) && ds18b20_num)
-            c = ds18b20s[0].c;
-         if (isnan (c) && scd41.ok && !isnan (scd41.c))
-            c = scd41.c;
-         if (isnan (c) && tmp1075.ok)
-            c = tmp1075.c;
-         if (isnan (c) && mcp9808.ok)
-            c = mcp9808.c;
-         if (isnan (c) && gzp6816d.ok)
-            c = gzp6816d.c;
+         if (isnan (c) && !isnan (c = blec))
+            tempfrom = REVK_SETTINGS_TEMPREF_BLE;
+         if (isnan (c) && ds18b20_num && !isnan (c = ds18b20s[0].c))
+            tempfrom = REVK_SETTINGS_TEMPREF_DS18B200;
+         if (isnan (c) && scd41.ok && !isnan (c = scd41.c))
+            tempfrom = REVK_SETTINGS_TEMPREF_SCD41;
+         if (isnan (c) && tmp1075.ok && !isnan (c = tmp1075.c))
+            tempfrom = REVK_SETTINGS_TEMPREF_TMP1075;
+         if (isnan (c) && mcp9808.ok && !isnan (c = mcp9808.c))
+            tempfrom = REVK_SETTINGS_TEMPREF_MCP9808;
+         if (isnan (c) && gzp6816d.ok && !isnan (c = gzp6816d.c))
+            tempfrom = REVK_SETTINGS_TEMPREF_GZP6816D;
       }
       uint16_t co2 = 0;
       uint8_t rh = 0;
-      // TODO BLE RH
+      if (blerh)
+         rh = blerh;
       if (scd41.ok)
       {
          co2 = scd41.ppm;
-         rh = scd41.rh;
+         if (!rh)
+            rh = scd41.rh;
       } else if (t6793.ok)
          co2 = t6793.ppm;
-      if (lastsec != (now & 0x7F))
-      {                         // Once per second
-         if (veml6040.ok && veml6040dark)
-            b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
-         revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
-         // TODO rad control
-         // TODO fan control
-      }
       lastsec = (now & 0x7F);
       // TODO override
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
@@ -1305,6 +1390,8 @@ app_main ()
       gfx_clear (0);
       // Main temp display
       gfx_pos (gfx_width () - 1, 0, GFX_R);
+      if (tempfrom == REVK_SETTINGS_TEMPREF_BLE)
+         select_icon_plot (icon_bt, -15, 0);
       show_temp (c);
       if (gfx_width () < gfx_height ())
       {
@@ -1326,17 +1413,19 @@ app_main ()
          show_co2 (co2);
          gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
          show_rh (rh);
-         gfx_pos (gfx_width () / 2, gfx_height () - 1, GFX_C | GFX_B);
+         if (blerh)
+            icon_plot (icon_bt);
+         gfx_pos (gfx_width () / 2, gfx_height () - 4, GFX_C | GFX_B);
          if (message)
          {
             const char *m = message;
+            gfx_foreground (0xFFFFFF);
             if (*m == '*')
             {
                m++;
-               gfx_foreground (0xFF0000);
+               gfx_background (0xFF0000);
             } else
-               gfx_foreground (0xFFFFFF);
-            gfx_background (0);
+               gfx_foreground (0);
             gfx_text (1, 3, "%s", m);
          } else
             show_clock (&t);
