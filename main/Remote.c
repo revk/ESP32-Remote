@@ -922,7 +922,7 @@ icon_plot (uint8_t i)
 }
 
 void
-select_icon_plot (uint8_t i)
+select_icon_plot (uint8_t i,int8_t dx,int8_t dy)
 {
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (i >= sizeof (icons) / sizeof (*icons))
@@ -938,9 +938,7 @@ select_icon_plot (uint8_t i)
       wy = gfx_y ();
    gfx_align_t wa = gfx_a ();
    gfx_draw (w, h, 0, 0, &ox, &oy);
-   if (i == icon_select2 || i == icon_select3)
-      oy -= 2;
-   plot_t settings = { ox, oy };
+   plot_t settings = { ox+dx, oy+dy };
    lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
    lwpng_data (p, icons[i].end - icons[i].start, icons[i].start);
    e = lwpng_decoded (&p);
@@ -1026,7 +1024,7 @@ show_target (float t)
       t = (t + 40) * 1.8 - 40;
    if (edit == EDIT_TARGET)
    {
-      select_icon_plot (icon_select2);
+      select_icon_plot (icon_select2,-2,-2);
       message = "Target temp";
    }
    temp_colour (t);
@@ -1043,7 +1041,7 @@ show_mode (void)
       return;
    if (edit == EDIT_MODE)
    {
-      select_icon_plot (icon_select);
+      select_icon_plot (icon_select,0,0);
       message = "Mode:";        // TODO
    }
    if (b.away && !b.manual && !b.manualon)
@@ -1061,7 +1059,7 @@ show_fan (void)
       return;
    if (edit == EDIT_FAN)
    {
-      select_icon_plot (icon_select);
+      select_icon_plot (icon_select,0,0);
       message = "Fan:";         // TODO
    }
    icon_plot (icon_fans5[acfan]);       // TODO 3 or 5 levels
@@ -1102,7 +1100,7 @@ show_start (void)
 {
    if (edit == EDIT_START)
    {
-      select_icon_plot (icon_select3);
+      select_icon_plot (icon_select3,-2,-2);
       message = "Start time";
    }
    gfx_background (0xFFFFFF);
@@ -1115,7 +1113,7 @@ show_stop (void)
 {
    if (edit == EDIT_STOP)
    {
-      select_icon_plot (icon_select3);
+      select_icon_plot (icon_select3,2,-2);
       message = "Stop time";
    }
    gfx_background (0xFFFFFF);

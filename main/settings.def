@@ -64,6 +64,8 @@ u8	temp.step	0.5	.live .unit="°" .decimal=1      // Target steps
 s8	temp.blue	15	.live .unit="°"		// Temp considered cold 
 s8	temp.red	25	.live .unit="°"		// Temp considered hot
 
+u8	time.step	15	.live .unit="min"	// Time steps
+
 u8	early.cool	5	.live .unit="°/h" .decimal=1      // Early on assumed cool rate
 u8	early.heat	5	.live .unit="°/h" .decimal=1      // Early on assumed heat rate
 
