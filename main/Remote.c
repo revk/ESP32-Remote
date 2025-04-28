@@ -1395,7 +1395,7 @@ app_main ()
       show_temp (c);
       if (gfx_width () < gfx_height ())
       {
-         gfx_pos (2, 130, GFX_L | GFX_T | GFX_H);
+         gfx_pos (2, 125, GFX_L | GFX_T | GFX_H);
          if (edit == EDIT_START || edit == EDIT_STOP)
          {
             show_start ();
@@ -1409,7 +1409,7 @@ app_main ()
             gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_mode ();
          }
-         gfx_pos (0, 210, GFX_L | GFX_T | GFX_H);
+         gfx_pos (0, 205, GFX_L | GFX_T | GFX_H);
          show_co2 (co2);
          gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
          show_rh (rh);
@@ -1425,7 +1425,7 @@ app_main ()
                m++;
                gfx_background (0xFF0000);
             } else
-               gfx_foreground (0);
+               gfx_background (0);
             gfx_text (1, 3, "%s", m);
          } else
             show_clock (&t);
