@@ -811,6 +811,7 @@ btnNS (int8_t d)
          else if (m > REVK_SETTINGS_ACMODE_FAIKIN)
             m = 0;
          acmode = m;
+         jo_litf (j, "acmode", "%d", m);
       }
       break;
    case EDIT_FAN:
@@ -825,6 +826,7 @@ btnNS (int8_t d)
             while (!icon_fan3_message[f])
                f += d;
          acfan = f;
+         jo_litf (j, "acfan", "%d", f);
       }
       break;
    case EDIT_START:
@@ -837,6 +839,7 @@ btnNS (int8_t d)
          else if (t >= 24 * 60)
             t = 0;
          acstart = t / 60 * 100 + t % 60;
+         jo_stringf (j, "acstart", "%04d", t);
       }
       break;
    case EDIT_STOP:
@@ -849,6 +852,7 @@ btnNS (int8_t d)
          else if (t >= 24 * 60)
             t = 0;
          acstop = t / 60 * 100 + t % 60;
+         jo_stringf (j, "acstop", "%04d", t);
       }
       break;
    }
