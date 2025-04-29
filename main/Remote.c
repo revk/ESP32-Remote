@@ -54,6 +54,22 @@ const char *const icon_mode_message[] = { "Mode: Auto", "Mode: Fan", "Mode: Dry"
 const char *const icon_fan5_message[] = { "Fan: Auto", "Fan: 1", "Fan: 2", "Fan: 3", "Fan: 4", "Fan: 5", "Fan: Quiet" };
 const char *const icon_fan3_message[] = { "Fan: Auto", "Fan: Low", NULL, "Fan: Mid", NULL, "Fan: High", "Fan: Quiet" };
 
+static inline float
+T (float C)
+{                               // Celsius to temp
+   if (fahrenheit && !isnan (C))
+      return (C + 40) * 1.8 - 40;
+   return C;
+}
+
+static inline float
+C (float T)
+{                               // Temp to Celsuis
+   if (fahrenheit && !isnan (T))
+      return (T + 40) / 1.8 - 40;
+   return T;
+}
+
 struct
 {
    uint8_t found:1;
@@ -68,14 +84,14 @@ struct
 {
    uint8_t found:1;
    uint8_t ok:1;
-   float c;
+   float t;
 } tmp1075 = { 0 };
 
 struct
 {
    uint8_t found:1;
    uint8_t ok:1;
-   float c;
+   float t;
 } mcp9808 = { 0 };
 
 struct
@@ -83,7 +99,7 @@ struct
    uint8_t found:1;
    uint8_t ok:1;
    float hpa;
-   float c;
+   float t;
 } gzp6816d = { 0 };
 
 struct
@@ -99,7 +115,7 @@ struct
    uint8_t ok:1;
    uint32_t serial;
    uint16_t ppm;
-   float c;
+   float t;
    float rh;
 } scd41 = { 0 };
 
@@ -108,7 +124,7 @@ struct
    uint8_t ok:1;
    ds18b20_device_handle_t handle;
    uint64_t serial;
-   float c;
+   float t;
 } *ds18b20s = NULL;
 
 static void *
@@ -606,7 +622,7 @@ i2c_task (void *x)
          if (v < 0)
          {
             mcp9808.ok = 0;
-            mcp9808.c = NAN;
+            mcp9808.t = NAN;
          } else
          {
             int16_t t = (v << 3),
@@ -614,7 +630,7 @@ i2c_task (void *x)
             last3 = last2;
             last2 = last1;
             last1 = t;
-            mcp9808.c = (float) a / 128 + (float) mcp9808dt / mcp9808dt_scale;
+            mcp9808.t = T ((float) a / 128) + (float) mcp9808dt / mcp9808dt_scale;
             mcp9808.ok = 1;
          }
       }
@@ -640,13 +656,13 @@ i2c_task (void *x)
          i2c_cmd_link_delete (t);
          if (!err && !(s & 0x20))
          {
-            gzp6816d.c = (float) ((t1 << 8) | t2) * 190 / 65536 - 40 + (float) gzp6816ddt / gzp6816ddt_scale;
+            gzp6816d.t = T ((float) ((t1 << 8) | t2) * 190 / 65536 - 40) + (float) gzp6816ddt / gzp6816ddt_scale;
             gzp6816d.hpa = (float) 800 *(((p1 << 16) | (p2 << 8) | p3) - 1677722) / 13421772 + 300;
             gzp6816d.ok = 1;
          } else
          {
             gzp6816d.ok = 0;
-            gzp6816d.c = NAN;
+            gzp6816d.t = NAN;
             gzp6816d.hpa = NAN;
          }
       }
@@ -673,13 +689,13 @@ i2c_task (void *x)
          {
             scd41.ppm = (buf[0] << 8) + buf[1];
             if (uptime () > 30)
-               scd41.c = -45.0 + 175.0 * (float) ((buf[3] << 8) + buf[4]) / 65536.0 + (float) scd41dt / scd41dt_scale;
+               scd41.t = T (-45.0 + 175.0 * (float) ((buf[3] << 8) + buf[4]) / 65536.0) + (float) scd41dt / scd41dt_scale;
             scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
             scd41.ok = 1;
          } else if (err)
          {
             scd41.ok = 0;
-            scd41.c = NAN;
+            scd41.t = NAN;
             scd41.rh = 0;
          }
       }
@@ -707,7 +723,7 @@ ds18b20_task (void *x)
       while (!onewire_device_iter_get_next (iter, &dev))
       {
          ds18b20s = realloc (ds18b20s, (ds18b20_num + 1) * sizeof (*ds18b20s));
-         ds18b20s[ds18b20_num].c = NAN;
+         ds18b20s[ds18b20_num].t = NAN;
          ds18b20s[ds18b20_num].serial = dev.address;
          ds18b20_config_t config = { };
          REVK_ERR_CHECK (ds18b20_new_device (&dev, &config, &ds18b20s[ds18b20_num].handle));
@@ -737,8 +753,10 @@ ds18b20_task (void *x)
       usleep (250000);
       for (int i = 0; i < ds18b20_num; ++i)
       {
+         float c;
          REVK_ERR_CHECK (ds18b20_trigger_temperature_conversion (ds18b20s[i].handle));
-         REVK_ERR_CHECK (ds18b20_get_temperature (ds18b20s[i].handle, &ds18b20s[i].c));
+         REVK_ERR_CHECK (ds18b20_get_temperature (ds18b20s[i].handle, &c));
+         ds18b20s[i].t = T (c);
       }
    }
    vTaskDelete (NULL);
@@ -1089,8 +1107,6 @@ rh_colour (uint8_t rh)
 void
 show_temp (float t)
 {                               // Show current temp
-   if (fahrenheit && !isnan (t))
-      t = (t + 40) * 1.8 - 40;
    temp_colour (t);
    if (isnan (t) || t <= -100 || t >= 1000)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "---.-%c", fahrenheit ? 'F' : 'C');
@@ -1101,8 +1117,6 @@ show_temp (float t)
 void
 show_target (float t)
 {                               // Show target temp
-   if (fahrenheit && !isnan (t))
-      t = (t + 40) * 1.8 - 40;
    if (edit == EDIT_TARGET)
    {
       select_icon_plot (icon_select2, -2, -2);
@@ -1261,15 +1275,15 @@ app_main ()
    xSemaphoreGive (epd_mutex);
 #endif
    int8_t lastsec = -1;
-   float blec = NAN;
+   float blet = NAN;
    uint8_t blerh = 0;
    while (!revk_shutting_down (NULL))
    {
       message = NULL;           // set by Show functions
-      struct tm t;
+      struct tm tm;
       uint32_t up = uptime ();
       time_t now = time (0);
-      localtime_r (&now, &t);
+      localtime_r (&now, &tm);
       if (!b.display && (now & 0x7F) == lastsec)
          continue;
       b.display = 0;
@@ -1312,12 +1326,12 @@ app_main ()
          if (bleidtemp && !bleidtemp->missing)
          {                      // Use temp
             if (bleidtemp->tempset)
-               blec = bleidtemp->temp / 100.0;
+               blet = T ((float) bleidtemp->temp / 100.0);
             if (bleidtemp->humset)
                blerh = bleidtemp->hum / 100;
          } else
          {
-            blec = NAN;
+            blet = NAN;
             blerh = 0;
          }
       }
@@ -1330,48 +1344,45 @@ app_main ()
       // TODO override
       // Work out current values to show / test
       uint8_t tempfrom = tempref;
-      float c = NAN;
+      float t = NAN;
       switch (tempref)
       {
       case REVK_SETTINGS_TEMPREF_MCP9808:
-         c = mcp9808.c;
+         t = mcp9808.t;
          break;
       case REVK_SETTINGS_TEMPREF_TMP1075:
-         c = tmp1075.c;
+         t = tmp1075.t;
          break;
       case REVK_SETTINGS_TEMPREF_SCD41:
-         c = scd41.c;
+         t = scd41.t;
          break;
       case REVK_SETTINGS_TEMPREF_GZP6816D:
-         c = gzp6816d.c;
+         t = gzp6816d.t;
          break;
       case REVK_SETTINGS_TEMPREF_BLE:
-         c = blec;
+         t = blet;
          break;
       case REVK_SETTINGS_TEMPREF_DS18B200:
          if (ds18b20_num >= 1)
-            c = ds18b20s[0].c;
+            t = ds18b20s[0].t;
          break;
       case REVK_SETTINGS_TEMPREF_DS18B201:
          if (ds18b20_num >= 2)
-            c = ds18b20s[1].c;
+            t = ds18b20s[1].t;
          break;
       }
-      if (isnan (c))
-      {                         // Auto
-         if (isnan (c) && !isnan (c = blec))
-            tempfrom = REVK_SETTINGS_TEMPREF_BLE;
-         if (isnan (c) && ds18b20_num && !isnan (c = ds18b20s[0].c))
-            tempfrom = REVK_SETTINGS_TEMPREF_DS18B200;
-         if (isnan (c) && scd41.ok && !isnan (c = scd41.c))
-            tempfrom = REVK_SETTINGS_TEMPREF_SCD41;
-         if (isnan (c) && tmp1075.ok && !isnan (c = tmp1075.c))
-            tempfrom = REVK_SETTINGS_TEMPREF_TMP1075;
-         if (isnan (c) && mcp9808.ok && !isnan (c = mcp9808.c))
-            tempfrom = REVK_SETTINGS_TEMPREF_MCP9808;
-         if (isnan (c) && gzp6816d.ok && !isnan (c = gzp6816d.c))
-            tempfrom = REVK_SETTINGS_TEMPREF_GZP6816D;
-      }
+      if (isnan (t) && !isnan (t = blet))
+         tempfrom = REVK_SETTINGS_TEMPREF_BLE;
+      if (isnan (t) && ds18b20_num && !isnan (t = ds18b20s[0].t))
+         tempfrom = REVK_SETTINGS_TEMPREF_DS18B200;
+      if (isnan (t) && scd41.ok && !isnan (t = scd41.t))
+         tempfrom = REVK_SETTINGS_TEMPREF_SCD41;
+      if (isnan (t) && tmp1075.ok && !isnan (t = tmp1075.t))
+         tempfrom = REVK_SETTINGS_TEMPREF_TMP1075;
+      if (isnan (t) && mcp9808.ok && !isnan (t = mcp9808.t))
+         tempfrom = REVK_SETTINGS_TEMPREF_MCP9808;
+      if (isnan (t) && gzp6816d.ok && !isnan (t = gzp6816d.t))
+         tempfrom = REVK_SETTINGS_TEMPREF_GZP6816D;
       uint16_t co2 = 0;
       uint8_t rh = 0;
       if (blerh)
@@ -1392,7 +1403,7 @@ app_main ()
       gfx_pos (gfx_width () - 1, 0, GFX_R);
       if (tempfrom == REVK_SETTINGS_TEMPREF_BLE)
          select_icon_plot (icon_bt, -15, 0);
-      show_temp (c);
+      show_temp (t);
       if (gfx_width () < gfx_height ())
       {
          gfx_pos (2, 125, GFX_L | GFX_T | GFX_H);
@@ -1428,7 +1439,7 @@ app_main ()
                gfx_background (0);
             gfx_text (1, 3, "%s", m);
          } else
-            show_clock (&t);
+            show_clock (&tm);
       } else
       {                         // Landscape
          // TODO
