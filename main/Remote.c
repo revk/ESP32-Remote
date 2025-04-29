@@ -198,6 +198,7 @@ revk_web_extra (httpd_req_t * req, int page)
 {
    revk_web_setting_title (req, "Controls");
    revk_web_setting (req, "Target", "actarget");
+   revk_web_setting (req, "±", "tempmargin");
    revk_web_setting (req, "Mode", "acmode");
    revk_web_setting (req, "Fan", "acfan");
    revk_web_setting (req, "Start", "acstart");
@@ -206,7 +207,7 @@ revk_web_extra (httpd_req_t * req, int page)
    revk_web_setting_info (req, "Temperature can be read from (in priority order)...<ul>"        //
                           "<li>External Bluetooth sensor (BLE)</li>"    //
                           "<li>Connected temperature probe (DS18B20)</li>"      //
-                          "<li>Connected CO₂ probe (SCD41)</li>"      //
+                          "<li>Internal CO₂ probe (SCD41)</li>"       //
                           "<li>Internal temperature sensor (%s)</li>"   //
                           "<li>Internal pressure sensor (GZP6816D), not recommended</li>"       //
                           "</ul>"       //
@@ -215,12 +216,14 @@ revk_web_extra (httpd_req_t * req, int page)
       );
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
-   if (tmp1075.found)
-      revk_web_setting (req, "Temp offset", "tmp1075");
-   if (mcp9808.found)
+   if (tempref == REVK_SETTINGS_TEMPREF_GZP6816D && gzp6816d.found)
+      revk_web_setting (req, "Temp offset", "gzp6816ddt");
+   else if (tempref == REVK_SETTINGS_TEMPREF_SCD41 && scd41.found)
+      revk_web_setting (req, "Temp offset", "scd41dt");
+   else if (tmp1075.found)
+      revk_web_setting (req, "Temp offset", "tmp1075dt");
+   else if (mcp9808.found)
       revk_web_setting (req, "Temp offset", "mcp9808dt");
-   revk_web_setting (req, "±", "tempmargin");
-   revk_web_setting (req, "HA", "haannounce");
    revk_web_setting (req, "Fahrenheit", "fahrenheit");
 }
 
