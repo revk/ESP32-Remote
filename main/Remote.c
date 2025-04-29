@@ -196,13 +196,29 @@ settings_bletemp (httpd_req_t * req)
 void
 revk_web_extra (httpd_req_t * req, int page)
 {
+   revk_web_setting_title (req, "Controls");
    revk_web_setting (req, "Target", "actarget");
    revk_web_setting (req, "Mode", "acmode");
    revk_web_setting (req, "Fan", "acfan");
    revk_web_setting (req, "Start", "acstart");
    revk_web_setting (req, "Stop", "acstop");
+   revk_web_setting_title (req, "Temperature");
+   revk_web_setting_info (req, "Temperature can be read from (in priority order)...<ul>"        //
+                          "<li>External Bluetooth sensor (BLE)</li>"    //
+                          "<li>Connected temperature probe (DS18B20)</li>"      //
+                          "<li>Connected CO₂ probe (SCD41)</li>"      //
+                          "<li>Internal temperature sensor (%s)</li>"   //
+                          "<li>Internal pressure sensor (GZP6816D), not recommended</li>"       //
+                          "</ul>"       //
+                          "Note that internal sensors may need adjustment, depending on orientation and if in a case, etc.",    //
+                          tmp1075.found ? "TMP105" : mcp9808.found ? "MCP9808" : "TMP1075/MCP98708"     //
+      );
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
+   if (tmp1075.found)
+      revk_web_setting (req, "Temp offset", "tmp1075");
+   if (mcp9808.found)
+      revk_web_setting (req, "Temp offset", "mcp9808dt");
    revk_web_setting (req, "±", "tempmargin");
    revk_web_setting (req, "HA", "haannounce");
    revk_web_setting (req, "Fahrenheit", "fahrenheit");
