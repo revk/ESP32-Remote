@@ -52,8 +52,8 @@ bit	fahrenheit					// Fahrenheit
 u16	ac.start		.live .digits=4 .unit="HHMM"		// Start time
 u16	ac.stop			.live .digits=4 .unit="HHMM"		// Stop time
 s16	ac.target	22	.live .unit="°" .decimal=1      // Target
-enum	ac.mode			.live .enums="Auto,Fan,Dry,Cool,Heat,Faikin"	// Mode
-enum	ac.fan			.live .enums="Auto,1,2,3,4,5,Quiet"		// Fan
+enum	ac.mode		1	.live .enums="Unspecified,Auto,Fan,Dry,Cool,Heat,Reserved,Faikin"	// Mode
+enum	ac.fan		1	.live .enums="Unspecified,Auto,1,2,3,4,5,Quiet"		// Fan
 
 s	ble.temp		.live 			// ID of BLE reference temp
 s	ble.faikin		.live 			// ID of Faikin to track

@@ -47,12 +47,14 @@ enum
 uint8_t edit = EDIT_NONE;       // Edit mode
 uint32_t wake = 0;              // Wake (uptime) timeout
 
-const uint8_t icon_mode[] = { icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_modefaikin };       // order same as acmode
-const uint8_t icon_fans5[] = { icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };    // order same as acfan
-const uint8_t icon_fans3[] = { icon_fanauto, icon_fanlow, 0xFF, icon_fanmid, 0xFF, icon_fanhigh, icon_fanquiet };       // order same as acfan
-const char *const icon_mode_message[] = { "Mode: Auto", "Mode: Fan", "Mode: Dry", "Mode: Cool", "Mode: Heat", "Mode: Faikin" };
-const char *const icon_fan5_message[] = { "Fan: Auto", "Fan: 1", "Fan: 2", "Fan: 3", "Fan: 4", "Fan: 5", "Fan: Quiet" };
-const char *const icon_fan3_message[] = { "Fan: Auto", "Fan: Low", NULL, "Fan: Mid", NULL, "Fan: High", "Fan: Quiet" };
+const uint8_t icon_mode[] = { icon_unknown, icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_unknown, icon_modefaikin };   // order same as acmode
+const char *const icon_mode_message[] = { NULL, "Mode: Auto", "Mode: Fan", "Mode: Dry", "Mode: Cool", "Mode: Heat", NULL, "Mode: Faikin" };
+
+const uint8_t icon_fans5[] = { icon_unknown, icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };      // order same as acfan
+const char *const icon_fan5_message[] = { NULL, "Fan: Auto", "Fan: 1", "Fan: 2", "Fan: 3", "Fan: 4", "Fan: 5", "Fan: Quiet" };
+
+const uint8_t icon_fans3[] = { icon_unknown, icon_fanauto, icon_fanlow, 0xFF, icon_fanmid, 0xFF, icon_fanhigh, icon_fanquiet }; // order same as acfan
+const char *const icon_fan3_message[] = { NULL, "Fan: Auto", "Fan: Low", NULL, "Fan: Mid", NULL, "Fan: High", "Fan: Quiet" };
 
 static inline float
 T (float C)
@@ -881,26 +883,27 @@ btnNS (int8_t d)
       break;
    case EDIT_MODE:
       {
-         int8_t m = acmode;
+         uint8_t m = acmode;
          m += d;
-         if (m < 0)
+         if (m < REVK_SETTINGS_ACMODE_AUTO)
             m = REVK_SETTINGS_ACMODE_FAIKIN;
          else if (m > REVK_SETTINGS_ACMODE_FAIKIN)
-            m = 0;
+            m = REVK_SETTINGS_ACMODE_AUTO;
+         while (!icon_mode_message[m])
+            m += d;
          jo_litf (j, "acmode", "%d", m);
       }
       break;
    case EDIT_FAN:
       {
-         int8_t f = acfan;
+         uint8_t f = acfan;
          f += d;
-         if (f < 0)
+         if (f < REVK_SETTINGS_ACFAN_AUTO)
             f = REVK_SETTINGS_ACFAN_QUIET;
          else if (f > REVK_SETTINGS_ACFAN_QUIET)
-            f = 0;
-         if (fan3)
-            while (!icon_fan3_message[f])
-               f += d;
+            f = REVK_SETTINGS_ACFAN_AUTO;
+         while (!(fan3 ? icon_fan3_message : icon_fan5_message)[f])
+            f += d;
          jo_litf (j, "acfan", "%d", f);
       }
       break;
@@ -1296,6 +1299,7 @@ app_main ()
    int8_t lastsec = -1;
    float blet = NAN;
    uint8_t blerh = 0;
+   uint8_t blebat = 0;
    while (!revk_shutting_down (NULL))
    {
       message = NULL;           // set by Show functions
@@ -1308,6 +1312,7 @@ app_main ()
       b.display = 0;
       if (lastsec != (now & 0x7F))
       {                         // Once per second
+         lastsec = (now & 0x7F);
          if (veml6040.ok && veml6040dark)
             b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
          revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
@@ -1348,11 +1353,18 @@ app_main ()
                blet = T ((float) bleidtemp->temp / 100.0);
             if (bleidtemp->humset)
                blerh = bleidtemp->hum / 100;
+            if (bleidtemp->batset)
+               blebat = bleidtemp->bat;
          } else
          {
             blet = NAN;
             blerh = 0;
          }
+         if (bleidfaikin && !bleidfaikin->missing)
+         {
+            // TODO
+         } else if (bleidfaikin && !message)
+            message = "*Faikin missing";
       }
       // On/off based on time and early
       // TODO
@@ -1413,7 +1425,8 @@ app_main ()
             rh = scd41.rh;
       } else if (t6793.ok)
          co2 = t6793.ppm;
-      lastsec = (now & 0x7F);
+      if (!message && blebat && blebat < 10)
+         message = "*Low BLE bat";
       // TODO override
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
       epd_lock ();
