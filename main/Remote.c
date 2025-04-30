@@ -604,6 +604,7 @@ i2c_task (void *x)
    }
    if (scd41i2c)
    {
+            scd41.t = NAN;
       esp_err_t err = 0;
       uint8_t try = 10;
       while (try--)
