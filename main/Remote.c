@@ -1116,15 +1116,15 @@ temp_colour (float t)
       if (t < tempblue - 0.5)
          c = 0x0000FF;
       else if (t < tempblue)
-         c = 0x0000FF + ((uint8_t)(255 * 2 * (t - tempblue + 0.5)) << 8);
+         c = 0x0000FF + ((uint8_t) (255 * 2 * (t - tempblue + 0.5)) << 8);
       else if (t < tempblue + 0.5)
-         c = 0x00FF00 + (uint8_t)(255 - 255 * 2 * (t - tempblue));
+         c = 0x00FF00 + (uint8_t) (255 - 255 * 2 * (t - tempblue));
       else if (t < tempred - 0.5)
          c = 0x00FF00;
       else if (t < tempred)
-         c = 0x00FF00 + ((uint8_t)(255 * 2 * (t - tempred + 0.5)) << 16);
+         c = 0x00FF00 + ((uint8_t) (255 * 2 * (t - tempred + 0.5)) << 16);
       else if (t < tempred + 0.5)
-         c = 0xFF0000 + ((uint8_t)(255 - 255 * 2 * (t - tempred)) << 8);
+         c = 0xFF0000 + ((uint8_t) (255 - 255 * 2 * (t - tempred)) << 8);
       else
          c = 0xFF0000;
    }
@@ -1258,12 +1258,14 @@ show_rh (uint8_t rh)
    if (norh)
       return;
    rh_colour (rh);
-   // Assumes right align
-   gfx_text (0, 4, "%%");
+   if (gfx_a () | GFX_R)
+      gfx_text (0, 4, "%%");
    if (!rh || rh >= 100)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--");
    else
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%2u", rh);
+   if (!(gfx_a () | GFX_R))
+      gfx_text (0, 4, "%%");
    if (!message && rh >= rhred)
       message = "*High humidity";
 }
@@ -1575,24 +1577,44 @@ app_main ()
          show_rh (rh);
          if (blerh)
             icon_plot (icon_bt);
-         gfx_pos (gfx_width () / 2, gfx_height () - 4, GFX_C | GFX_B);
-         if (message)
-         {
-            const char *m = message;
-            gfx_foreground (0xFFFFFF);
-            if (*m == '*')
-            {
-               m++;
-               gfx_background (0xFF0000);
-            } else
-               gfx_background (0);
-            gfx_text (1, 3, "%s", m);
-         } else
-            show_clock (&tm);
       } else
       {                         // Landscape
-         // TODO
+         gfx_pos (2, 2, GFX_T | GFX_L);
+         show_target ((float) actarget / actarget_scale);
+         gfx_pos (0, 64, GFX_T | GFX_L);
+         show_mode ();
+         gfx_pos (120, gfx_y (), GFX_T | GFX_R);
+         show_fan ();
+         if (edit == EDIT_START || edit == EDIT_STOP)
+         {
+            gfx_pos (2, 130, GFX_T | GFX_L);
+            show_start ();
+            gfx_pos (gfx_width () - 3, gfx_y (), GFX_T | GFX_R);
+            show_stop ();
+         } else
+         {
+            gfx_pos (gfx_width () - 3, 130, GFX_T | GFX_R);
+            show_co2 (co2);
+            gfx_pos (2, gfx_y (), GFX_T | GFX_L | GFX_H);
+            show_rh (rh);
+            if (blerh)
+               icon_plot (icon_bt);
+         }
       }
+      gfx_pos (gfx_width () / 2, gfx_height () - 4, GFX_C | GFX_B);
+      if (message)
+      {
+         const char *m = message;
+         gfx_foreground (0xFFFFFF);
+         if (*m == '*')
+         {
+            m++;
+            gfx_background (0xFF0000);
+         } else
+            gfx_background (0);
+         gfx_text (1, 3, "%s", m);
+      } else
+         show_clock (&tm);
       epd_unlock ();
 #endif
       usleep (10000);
