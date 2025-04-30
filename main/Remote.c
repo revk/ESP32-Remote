@@ -173,6 +173,33 @@ revk_state_extra (jo_t j)
 }
 
 static void
+settings_blefaikin (httpd_req_t * req)
+{
+   revk_web_send (req, "<tr><td>Faikin</td><td>"        //
+                  "<select name=bletemp>");
+   if (!*bletemp)
+      revk_web_send (req, "<option value=\"\">-- None --");
+   char found = 0;
+   for (bleenv_t * e = bleenv; e; e = e->next)
+      if (e->faikinset)
+      {
+         revk_web_send (req, "<option value=\"%s\"", e->name);
+         if (*blefaikin && !strcmp (blefaikin, e->name))
+         {
+            revk_web_send (req, " selected");
+            found = 1;
+         }
+         revk_web_send (req, ">%s", e->name);
+         if (!e->missing && e->rssi)
+            revk_web_send (req, " %ddB", e->rssi);
+      }
+   if (!found)
+      revk_web_send (req, "<option selected value=\"%s\">%s", blefaikin, *blefaikin ? blefaikin : "----");
+   revk_web_send (req, "</select>");
+   revk_web_send (req, "</td><td>Air conditioner Faikin</td></tr>");
+}
+
+static void
 settings_bletemp (httpd_req_t * req)
 {
    revk_web_send (req, "<tr><td>BLE</td><td>"   //
@@ -181,21 +208,20 @@ settings_bletemp (httpd_req_t * req)
       revk_web_send (req, "<option value=\"\">-- None --");
    char found = 0;
    for (bleenv_t * e = bleenv; e; e = e->next)
-   {
-      revk_web_send (req, "<option value=\"%s\"", e->name);
-      if (*bletemp && !strcmp (bletemp, e->name))
+      if (!e->faikinset)
       {
-         revk_web_send (req, " selected");
-         found = 1;
+         revk_web_send (req, "<option value=\"%s\"", e->name);
+         if (*bletemp && !strcmp (bletemp, e->name))
+         {
+            revk_web_send (req, " selected");
+            found = 1;
+         }
+         revk_web_send (req, ">%s", e->name);
+         if (!e->missing && e->rssi)
+            revk_web_send (req, " %ddB", e->rssi);
       }
-      revk_web_send (req, ">%s", e->name);
-      if (!e->missing && e->rssi)
-         revk_web_send (req, " %ddB", e->rssi);
-   }
-   if (!found && *bletemp)
-   {
-      revk_web_send (req, "<option selected value=\"%s\">%s", bletemp, bletemp);
-   }
+   if (!found)
+      revk_web_send (req, "<option selected value=\"%s\">%s", bletemp, *bletemp ? bletemp : "----");
    revk_web_send (req, "</select>");
    revk_web_send (req, "</td><td>External BLE temperature reference</td></tr>");
 }
@@ -204,6 +230,7 @@ void
 revk_web_extra (httpd_req_t * req, int page)
 {
    revk_web_setting_title (req, "Controls");
+   settings_blefaikin (req);
    revk_web_setting (req, "Target", "actarget");
    revk_web_setting (req, "±", "tempmargin");
    revk_web_setting (req, "Mode", "acmode");
