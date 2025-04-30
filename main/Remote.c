@@ -1536,6 +1536,9 @@ app_main ()
          bleenv_bthome2 (hostname, C (t), rh, co2, veml6040.w);
          break;
       }
+      // Pick up changed from AC
+      // TODO
+
       // TODO override message
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
       epd_lock ();
