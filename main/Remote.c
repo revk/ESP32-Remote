@@ -176,7 +176,7 @@ static void
 settings_blefaikin (httpd_req_t * req)
 {
    revk_web_send (req, "<tr><td>Faikin</td><td>"        //
-                  "<select name=bletemp>");
+                  "<select name=blefaikin>");
    if (!*bletemp)
       revk_web_send (req, "<option value=\"\">-- None --");
    char found = 0;
@@ -1534,7 +1534,7 @@ app_main ()
       switch (bleadvert)
       {
       case REVK_SETTINGS_BLEADVERT_FAIKIN:
-         bleenv_faikin (hostname, C (t), C (targetlow), C (targethigh), b.poweron, b.rad, acmode, acfan);
+         bleenv_faikin (hostname, C (t), C (targetlow), C (targethigh), b.manual ? b.manualon : b.poweron, b.rad, acmode, acfan);
          break;
       case REVK_SETTINGS_BLEADVERT_BTHOME1:
          bleenv_bthome1 (hostname, C (t), rh, co2, veml6040.w);
