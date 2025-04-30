@@ -27,6 +27,8 @@ struct
    uint8_t poweron:1;           // Logical power on
    uint8_t manual:1;            // Manual set power
    uint8_t manualon:1;          // Manual is on
+   uint8_t fan:1;               // Fan on
+   uint8_t rad:1;               // Rad on
 } b = { 0 };
 
 httpd_handle_t webserver = NULL;
@@ -46,9 +48,12 @@ enum
 };
 uint8_t edit = EDIT_NONE;       // Edit mode
 uint32_t wake = 0;              // Wake (uptime) timeout
+bleenv_t *bleidtemp = NULL;
+bleenv_t *bleidfaikin = NULL;
 
 const uint8_t icon_mode[] = { icon_unknown, icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_unknown, icon_modefaikin };   // order same as acmode
-const char *const icon_mode_message[] = { NULL, "Mode: Auto", "Mode: Fan", "Mode: Dry", "Mode: Cool", "Mode: Heat", NULL, "Mode: Faikin" };
+const char *const icon_mode_message[] =
+   { NULL, "Mode: Auto", "Mode: Fan", "Mode: Dry", "Mode: Cool", "Mode: Heat", NULL, "Mode: Faikin" };
 
 const uint8_t icon_fans5[] = { icon_unknown, icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };      // order same as acfan
 const char *const icon_fan5_message[] = { NULL, "Fan: Auto", "Fan: 1", "Fan: 2", "Fan: 3", "Fan: 4", "Fan: 5", "Fan: Quiet" };
@@ -211,6 +216,7 @@ revk_web_extra (httpd_req_t * req, int page)
                           "<li>Connected temperature probe (DS18B20)</li>"      //
                           "<li>Internal CO₂ probe (SCD41)</li>"       //
                           "<li>Internal temperature sensor (%s)</li>"   //
+                          "<li>Aircon temperature via Faikin (AC)</li>" //
                           "<li>Internal pressure sensor (GZP6816D), not recommended</li>"       //
                           "</ul>"       //
                           "Note that internal sensors may need adjustment, depending on orientation and if in a case, etc.",    //
@@ -222,6 +228,8 @@ revk_web_extra (httpd_req_t * req, int page)
       revk_web_setting (req, "Temp offset", "gzp6816ddt");
    else if (tempref == REVK_SETTINGS_TEMPREF_SCD41 && scd41.found)
       revk_web_setting (req, "Temp offset", "scd41dt");
+   else if (tempref == REVK_SETTINGS_TEMPREF_AC && bleidfaikin && !bleidfaikin->missing)
+      revk_web_setting (req, "Temp offset", "acdt");
    else if (tmp1075.found)
       revk_web_setting (req, "Temp offset", "tmp1075dt");
    else if (mcp9808.found)
@@ -1127,6 +1135,22 @@ rh_colour (uint8_t rh)
 }
 
 void
+send_fan (uint8_t fan)
+{
+   b.fan = fan;
+   if (*mqttfan)
+      revk_mqtt_send_raw (mqttfan, 1, fan ? "1" : "0", 1);
+}
+
+void
+send_rad (uint8_t rad)
+{
+   b.rad = rad;
+   if (*mqttrad)
+      revk_mqtt_send_raw (mqttrad, 1, rad ? "1" : "0", 1);
+}
+
+void
 show_temp (float t)
 {                               // Show current temp
    temp_colour (t);
@@ -1278,8 +1302,6 @@ app_main ()
    if (ds18b20.set)
       revk_task ("18b20", ds18b20_task, NULL, 10);
    bleenv_run ();
-   bleenv_t *bleidtemp = NULL;
-   bleenv_t *bleidfaikin = NULL;
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)
    {
@@ -1297,6 +1319,7 @@ app_main ()
    xSemaphoreGive (epd_mutex);
 #endif
    int8_t lastsec = -1;
+   int8_t lastmin = -1;
    float blet = NAN;
    uint8_t blerh = 0;
    uint8_t blebat = 0;
@@ -1307,12 +1330,11 @@ app_main ()
       uint32_t up = uptime ();
       time_t now = time (0);
       localtime_r (&now, &tm);
-      if (!b.display && (now & 0x7F) == lastsec)
+      if (!b.display && tm.tm_sec == lastsec)
          continue;
       b.display = 0;
-      if (lastsec != (now & 0x7F))
+      if (tm.tm_sec != lastsec)
       {                         // Once per second
-         lastsec = (now & 0x7F);
          if (veml6040.ok && veml6040dark)
             b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
          revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
@@ -1366,8 +1388,6 @@ app_main ()
          } else if (bleidfaikin && !message)
             message = "*Faikin missing";
       }
-      // On/off based on time and early
-      // TODO
       // Manual
       if (b.manual && b.manualon == b.poweron)
          b.manual = 0;
@@ -1393,6 +1413,10 @@ app_main ()
       case REVK_SETTINGS_TEMPREF_BLE:
          t = blet;
          break;
+      case REVK_SETTINGS_TEMPREF_AC:
+         if (bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
+            t = T ((float) bleidfaikin->temp / 100);
+         break;
       case REVK_SETTINGS_TEMPREF_DS18B200:
          if (ds18b20_num >= 1)
             t = ds18b20s[0].t;
@@ -1412,6 +1436,11 @@ app_main ()
          tempfrom = REVK_SETTINGS_TEMPREF_TMP1075;
       if (isnan (t) && mcp9808.ok && !isnan (t = mcp9808.t))
          tempfrom = REVK_SETTINGS_TEMPREF_MCP9808;
+      if (isnan (t) && bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
+      {
+         t = T ((float) bleidfaikin->temp / 100);
+         tempfrom = REVK_SETTINGS_TEMPREF_AC;
+      }
       if (isnan (t) && gzp6816d.ok && !isnan (t = gzp6816d.t))
          tempfrom = REVK_SETTINGS_TEMPREF_GZP6816D;
       uint16_t co2 = 0;
@@ -1427,7 +1456,60 @@ app_main ()
          co2 = t6793.ppm;
       if (!message && blebat && blebat < 10)
          message = "*Low BLE bat";
-      // TODO override
+      if (!b.fan && ((co2red && co2 >= co2red) || (rhred && rh >= rhred)))
+         send_fan (1);
+      else if (b.fan && (!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen))
+         send_fan (0);
+      // power set based on time and manual
+      // TODO
+
+      float targetlow = (float) actarget / actarget_scale - (float) tempmargin / tempmargin_scale;
+      float targethigh = (float) actarget / actarget_scale + (float) tempmargin / tempmargin_scale;
+      if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
+      {
+         // Power
+         // TODO
+
+         // Early
+         // TODO
+      } else
+      {
+         // Power
+         // TODO
+
+         // Early
+         // TODO
+      }
+      // Limits
+      if (targetlow < (float) tempmin / tempmin_scale)
+         targetlow = (float) tempmin / tempmin_scale;
+      if (targetlow > (float) tempmax / tempmax_scale)
+         targetlow = (float) tempmax / tempmax_scale;
+      if (targethigh < (float) tempmin / tempmin_scale)
+         targethigh = (float) tempmin / tempmin_scale;
+      if (targethigh > (float) tempmax / tempmax_scale)
+         targethigh = (float) tempmax / tempmax_scale;
+      if (tm.tm_min != lastmin)
+      {
+         if (t < targetlow)
+            send_rad (1);
+         else
+            send_rad (0);
+      }
+      // BLE
+      switch (bleadvert)
+      {
+      case REVK_SETTINGS_BLEADVERT_FAIKIN:
+         bleenv_faikin (hostname, C (t), C (targetlow), C (targethigh), b.poweron, b.rad, acmode, acfan);
+         break;
+      case REVK_SETTINGS_BLEADVERT_BTHOME1:
+         bleenv_bthome1 (hostname, C (t), rh, co2, veml6040.w);
+         break;
+      case REVK_SETTINGS_BLEADVERT_BTHOME2:
+         bleenv_bthome2 (hostname, C (t), rh, co2, veml6040.w);
+         break;
+      }
+      // TODO override message
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
       epd_lock ();
       gfx_clear (0);
@@ -1479,6 +1561,8 @@ app_main ()
       epd_unlock ();
 #endif
       usleep (10000);
+      lastsec = tm.tm_sec;
+      lastmin = tm.tm_min;
    }
    b.die = 1;
    epd_lock ();

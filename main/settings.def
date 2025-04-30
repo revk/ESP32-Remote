@@ -54,12 +54,13 @@ u16	ac.stop			.live .digits=4 .unit="HHMM"		// Stop time
 s16	ac.target	22	.live .unit="°" .decimal=1      // Target
 enum	ac.mode		1	.live .enums="Unspecified,Auto,Fan,Dry,Cool,Heat,Reserved,Faikin"	// Mode
 enum	ac.fan		1	.live .enums="Unspecified,Auto,1,2,3,4,5,Quiet"		// Fan
+s16	ac.dt		0	.live .unit="°" .decimal=2	// AC Temp offset
 
 s	ble.temp		.live 			// ID of BLE reference temp
 s	ble.faikin		.live 			// ID of Faikin to track
-c8	ble.name		.live 			// Name for announcing BLE
+enum	ble.advert		.live .enums="Faikin,BTHome1,BTHome2"	// BLE advertisement type
 
-enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,DS18B200,DS18B201"	// Primary reference temperature
+enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,AC,DS18B200,DS18B201"	// Primary reference temperature
 s8	temp.margin	1	.live .unit="°" .decimal=1	// Temp target ± margin
 s16	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
 s16	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
