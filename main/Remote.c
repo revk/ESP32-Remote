@@ -604,7 +604,7 @@ i2c_task (void *x)
    }
    if (scd41i2c)
    {
-            scd41.t = NAN;
+      scd41.t = NAN;
       esp_err_t err = 0;
       uint8_t try = 10;
       while (try--)
@@ -1115,12 +1115,16 @@ temp_colour (float t)
    {
       if (t < tempblue - 0.5)
          c = 0x0000FF;
+      else if (t < tempblue)
+         c = 0x0000FF + ((uint8_t)(255 * 2 * (t - tempblue + 0.5)) << 8);
       else if (t < tempblue + 0.5)
-         c = gfx_blend (0x0000FF, 0x00FF00, 255 * (t - tempblue + 0.5));
+         c = 0x00FF00 + (uint8_t)(255 - 255 * 2 * (t - tempblue));
       else if (t < tempred - 0.5)
          c = 0x00FF00;
+      else if (t < tempred)
+         c = 0x00FF00 + ((uint8_t)(255 * 2 * (t - tempred + 0.5)) << 16);
       else if (t < tempred + 0.5)
-         c = gfx_blend (0x00FF00, 0xFF0000, 255 * (t - tempred + 0.5));
+         c = 0xFF0000 + ((uint8_t)(255 - 255 * 2 * (t - tempred)) << 8);
       else
          c = 0xFF0000;
    }
