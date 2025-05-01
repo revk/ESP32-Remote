@@ -314,7 +314,7 @@ revk_web_extra (httpd_req_t * req, int page)
                           "<li>Internal pressure sensor (GZP6816D), not recommended</li>"       //
                           "</ul>"       //
                           "Note that internal sensors may need adjustment, depending on orientation and if in a case, etc.",    //
-                          tmp1075.found ? "TMP105" : mcp9808.found ? "MCP9808" : "TMP1075/MCP98708"     //
+                          tmp1075.found ? "TMP1075" : mcp9808.found ? "MCP9808" : "TMP1075/MCP98708"     //
       );
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
@@ -842,7 +842,7 @@ i2c_task (void *x)
             tmp1075.t = NAN;
          } else
          {
-            tmp1075.t = T (((float) (int16_t) v) / 256);
+            tmp1075.t = T (((float) (int16_t) v) / 256)+(float)tmp1075dt/tmp1075dt_scale;;
             tmp1075.ok = 1;
          }
       }
