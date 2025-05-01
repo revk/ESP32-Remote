@@ -30,6 +30,7 @@ struct
    uint8_t fan:1;               // Fan on
    uint8_t rad:1;               // Rad on
    uint8_t connect:1;           // MQTT connect
+   uint8_t faikinheat:1;        // Faikin auto is heating
 } b = { 0 };
 
 struct
@@ -38,6 +39,7 @@ struct
    uint8_t rh;
    uint8_t tempfrom;
    float temp;
+   float target;
    float tmin;
    float tmax;
    float lux;
@@ -184,6 +186,30 @@ app_callback (int client, const char *prefix, const char *target, const char *su
       return NULL;
    if (!strcmp (suffix, "connect"))
       b.connect = 1;
+   if (!strcmp (suffix, "away"))
+   {
+      if (*value == '0' || *value == 'f')
+         suffix = "home";
+      else
+         b.away = 1;
+   }
+   if (!strcmp (suffix, "home"))
+   {
+      b.away = 0;
+   }
+   if (!strcmp (suffix, "power"))
+      suffix = ((*value == '1' || *value == 't') ? "on" : "off");
+   if (!strcmp (suffix, "on"))
+   {
+      b.away = 0;
+      b.manualon = 1;
+      b.manual = 1;
+   }
+   if (!strcmp (suffix, "off"))
+   {
+      b.manualon = 0;
+      b.manual = 1;
+   }
    return NULL;
 }
 
@@ -314,7 +340,7 @@ revk_web_extra (httpd_req_t * req, int page)
                           "<li>Internal pressure sensor (GZP6816D), not recommended</li>"       //
                           "</ul>"       //
                           "Note that internal sensors may need adjustment, depending on orientation and if in a case, etc.",    //
-                          tmp1075.found ? "TMP1075" : mcp9808.found ? "MCP9808" : "TMP1075/MCP98708"     //
+                          tmp1075.found ? "TMP1075" : mcp9808.found ? "MCP9808" : "TMP1075/MCP98708"    //
       );
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
@@ -842,7 +868,7 @@ i2c_task (void *x)
             tmp1075.t = NAN;
          } else
          {
-            tmp1075.t = T (((float) (int16_t) v) / 256)+(float)tmp1075dt/tmp1075dt_scale;;
+            tmp1075.t = T (((float) (int16_t) v) / 256) + (float) tmp1075dt / tmp1075dt_scale;;
             tmp1075.ok = 1;
          }
       }
@@ -1339,6 +1365,8 @@ show_mode (void)
       icon_plot (icon_modeaway);
    else if (edit != EDIT_MODE && !(b.manual ? b.manualon : b.poweron))
       icon_plot (icon_modeoff);
+   else if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
+      icon_plot (b.faikinheat ? icon_modefaikinheat : icon_modefaikincool);
    else
       icon_plot (icon_mode[acmode]);
 }
@@ -1425,7 +1453,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1488,6 +1517,7 @@ app_main ()
    float blet = NAN;
    uint8_t blerh = 0;
    uint8_t blebat = 0;
+   uint8_t change = 0;
    while (!revk_shutting_down (NULL))
    {
       message = NULL;           // set by Show functions
@@ -1555,10 +1585,7 @@ app_main ()
             blet = NAN;
             blerh = 0;
          }
-         if (bleidfaikin && !bleidfaikin->missing)
-         {
-            // TODO update from faikin
-         } else if (bleidfaikin && !message)
+         if (bleidfaikin && (!bleidfaikin->faikinset || bleidfaikin->missing) && !message)
             message = "*Faikin missing";
       }
       // Manual
@@ -1704,6 +1731,10 @@ app_main ()
          }
       }
       xSemaphoreTake (data_mutex, portMAX_DELAY);
+      if (data.poweron != (b.manual ? b.manualon : b.poweron) ||
+          data.mode != acmode ||
+          data.fan != acfan || (acmode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != (float) actarget / actarget_scale))
+         change = 10;           // Delay incoming updates
       data.away = b.away;
       data.poweron = (b.manual ? b.manualon : b.poweron);
       data.extrad = b.rad;
@@ -1716,8 +1747,37 @@ app_main ()
       data.temp = t;
       data.tmin = targetlow;
       data.tmax = targethigh;
+      data.target = (float) actarget / actarget_scale;
       data.lux = (veml6040.ok ? veml6040.w : NAN);
       data.pressure = (gzp6816d.ok ? gzp6816d.hpa : NAN);
+      if (tm.tm_sec != lastsec && bleidfaikin && bleidfaikin->faikinset && !bleidfaikin->missing)
+      {                         // From Faikin
+         if (change)
+            change--;
+         if (!change)
+         {                      // Update
+            jo_t j = jo_object_alloc ();
+            if (bleidfaikin->power != data.poweron)
+            {
+               data.poweron = b.manualon = bleidfaikin->power;
+               b.manual = 1;
+            }
+            if (bleidfaikin->fan != data.fan)
+               jo_int (j, "acfan", data.fan = bleidfaikin->fan);
+            if (bleidfaikin->mode != data.mode)
+            {
+               if (data.mode != REVK_SETTINGS_ACMODE_FAIKIN)
+                  jo_int (j, "acmode", data.mode = bleidfaikin->mode);
+               else
+                  b.faikinheat = ((bleidfaikin->mode == REVK_SETTINGS_ACMODE_HEAT) ? 1 : 0);
+            }
+            float target = T ((float) (bleidfaikin->targetlow + bleidfaikin->targethigh) / 200);
+            if (data.mode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != target)
+               jo_litf (j, "actarget", "%.1f", data.target = target);
+            revk_setting (j);
+            jo_free (&j);
+         }
+      }
       xSemaphoreGive (data_mutex);
       if (reporting && (int8_t) (now / reporting) != lastreport)
       {
@@ -1737,7 +1797,6 @@ app_main ()
          bleenv_bthome2 (hostname, C (t), rh, co2, veml6040.w);
          break;
       }
-
 
       // TODO override message
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
@@ -1814,6 +1873,7 @@ app_main ()
       lastsec = tm.tm_sec;
       lastmin = tm.tm_min;
    }
+
    b.die = 1;
    epd_lock ();
    gfx_clear (0);
