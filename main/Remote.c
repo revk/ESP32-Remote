@@ -270,8 +270,7 @@ settings_blefaikin (httpd_req_t * req)
 {
    revk_web_send (req, "<tr><td>Faikin</td><td>"        //
                   "<select name=blefaikin>");
-   if (!*bletemp)
-      revk_web_send (req, "<option value=\"\">-- None --");
+   revk_web_send (req, "<option value=\"\">-- None --");
    char found = 0;
    for (bleenv_t * e = bleenv; e; e = e->next)
       if (e->faikinset)
@@ -286,8 +285,8 @@ settings_blefaikin (httpd_req_t * req)
          if (!e->missing && e->rssi)
             revk_web_send (req, " %ddB", e->rssi);
       }
-   if (!found)
-      revk_web_send (req, "<option selected value=\"%s\">%s", blefaikin, *blefaikin ? blefaikin : "----");
+   if (!found && *blefaikin)
+      revk_web_send (req, "<option selected value=\"%s\">%s", blefaikin, blefaikin);
    revk_web_send (req, "</select>");
    revk_web_send (req, "</td><td>Air conditioner Faikin</td></tr>");
 }
@@ -297,8 +296,7 @@ settings_bletemp (httpd_req_t * req)
 {
    revk_web_send (req, "<tr><td>BLE</td><td>"   //
                   "<select name=bletemp>");
-   if (!*bletemp)
-      revk_web_send (req, "<option value=\"\">-- None --");
+   revk_web_send (req, "<option value=\"\">-- None --");
    char found = 0;
    for (bleenv_t * e = bleenv; e; e = e->next)
       if (!e->faikinset)
@@ -313,8 +311,8 @@ settings_bletemp (httpd_req_t * req)
          if (!e->missing && e->rssi)
             revk_web_send (req, " %ddB", e->rssi);
       }
-   if (!found)
-      revk_web_send (req, "<option selected value=\"%s\">%s", bletemp, *bletemp ? bletemp : "----");
+   if (!found && !*bletemp)
+      revk_web_send (req, "<option selected value=\"%s\">%s", bletemp, bletemp);
    revk_web_send (req, "</select>");
    revk_web_send (req, "</td><td>External BLE temperature reference</td></tr>");
 }
@@ -334,7 +332,7 @@ revk_web_extra (httpd_req_t * req, int page)
    revk_web_setting_info (req, "Temperature can be read from (in priority order)...<ul>"        //
                           "<li>External Bluetooth sensor (BLE)</li>"    //
                           "<li>Connected temperature probe (DS18B20)</li>"      //
-                          "<li>Internal CO₂ probe (SCD41)</li>"       //
+                          "<li>Internal CO₂ sensor (SCD41)</li>"       //
                           "<li>Internal temperature sensor (%s)</li>"   //
                           "<li>Aircon temperature via Faikin (AC)</li>" //
                           "<li>Internal pressure sensor (GZP6816D), not recommended</li>"       //
@@ -1453,8 +1451,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
