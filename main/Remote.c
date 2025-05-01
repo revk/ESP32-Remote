@@ -1112,7 +1112,7 @@ btn_task (void *x)
                btn (b[i]);
             else if (i == 4 && t[i] == 200)
                btn ('H');
-            else if (i < 5 && t[i] == 100)
+            else if (i < 4 && t[i] == 100)
             {
                btn (b[i]);
                t[i] = 50;
