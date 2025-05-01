@@ -12,11 +12,7 @@ u8	gfx.flip					// Display Flip
 
 bit	ha.announce	1				// Home Assistant announce
 
-gpio	btn.n		-38				// Button N
-gpio	btn.s		-37				// Button S
-gpio	btn.e		-39				// Button E
-gpio	btn.w		-40				// Button W
-gpio	btn.p		-36				// Button P
+gpio	btns		"-38 -37 -39 -40 -36" .array=5	// Buttons N/S/E/W/P
 
 gpio	scl		1				// I2C SCL
 gpio	sda		2				// I2C SDA

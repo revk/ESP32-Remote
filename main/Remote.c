@@ -29,10 +29,28 @@ struct
    uint8_t manualon:1;          // Manual is on
    uint8_t fan:1;               // Fan on
    uint8_t rad:1;               // Rad on
+   uint8_t connect:1;           // MQTT connect
 } b = { 0 };
 
+struct
+{                               // For HA, etc
+   uint16_t co2;
+   uint8_t rh;
+   uint8_t tempfrom;
+   float temp;
+   float tmin;
+   float tmax;
+   uint8_t extfan:1;
+   uint8_t extrad:1;
+   uint8_t away:1;
+   uint8_t poweron:1;
+   uint8_t mode:3;
+   uint8_t fan:3;
+} data = { 0 };
+
 httpd_handle_t webserver = NULL;
-SemaphoreHandle_t epd_mutex = NULL;
+SemaphoreHandle_t lcd_mutex = NULL;
+SemaphoreHandle_t data_mutex = NULL;
 int8_t i2cport = 0;
 uint8_t ds18b20_num = 0;
 const char *message = NULL;
@@ -162,14 +180,31 @@ app_callback (int client, const char *prefix, const char *target, const char *su
    }
    if (client || !prefix || target || strcmp (prefix, topiccommand) || !suffix)
       return NULL;
-
+   if (!strcmp (suffix, "connect"))
+      b.connect = 1;
    return NULL;
 }
 
 void
 revk_state_extra (jo_t j)
 {
-
+   xSemaphoreTake (data_mutex, portMAX_DELAY);
+   if(co2)jo_int(j,"co2",co2);
+   if(rh)jo_int(j,"rh",rh);
+#if 0
+   uint8_t tempfrom;
+   float temp;
+   float tmin;
+   float tmax;
+   uint8_t extfan:1;
+   uint8_t extrad:1;
+   uint8_t away:1;
+   uint8_t poweron:1;
+   uint8_t mode:3;
+   uint8_t fan:3;
+   // TODO
+#endif
+   xSemaphoreGive (data_mutex);
 }
 
 static void
@@ -288,7 +323,7 @@ register_get_uri (const char *uri, esp_err_t (*handler) (httpd_req_t * r))
 void
 epd_lock (void)
 {
-   xSemaphoreTake (epd_mutex, portMAX_DELAY);
+   xSemaphoreTake (lcd_mutex, portMAX_DELAY);
    gfx_lock ();
 }
 
@@ -296,14 +331,14 @@ void
 epd_unlock (void)
 {
    gfx_unlock ();
-   xSemaphoreGive (epd_mutex);
+   xSemaphoreGive (lcd_mutex);
 }
 
 #ifdef	CONFIG_LWPNG_ENCODE
 static esp_err_t
 web_frame (httpd_req_t * req)
 {
-   xSemaphoreTake (epd_mutex, portMAX_DELAY);
+   xSemaphoreTake (lcd_mutex, portMAX_DELAY);
    uint8_t *png = NULL;
    size_t len = 0;
    uint32_t w = gfx_raw_w ();
@@ -353,7 +388,7 @@ web_frame (httpd_req_t * req)
       httpd_resp_send (req, (char *) png, len);
    }
    free (png);
-   xSemaphoreGive (epd_mutex);
+   xSemaphoreGive (lcd_mutex);
    return ESP_OK;
 }
 #endif
@@ -1305,10 +1340,18 @@ show_clock (struct tm *t)
 }
 
 void
+ha_config (void)
+{
+   // TODO
+}
+
+void
 app_main ()
 {
-   epd_mutex = xSemaphoreCreateMutex ();
-   xSemaphoreGive (epd_mutex);
+   lcd_mutex = xSemaphoreCreateMutex ();
+   xSemaphoreGive (lcd_mutex);
+   data_mutex = xSemaphoreCreateMutex ();
+   xSemaphoreGive (data_mutex);
    revk_boot (&app_callback);
    revk_start ();
 
@@ -1331,7 +1374,7 @@ app_main ()
    }
    if (sda.set && scl.set)
       revk_task ("i2c", i2c_task, NULL, 10);
-   if (btnn.set || btns.set || btne.set || btnw.set || btnp.set)
+   if (btns[0].set || btns[1].set || btns[2].set || btns[3].set || btns[4].set)
       revk_task ("btn", btn_task, NULL, 10);
    if (ds18b20.set)
       revk_task ("18b20", ds18b20_task, NULL, 10);
@@ -1348,9 +1391,9 @@ app_main ()
          revk_error ("GFX", &j);
       }
    }
-   xSemaphoreTake (epd_mutex, portMAX_DELAY);
+   xSemaphoreTake (lcd_mutex, portMAX_DELAY);
    revk_gfx_init (5);
-   xSemaphoreGive (epd_mutex);
+   xSemaphoreGive (lcd_mutex);
 #endif
    int8_t lastsec = -1;
    int8_t lastmin = -1;
@@ -1369,6 +1412,17 @@ app_main ()
       b.display = 0;
       if (tm.tm_sec != lastsec)
       {                         // Once per second
+         if (b.ha)
+         {
+            b.ha = 0;
+            ha_config ();
+         }
+         if (b.connect)
+         {
+            b.connect = 0;
+            send_rad (b.rad);
+            send_fan (b.fan);
+         }
          if (veml6040.ok && veml6040dark)
             b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
          revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
@@ -1377,9 +1431,6 @@ app_main ()
             wake = 0;
             edit = 0;
          }
-         // TODO rad control
-         // TODO fan control
-         // TODO update
          bleenv_expire (120);
          if (!bleidtemp || strcmp (bleidtemp->name, bletemp))
          {
@@ -1418,15 +1469,13 @@ app_main ()
          }
          if (bleidfaikin && !bleidfaikin->missing)
          {
-            // TODO
+            // TODO update from faikin
          } else if (bleidfaikin && !message)
             message = "*Faikin missing";
       }
       // Manual
       if (b.manual && b.manualon == b.poweron)
          b.manual = 0;
-      // TODO do we mutex this
-      // TODO override
       // Work out current values to show / test
       uint8_t tempfrom = tempref;
       float t = NAN;
@@ -1491,30 +1540,49 @@ app_main ()
       if (!message && blebat && blebat < 10)
          message = "*Low BLE bat";
       if (!b.fan && ((co2red && co2 >= co2red) || (rhred && rh >= rhred)))
-         send_fan (1);
-      else if (b.fan && (!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen))
-         send_fan (0);
+      {
+         if (!b.fan)
+            send_fan (1);
+      } else if (b.fan && (!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen))
+      {
+         if (b.fan)
+            send_fan (0);
+      }
       // power set based on time and manual
-      // TODO
-
+      int16_t early = 0;
+      if (acstart != acstop)
+      {
+         uint16_t start = acstart / 100 * 60 + acstart % 100;
+         uint16_t stop = acstart / 100 * 60 + acstart % 100;
+         uint16_t min = tm.tm_hour * 60 + tm.tm_min;
+         if (b.away)
+            b.poweron = 0;
+         else if (start < stop)
+         {
+            if (min >= start && now < stop)
+               b.poweron = 1;
+            else
+               b.poweron = 0;
+         } else
+         {
+            if (min >= start || now < stop)
+               b.poweron = 1;
+            else
+               b.poweron = 0;
+         }
+         early = start - min;
+         if (early < 0)
+            early += 24 * 60;
+      }
       float targetlow = (float) actarget / actarget_scale - (float) tempmargin / tempmargin_scale;
       float targethigh = (float) actarget / actarget_scale + (float) tempmargin / tempmargin_scale;
-      if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
+      if (!b.away && early)
       {
-         // Power
-         // TODO
-
-         // Early
-         // TODO
-      } else
-      {
-         // Power
-         // TODO
-
-         // Early
-         // TODO
+         if (earlyheat)
+            targetlow -= (float) earlyheat / earlyheat_scale * early / 60;
+         if (earlycool)
+            targethigh += (float) earlycool / earlycool_scale * early / 60;
       }
-      // Limits
       if (targetlow < (float) tempmin / tempmin_scale)
          targetlow = (float) tempmin / tempmin_scale;
       if (targetlow > (float) tempmax / tempmax_scale)
@@ -1523,13 +1591,44 @@ app_main ()
          targethigh = (float) tempmin / tempmin_scale;
       if (targethigh > (float) tempmax / tempmax_scale)
          targethigh = (float) tempmax / tempmax_scale;
+      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
+      {                         // Direct control not Faikin auto
+         targetlow = targethigh = (float) actarget / actarget_scale;
+         if (!b.poweron && early && (t < targetlow || t > targethigh))
+         {                      // Early on
+            ESP_LOGE (TAG, "Early on");
+            b.poweron = 1;
+         }
+      }
+      if (b.poweron == b.manualon)
+         b.manual = 0;
+      // Limits
       if (tm.tm_min != lastmin)
       {
          if (t < targetlow)
-            send_rad (1);
-         else
-            send_rad (0);
+         {
+            if (!b.rad)
+               send_rad (1);
+         } else
+         {
+            if (b.rad)
+               send_rad (0);
+         }
       }
+      xSemaphoreTake (data_mutex, portMAX_DELAY);
+      data.away = b.away;
+      data.poweron = (b.manual ? b.manualon : b.poweron);
+      data.extrad = b.rad;
+      data.extfan = b.fan;
+      data.mode = acmode;
+      data.fan = acfan;
+      data.co2 = co2;
+      data.rh = rh;
+      data.tempfrom = tempfrom;
+      data.temp = t;
+      data.tmin = targetlow;
+      data.tmax = targethigh;
+      xSemaphoreGive (data_mutex);
       // BLE
       switch (bleadvert)
       {
@@ -1543,8 +1642,7 @@ app_main ()
          bleenv_bthome2 (hostname, C (t), rh, co2, veml6040.w);
          break;
       }
-      // Pick up changed from AC
-      // TODO
+
 
       // TODO override message
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
