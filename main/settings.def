@@ -11,6 +11,7 @@ gpio	gfx.busy					// Display BUSY
 u8	gfx.flip					// Display Flip
 
 bit	ha.announce	1				// Home Assistant announce
+u16	reporting	60	.unit="s"		// Report interval
 
 gpio	btns		"-38 -37 -39 -40 -36" .array=5	// Buttons N/S/E/W/P
 

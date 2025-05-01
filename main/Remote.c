@@ -40,6 +40,8 @@ struct
    float temp;
    float tmin;
    float tmax;
+   float lux;
+   float pressure;
    uint8_t extfan:1;
    uint8_t extrad:1;
    uint8_t away:1;
@@ -189,21 +191,51 @@ void
 revk_state_extra (jo_t j)
 {
    xSemaphoreTake (data_mutex, portMAX_DELAY);
-   if(co2)jo_int(j,"co2",co2);
-   if(rh)jo_int(j,"rh",rh);
-#if 0
-   uint8_t tempfrom;
-   float temp;
-   float tmin;
-   float tmax;
-   uint8_t extfan:1;
-   uint8_t extrad:1;
-   uint8_t away:1;
-   uint8_t poweron:1;
-   uint8_t mode:3;
-   uint8_t fan:3;
-   // TODO
-#endif
+   void add_enum (const char *tag, int i, const char *e)
+   {
+      while (i--)
+      {
+         while (*e && *e != ',')
+            e++;
+         if (*e)
+            e++;
+      }
+      int l = 0;
+      while (e[l] && e[l] != ',')
+         l++;
+      jo_stringf (j, tag, "%.*s", l, e);
+   }
+   if (data.co2)
+      jo_int (j, "co2", data.co2);
+   if (data.rh)
+      jo_int (j, "rh", data.rh);
+   if (!isnan (data.lux))
+      jo_litf (j, "lux", "%.4f", data.lux);
+   if (!isnan (data.pressure))
+      jo_litf (j, "pressure", "%.2f", data.pressure);
+   if (!isnan (data.temp))
+   {
+      jo_litf (j, "temp", "%.2f", data.temp);
+      if (data.tempfrom)
+         add_enum ("source", data.tempfrom, REVK_SETTINGS_TEMPREF_ENUMS);
+   }
+   if (!isnan (data.tmin) && !isnan (data.tmax) && data.tmin == data.tmax)
+      jo_litf (j, "target", "%.2f", data.tmin);
+   else
+   {
+      if (!isnan (data.tmin))
+         jo_litf (j, "min", "%.2f", data.tmin);
+      if (!isnan (data.tmax))
+         jo_litf (j, "max", "%.2f", data.tmax);
+   }
+   if (data.mode)
+      add_enum ("mode", data.mode, REVK_SETTINGS_ACMODE_ENUMS);
+   if (data.fan)
+      add_enum ("fan", data.fan, REVK_SETTINGS_ACFAN_ENUMS);
+   jo_bool (j, "power", data.poweron);
+   jo_bool (j, "away", data.away);
+   jo_bool (j, "extfan", data.extfan);
+   jo_bool (j, "extrad", data.extrad);
    xSemaphoreGive (data_mutex);
 }
 
@@ -1342,7 +1374,12 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
-   // TODO
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
+ ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
+ ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
+ ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
+ ha_config_sensor ("pressure", name: "Pressure", type: "pressure", unit: "mbar", field: "pressure", delete:!gzp6816d.found);
 }
 
 void
@@ -1397,6 +1434,7 @@ app_main ()
 #endif
    int8_t lastsec = -1;
    int8_t lastmin = -1;
+   int8_t lastreport = -1;
    float blet = NAN;
    uint8_t blerh = 0;
    uint8_t blebat = 0;
@@ -1628,7 +1666,14 @@ app_main ()
       data.temp = t;
       data.tmin = targetlow;
       data.tmax = targethigh;
+      data.lux = (veml6040.ok ? veml6040.w : NAN);
+      data.pressure = (gzp6816d.ok ? gzp6816d.hpa : NAN);
       xSemaphoreGive (data_mutex);
+      if (reporting && (int8_t) (now / reporting) != lastreport)
+      {
+         lastreport = now / reporting;
+         revk_command ("status", NULL);
+      }
       // BLE
       switch (bleadvert)
       {
