@@ -425,15 +425,6 @@ web_frame (httpd_req_t * req)
 }
 #endif
 
-void
-btn_task (void *x)
-{
-   while (1)
-   {
-      sleep (1);                // TODO
-   }
-}
-
 static int32_t
 i2c_read_16lh (uint8_t addr, uint8_t cmd)
 {
@@ -1102,6 +1093,38 @@ btn (char c)
    }
 }
 
+void
+btn_task (void *x)
+{
+   for (int i = 0; i < 5; i++)
+      revk_gpio_input (btns[i]);
+   uint8_t t[5] = { 0 };
+   const char b[] = "NSEWP";
+   while (1)
+   {
+      for (int i = 0; i < 5; i++)
+      {
+         if (revk_gpio_get (btns[i]))
+         {
+            if (t[i] < 255)
+               t[i]++;
+            if (t[i] == 2)
+               btn (b[i]);
+            else if (i == 4 && t[i] == 200)
+               btn ('H');
+            else if (i < 5 && t[i] == 100)
+            {
+               btn (b[i]);
+               t[i] = 50;
+            }
+         } else
+            t[i] = 0;
+      }
+      usleep (10000);
+   }
+}
+
+
 static esp_err_t
 web_btn (httpd_req_t * req)
 {
@@ -1374,8 +1397,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
