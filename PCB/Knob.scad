@@ -1,0 +1,15 @@
+$fn=120;
+H=6;
+difference()
+{
+    union()
+    {
+        hull()
+        {
+             cylinder(d=8,h=1);
+             translate([0,0,2])cube([10,10,1],center=true);
+        }
+        cylinder(d=5,h=H-0.01);
+    }
+    translate([0,0,H-1])cube([2.3,2.3,4],center=true);
+}
