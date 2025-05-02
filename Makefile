@@ -36,7 +36,7 @@ ifeq ($(shell uname),Linux)
 else
 	/Applications/Inkscape.app/Contents/MacOS/inkscape $< -o $@
 endif
-	optipng -quiet -strip all $@
+	optipng -o2 -quiet -strip all $@
 
 icons/CMakeLists.txt:	$(patsubst %.svg,%.png,$(wildcard icons/*.svg))
 	icons/make

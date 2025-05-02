@@ -81,7 +81,7 @@ const uint8_t icon_fans5[] = { icon_unknown, icon_fanauto, icon_fan1, icon_fan2,
 const char *const icon_fan5_message[] = { NULL, "Fan: Auto", "Fan: 1", "Fan: 2", "Fan: 3", "Fan: 4", "Fan: 5", "Fan: Quiet" };
 
 const uint8_t icon_fans3[] = { icon_unknown, icon_fanauto, icon_fanlow, 0xFF, icon_fanmid, 0xFF, icon_fanhigh, icon_fanquiet }; // order same as acfan
-const char *const icon_fan3_message[] = { NULL, "Fan: Auto", "Fan: Low", NULL, "Fan: Mid", NULL, "Fan: High", "Fan: Quiet" };
+const char *const icon_fan3_message[] = { NULL, NULL, "Fan: Low", NULL, "Fan: Mid", NULL, "Fan: High", NULL };
 
 static inline float
 T (float C)
@@ -210,6 +210,16 @@ app_callback (int client, const char *prefix, const char *target, const char *su
       b.manualon = 0;
       b.manual = 1;
    }
+   if (!strcmp (suffix, "dark"))
+   {
+      b.night = 1;
+      revk_gpio_set (gfxbl, 0);
+   }
+   if (!strcmp (suffix, "light"))
+   {
+      b.night = 0;
+      revk_gpio_set (gfxbl, 1);
+   }
    return NULL;
 }
 
@@ -328,11 +338,18 @@ revk_web_extra (httpd_req_t * req, int page)
    revk_web_setting (req, "Fan", "acfan");
    revk_web_setting (req, "Start", "acstart");
    revk_web_setting (req, "Stop", "acstop");
+   if (veml6040.found)
+   {
+      revk_web_setting_title (req, "Backlight");
+      revk_web_setting_info (req, "The display can go dark below specified light level, 0 to disable. Current light level %.2f",
+                             veml6040.w);
+      revk_web_setting (req, "Auto dark", "veml6404dark");
+   }
    revk_web_setting_title (req, "Temperature");
    revk_web_setting_info (req, "Temperature can be read from (in priority order)...<ul>"        //
                           "<li>External Bluetooth sensor (BLE)</li>"    //
                           "<li>Connected temperature probe (DS18B20)</li>"      //
-                          "<li>Internal CO₂ sensor (SCD41)</li>"       //
+                          "<li>Internal CO₂ sensor (SCD41)</li>"      //
                           "<li>Internal temperature sensor (%s)</li>"   //
                           "<li>Aircon temperature via Faikin (AC)</li>" //
                           "<li>Internal pressure sensor (GZP6816D), not recommended</li>"       //
@@ -768,8 +785,6 @@ i2c_task (void *x)
          veml6040.b = v >= 0 && (v = i2c_read_16lh (veml6040i2c, 0x0A)) >= 0 ? (float) v *1031 / 65535 : NAN;
          veml6040.w = v >= 0 && (v = i2c_read_16lh (veml6040i2c, 0x0B)) >= 0 ? (float) v *1031 / 65535 : NAN;
          veml6040.ok = (v < 0 ? 0 : 1);
-         if (veml6040dark && gfxbl.set)
-            revk_gpio_set (gfxbl, veml6040.w < (float) veml6040dark / veml6040dark_scale ? 0 : 1);
       }
       if (mcp9808.found)
       {
@@ -1030,26 +1045,30 @@ btnNS (int8_t d)
    case EDIT_MODE:
       {
          uint8_t m = acmode;
-         m += d;
-         if (m < REVK_SETTINGS_ACMODE_AUTO)
-            m = REVK_SETTINGS_ACMODE_FAIKIN;
-         else if (m > REVK_SETTINGS_ACMODE_FAIKIN)
-            m = REVK_SETTINGS_ACMODE_AUTO;
-         while (!icon_mode_message[m])
+         do
+         {
             m += d;
+            if (m < REVK_SETTINGS_ACMODE_AUTO)
+               m = REVK_SETTINGS_ACMODE_FAIKIN;
+            else if (m > REVK_SETTINGS_ACMODE_FAIKIN)
+               m = REVK_SETTINGS_ACMODE_AUTO;
+         }
+         while (!icon_mode_message[m]);
          jo_litf (j, "acmode", "%d", m);
       }
       break;
    case EDIT_FAN:
       {
          uint8_t f = acfan;
-         f += d;
-         if (f < REVK_SETTINGS_ACFAN_AUTO)
-            f = REVK_SETTINGS_ACFAN_QUIET;
-         else if (f > REVK_SETTINGS_ACFAN_QUIET)
-            f = REVK_SETTINGS_ACFAN_AUTO;
-         while (!(fan3 ? icon_fan3_message : icon_fan5_message)[f])
+         do
+         {
             f += d;
+            if (f < REVK_SETTINGS_ACFAN_AUTO)
+               f = REVK_SETTINGS_ACFAN_QUIET;
+            else if (f > REVK_SETTINGS_ACFAN_QUIET)
+               f = REVK_SETTINGS_ACFAN_AUTO;
+         }
+         while (!(fan3 ? icon_fan3_message : icon_fan5_message)[f]);
          jo_litf (j, "acfan", "%d", f);
       }
       break;
@@ -1682,13 +1701,16 @@ app_main ()
             else
                b.poweron = 0;
          }
-         early = start - min;
-         if (early < 0)
-            early += 24 * 60;
+         if (!b.poweron)
+         {
+            early = start - min;
+            if (early < 0)
+               early += 24 * 60;
+         }
       }
       float targetlow = (float) actarget / actarget_scale - (float) tempmargin / tempmargin_scale;
       float targethigh = (float) actarget / actarget_scale + (float) tempmargin / tempmargin_scale;
-      if (!b.away && early)
+      if (early)
       {
          if (earlyheat)
             targetlow -= (float) earlyheat / earlyheat_scale * early / 60;
@@ -1705,12 +1727,12 @@ app_main ()
          targethigh = (float) tempmax / tempmax_scale;
       if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
       {                         // Direct control not Faikin auto
-         targetlow = targethigh = (float) actarget / actarget_scale;
          if (!b.poweron && early && (t < targetlow || t > targethigh))
          {                      // Early on
             ESP_LOGE (TAG, "Early on");
             b.poweron = 1;
          }
+         targetlow = targethigh = (float) actarget / actarget_scale;
       }
       if (b.poweron == b.manualon)
          b.manual = 0;
