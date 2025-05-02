@@ -191,7 +191,10 @@ app_callback (int client, const char *prefix, const char *target, const char *su
       if (*value == '0' || *value == 'f')
          suffix = "home";
       else
+      {
          b.away = 1;
+         b.manual = 0;
+      }
    }
    if (!strcmp (suffix, "home"))
    {
@@ -1470,7 +1473,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1716,6 +1720,10 @@ app_main ()
             targetlow -= (float) earlyheat / earlyheat_scale * early / 60;
          if (earlycool)
             targethigh += (float) earlycool / earlycool_scale * early / 60;
+      } else if (b.away)
+      {
+         targetlow = (float) tempmin / tempmin_scale;
+         targethigh = (float) tempmax / tempmin_scale;
       }
       if (targetlow < (float) tempmin / tempmin_scale)
          targetlow = (float) tempmin / tempmin_scale;
@@ -1776,7 +1784,7 @@ app_main ()
          if (!change)
          {                      // Update
             jo_t j = jo_object_alloc ();
-            if (bleidfaikin->power != data.poweron)
+            if (data.mode != REVK_SETTINGS_ACMODE_FAIKIN && bleidfaikin->power != data.poweron)
             {
                data.poweron = b.manualon = bleidfaikin->power;
                b.manual = 1;
