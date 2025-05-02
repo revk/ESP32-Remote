@@ -47,6 +47,7 @@ struct
    uint8_t extfan:1;
    uint8_t extrad:1;
    uint8_t away:1;
+   uint8_t night:1;
    uint8_t poweron:1;
    uint8_t mode:3;
    uint8_t fan:3;
@@ -69,7 +70,7 @@ enum
    EDIT_NUM,
 };
 uint8_t edit = EDIT_NONE;       // Edit mode
-uint32_t wake = 0;              // Wake (uptime) timeout
+uint8_t wake = 0;               // Wake (uptime) timeout
 bleenv_t *bleidtemp = NULL;
 bleenv_t *bleidfaikin = NULL;
 
@@ -213,15 +214,20 @@ app_callback (int client, const char *prefix, const char *target, const char *su
       b.manualon = 0;
       b.manual = 1;
    }
+   if (!strcmp (suffix, "light"))
+   {
+      if (*value == '0' || *value == 'f')
+         suffix = "dark";
+      else
+      {
+         b.night = 0;
+         revk_gpio_set (gfxbl, 1);
+      }
+   }
    if (!strcmp (suffix, "dark"))
    {
       b.night = 1;
       revk_gpio_set (gfxbl, 0);
-   }
-   if (!strcmp (suffix, "light"))
-   {
-      b.night = 0;
-      revk_gpio_set (gfxbl, 1);
    }
    return NULL;
 }
@@ -273,6 +279,7 @@ revk_state_extra (jo_t j)
       add_enum ("fan", data.fan, REVK_SETTINGS_ACFAN_ENUMS);
    jo_bool (j, "power", data.poweron);
    jo_bool (j, "away", data.away);
+   jo_bool (j, "night", data.night);
    jo_bool (j, "extfan", data.extfan);
    jo_bool (j, "extrad", data.extrad);
    xSemaphoreGive (data_mutex);
@@ -346,7 +353,7 @@ revk_web_extra (httpd_req_t * req, int page)
       revk_web_setting_title (req, "Backlight");
       revk_web_setting_info (req, "The display can go dark below specified light level, 0 to disable. Current light level %.2f",
                              veml6040.w);
-      revk_web_setting (req, "Auto dark", "veml6404dark");
+      revk_web_setting (req, "Auto dark", "veml6040dark");
    }
    revk_web_setting_title (req, "Temperature");
    revk_web_setting_info (req, "Temperature can be read from (in priority order)...<ul>"        //
@@ -1014,13 +1021,13 @@ btnwake (void)
       if (b.night)
       {
          edit = 0;
-         wake = uptime () + 10;
+         wake = 10;
          return 1;              // Woken up
       }
    }
    if (!edit)
       edit = EDIT_TARGET;
-   wake = uptime () + 10;
+   wake = 10;
    return 0;
 }
 
@@ -1473,8 +1480,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1518,7 +1524,7 @@ app_main ()
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)
    {
-    const char *e = gfx_init (cs: gfxcs.num, sck: gfxsck.num, mosi: gfxmosi.num, dc: gfxdc.num, rst: gfxrst.num, flip:gfxflip);
+    const char *e = gfx_init (cs: gfxcs.num, sck: gfxsck.num, mosi: gfxmosi.num, dc: gfxdc.num, rst: gfxrst.num, bl: gfxbl.num, flip:gfxflip);
       if (e)
       {
          jo_t j = jo_object_alloc ();
@@ -1542,7 +1548,6 @@ app_main ()
    {
       message = NULL;           // set by Show functions
       struct tm tm;
-      uint32_t up = uptime ();
       time_t now = time (0);
       localtime_r (&now, &tm);
       if (!b.display && tm.tm_sec == lastsec)
@@ -1550,6 +1555,8 @@ app_main ()
       b.display = 0;
       if (tm.tm_sec != lastsec)
       {                         // Once per second
+         if (wake && !--wake)
+            edit = 0;
          if (b.ha)
          {
             b.ha = 0;
@@ -1564,11 +1571,6 @@ app_main ()
          if (veml6040.ok && veml6040dark)
             b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
          revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
-         if (wake && wake < up)
-         {
-            wake = 0;
-            edit = 0;
-         }
          bleenv_expire (120);
          if (!bleidtemp || strcmp (bleidtemp->name, bletemp))
          {
@@ -1762,6 +1764,7 @@ app_main ()
           data.mode != acmode ||
           data.fan != acfan || (acmode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != (float) actarget / actarget_scale))
          change = 10;           // Delay incoming updates
+      data.night = b.night;
       data.away = b.away;
       data.poweron = (b.manual ? b.manualon : b.poweron);
       data.extrad = b.rad;
