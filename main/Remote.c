@@ -1431,13 +1431,13 @@ show_rh (uint8_t rh)
    if (norh)
       return;
    rh_colour (rh);
-   if (gfx_a () | GFX_R)
+   if (gfx_a () & GFX_R)
       gfx_text (0, 4, "%%");
    if (!rh || rh >= 100)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--");
    else
       gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%2u", rh);
-   if (!(gfx_a () | GFX_R))
+   if (!(gfx_a () & GFX_R))
       gfx_text (0, 4, "%%");
    if (!message && rh >= rhred)
       message = "*High humidity";
@@ -1480,7 +1480,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1722,7 +1723,7 @@ app_main ()
             targetlow -= (float) earlyheat / earlyheat_scale * early / 60;
          if (earlycool)
             targethigh += (float) earlycool / earlycool_scale * early / 60;
-      } else if (b.away)
+      } else if (!(b.manual ? b.manualon : b.poweron))
       {
          targetlow = (float) tempmin / tempmin_scale;
          targethigh = (float) tempmax / tempmin_scale;
