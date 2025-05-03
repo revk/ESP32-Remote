@@ -1401,7 +1401,7 @@ show_mode (void)
    if (edit != EDIT_MODE && b.away && !b.manual && !b.manualon)
       icon_plot (icon_modeaway);
    else if (edit != EDIT_MODE && !b.poweron)
-      icon_plot (b.rad ? icon_moderad : icon_modeoff);
+      icon_plot (*mqttrad && b.rad ? icon_moderad : icon_modeoff);
    else if (b.faikinbad)        // Antifreeze or slave
       icon_plot (icon_modebad);
    else if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
@@ -1492,7 +1492,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
