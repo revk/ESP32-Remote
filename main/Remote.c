@@ -610,10 +610,6 @@ i2c_modbus_read (uint8_t addr, uint16_t a)
 static uint8_t
 scd41_crc (uint8_t b1, uint8_t b2)
 {
-   scd41.t = NAN;
-   tmp1075.t = NAN;
-   mcp9808.t = NAN;
-   gzp6816d.t = NAN;
    uint8_t crc = 0xFF;
    void b (uint8_t v)
    {
@@ -670,6 +666,10 @@ scd41_read (uint16_t c, int8_t len, uint8_t * buf)
 void
 i2c_task (void *x)
 {
+   scd41.t = NAN;
+   tmp1075.t = NAN;
+   mcp9808.t = NAN;
+   gzp6816d.t = NAN;
    void fail (uint8_t addr, const char *e)
    {
       ESP_LOGE (TAG, "I2C fail %02X: %s", addr & 0x7F, e);
