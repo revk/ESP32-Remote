@@ -284,7 +284,8 @@ revk_state_extra (jo_t j)
       add_enum ("mode", data.mode, REVK_SETTINGS_ACMODE_ENUMS);
    if (data.fan)
       add_enum ("fan", data.fan, REVK_SETTINGS_ACFAN_ENUMS);
-   jo_string (j, "state", b.manual ? "manual" : b.away ? "away" : b.earlyon ? "early" : b.timeron ? "timer" : "off");
+   jo_string (j, "state",
+              b.faikinbad ? "bad" : b.manual ? "manual" : b.away ? "away" : b.earlyon ? "early" : b.timeron ? "timer" : "off");
    jo_bool (j, "power", data.poweron);
    jo_bool (j, "extfan", b.fan);
    jo_bool (j, "extrad", b.rad);
@@ -773,6 +774,7 @@ i2c_task (void *x)
    }
    if (tmp1075i2c)
    {
+      tmp1075.t = NAN;
       if (i2c_read_16hl (tmp1075i2c, 0x0F) != 0x7500 || i2c_write_16hl (tmp1075i2c, 1, 0x60FF))
          fail (tmp1075i2c, "TMP1075");
       else
@@ -897,7 +899,8 @@ i2c_task (void *x)
             tmp1075.t = NAN;
          } else
          {
-            tmp1075.t = T (((float) (int16_t) v) / 256) + (float) tmp1075dt / tmp1075dt_scale;;
+            if (uptime () > 5)
+               tmp1075.t = T (((float) (int16_t) v) / 256) + (float) tmp1075dt / tmp1075dt_scale;;
             tmp1075.ok = 1;
          }
       }
@@ -1492,8 +1495,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1620,8 +1622,8 @@ app_main ()
             blet = NAN;
             blerh = 0;
          }
-         if (bleidfaikin && (!bleidfaikin->faikinset || bleidfaikin->missing) && !message)
-            message = "*Faikin missing";
+         if (*blefaikin && (!bleidfaikin || !bleidfaikin->faikinset || bleidfaikin->missing) && !message)
+            message = "*Faikin gone";
       }
       // Manual
       if (b.manual && b.manualon == b.poweron)
