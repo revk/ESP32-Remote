@@ -1482,8 +1482,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1839,7 +1838,7 @@ app_main ()
          select_icon_plot (icon_bt, -15, 0);
       show_temp (t);
       if (gfx_width () < gfx_height ())
-      {
+      {                         // Portrait
          gfx_pos (2, 125, GFX_L | GFX_T | GFX_H);
          if (edit == EDIT_START || edit == EDIT_STOP)
          {
@@ -1864,24 +1863,24 @@ app_main ()
       {                         // Landscape
          gfx_pos (2, 2, GFX_T | GFX_L);
          show_target ((float) actarget / actarget_scale);
-         gfx_pos (0, 64, GFX_T | GFX_L);
+         gfx_pos (0, 66, GFX_T | GFX_L);
          show_mode ();
-         gfx_pos (120, gfx_y (), GFX_T | GFX_R);
-         show_fan ();
          if (edit == EDIT_START || edit == EDIT_STOP)
          {
-            gfx_pos (2, 130, GFX_T | GFX_L);
+            gfx_pos (2, 135, GFX_T | GFX_L);
             show_start ();
             gfx_pos (gfx_width () - 3, gfx_y (), GFX_T | GFX_R);
             show_stop ();
          } else
          {
-            gfx_pos (gfx_width () - 3, 130, GFX_T | GFX_R);
+            gfx_pos (gfx_width () - 3, 135, GFX_T | GFX_R);
             show_co2 (co2);
             gfx_pos (2, gfx_y (), GFX_T | GFX_L | GFX_H);
             show_rh (rh);
             if (blerh)
                icon_plot (icon_bt);
+            gfx_pos (gfx_width () / 2, gfx_y () - 10, GFX_T | GFX_C);
+            show_fan ();
          }
       }
       gfx_pos (gfx_width () / 2, gfx_height () - 4, GFX_C | GFX_B);
@@ -1906,8 +1905,20 @@ app_main ()
    }
 
    b.die = 1;
-   epd_lock ();
-   gfx_clear (0);
-   gfx_text (0, 5, "Reboot");
-   epd_unlock ();
+   while (1)
+   {
+      const char *reason;
+      revk_shutting_down (&reason);
+      epd_lock ();
+      gfx_clear (0);
+      gfx_text (0, 5, "Reboot");
+      gfx_pos (gfx_width () / 2, gfx_height () / 2, GFX_C | GFX_M);
+      int i = revk_ota_progress ();
+      if (i >= 0 && i <= 100)
+         gfx_text (0, 5, "%d%%", i);
+      else
+         gfx_text (0, 2, "%s", reason);
+      epd_unlock ();
+      usleep (250000);
+   }
 }
