@@ -58,6 +58,7 @@ SemaphoreHandle_t data_mutex = NULL;
 int8_t i2cport = 0;
 uint8_t ds18b20_num = 0;
 const char *message = NULL;
+char *override = NULL;
 enum
 {
    EDIT_NONE,
@@ -70,6 +71,7 @@ enum
 };
 uint8_t edit = EDIT_NONE;       // Edit mode
 uint8_t wake = 0;               // Wake (uptime) timeout
+uint8_t hold = 0;               // Display hold
 bleenv_t *bleidtemp = NULL;
 bleenv_t *bleidfaikin = NULL;
 
@@ -227,6 +229,11 @@ app_callback (int client, const char *prefix, const char *target, const char *su
    {
       b.night = 1;
       revk_gpio_set (gfxbl, 0);
+   }
+   if (!strcmp (suffix, "message"))
+   {
+      free (override);
+      override = strdup (value);
    }
    return NULL;
 }
@@ -1482,8 +1489,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1828,77 +1834,88 @@ app_main ()
          bleenv_bthome2 (hostname, C (t), rh, co2, veml6040.w);
          break;
       }
-
-      // TODO override message
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
-      epd_lock ();
-      gfx_clear (0);
-      // Main temp display
-      gfx_pos (gfx_width () - 1, 0, GFX_R);
-      if (tempfrom == REVK_SETTINGS_TEMPREF_BLE)
-         select_icon_plot (icon_bt, -15, 0);
-      show_temp (t);
-      if (gfx_width () < gfx_height ())
-      {                         // Portrait
-         gfx_pos (2, 125, GFX_L | GFX_T | GFX_H);
-         if (edit == EDIT_START || edit == EDIT_STOP)
-         {
-            show_start ();
-            gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
-            show_stop ();
-         } else
-         {
-            show_target ((float) actarget / actarget_scale);
-            gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
-            show_fan ();
-            gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
-            show_mode ();
-         }
-         gfx_pos (0, 205, GFX_L | GFX_T | GFX_H);
-         show_co2 (co2);
-         gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
-         show_rh (rh);
-         if (blerh)
-            icon_plot (icon_bt);
-      } else
-      {                         // Landscape
-         gfx_pos (2, 2, GFX_T | GFX_L);
-         show_target ((float) actarget / actarget_scale);
-         gfx_pos (0, 66, GFX_T | GFX_L);
-         show_mode ();
-         if (edit == EDIT_START || edit == EDIT_STOP)
-         {
-            gfx_pos (2, 135, GFX_T | GFX_L);
-            show_start ();
-            gfx_pos (gfx_width () - 3, gfx_y (), GFX_T | GFX_R);
-            show_stop ();
-         } else
-         {
-            gfx_pos (gfx_width () - 3, 135, GFX_T | GFX_R);
+      if (override)
+      {
+         char *m = override;
+         override = NULL;
+         hold = 10;
+         gfx_message (m);
+         free (m);
+      }
+      if (hold && tm.tm_sec != lastsec)
+         hold--;
+      if (!hold)
+      {
+         epd_lock ();
+         gfx_clear (0);
+         // Main temp display
+         gfx_pos (gfx_width () - 1, 0, GFX_R);
+         if (tempfrom == REVK_SETTINGS_TEMPREF_BLE)
+            select_icon_plot (icon_bt, -15, 0);
+         show_temp (t);
+         if (gfx_width () < gfx_height ())
+         {                      // Portrait
+            gfx_pos (2, 125, GFX_L | GFX_T | GFX_H);
+            if (edit == EDIT_START || edit == EDIT_STOP)
+            {
+               show_start ();
+               gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
+               show_stop ();
+            } else
+            {
+               show_target ((float) actarget / actarget_scale);
+               gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
+               show_fan ();
+               gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
+               show_mode ();
+            }
+            gfx_pos (0, 205, GFX_L | GFX_T | GFX_H);
             show_co2 (co2);
-            gfx_pos (2, gfx_y (), GFX_T | GFX_L | GFX_H);
+            gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_rh (rh);
             if (blerh)
                icon_plot (icon_bt);
-            gfx_pos (gfx_width () / 2, gfx_y () - 10, GFX_T | GFX_C);
-            show_fan ();
-         }
-      }
-      gfx_pos (gfx_width () / 2, gfx_height () - 4, GFX_C | GFX_B);
-      if (message)
-      {
-         const char *m = message;
-         gfx_foreground (0xFFFFFF);
-         if (*m == '*')
-         {
-            m++;
-            gfx_background (0xFF0000);
          } else
-            gfx_background (0);
-         gfx_text (1, 3, "%s", m);
-      } else
-         show_clock (&tm);
-      epd_unlock ();
+         {                      // Landscape
+            gfx_pos (2, 2, GFX_T | GFX_L);
+            show_target ((float) actarget / actarget_scale);
+            gfx_pos (0, 66, GFX_T | GFX_L);
+            show_mode ();
+            if (edit == EDIT_START || edit == EDIT_STOP)
+            {
+               gfx_pos (2, 135, GFX_T | GFX_L);
+               show_start ();
+               gfx_pos (gfx_width () - 3, gfx_y (), GFX_T | GFX_R);
+               show_stop ();
+            } else
+            {
+               gfx_pos (gfx_width () - 3, 135, GFX_T | GFX_R);
+               show_co2 (co2);
+               gfx_pos (2, gfx_y (), GFX_T | GFX_L | GFX_H);
+               show_rh (rh);
+               if (blerh)
+                  icon_plot (icon_bt);
+               gfx_pos (gfx_width () / 2, gfx_y () - 10, GFX_T | GFX_C);
+               show_fan ();
+            }
+         }
+         gfx_pos (gfx_width () / 2, gfx_height () - 4, GFX_C | GFX_B);
+         if (message)
+         {
+            const char *m = message;
+            gfx_foreground (0xFFFFFF);
+            if (*m == '*')
+            {
+               m++;
+               gfx_background (0xFF0000);
+            } else
+               gfx_background (0);
+            gfx_text (1, 3, "%s", m);
+         } else
+            show_clock (&tm);
+         epd_unlock ();
+      }
 #endif
       usleep (10000);
       lastsec = tm.tm_sec;
@@ -1917,7 +1934,10 @@ app_main ()
       gfx_text (0, 2, "%s", reason);
       int i = revk_ota_progress ();
       if (i >= 0 && i <= 100)
+      {
+         gfx_pos (gfx_width () / 2, gfx_height () - 1, GFX_C | GFX_B);
          gfx_text (0, 5, "%d%%", i);
+      }
       epd_unlock ();
       usleep (250000);
    }
