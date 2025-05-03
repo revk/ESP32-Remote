@@ -1162,8 +1162,7 @@ btnH (void)
       return;
    edit = 0;
    b.away = 1;
-   b.manualon = 0;
-   b.manual = 1;
+   b.manual = 0;
 }
 
 void
@@ -1399,17 +1398,19 @@ show_target (float t)
 void
 show_mode (void)
 {
-   if (nomode)
-      return;
    if (edit == EDIT_MODE)
    {
       select_icon_plot (icon_select, 0, 0);
       message = icon_mode_message[acmode];
    }
-   if (edit != EDIT_MODE && b.away && !b.manual && !b.manualon)
+   if (edit != EDIT_MODE && b.away && !b.poweron)
       icon_plot (icon_modeaway);
+   else if (edit != EDIT_MODE && *mqttrad && b.rad && (!b.poweron || nomode))
+      icon_plot (icon_moderad);
    else if (edit != EDIT_MODE && !b.poweron)
-      icon_plot (*mqttrad && b.rad ? icon_moderad : icon_modeoff);
+      icon_plot (icon_modeoff);
+   else if (nomode)
+      return;
    else if (b.faikinbad)        // Antifreeze or slave
       icon_plot (icon_modebad);
    else if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
@@ -1421,13 +1422,13 @@ show_mode (void)
 void
 show_fan (void)
 {
-   if (nofan)
-      return;
    if (edit == EDIT_FAN)
    {
       select_icon_plot (icon_select, 0, 0);
       message = (fan3 ? icon_fan3_message : icon_fan5_message)[acfan];
    }
+   if (nofan)
+      return;
    icon_plot ((fan3 ? icon_fans3 : icon_fans5)[acfan]);
 }
 
@@ -1500,8 +1501,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1517,7 +1517,6 @@ app_main ()
    xSemaphoreGive (data_mutex);
    revk_boot (&app_callback);
    revk_start ();
-
    // Web interface
    httpd_config_t config = HTTPD_DEFAULT_CONFIG ();
    config.stack_size += 1024 * 4;
@@ -1631,9 +1630,6 @@ app_main ()
          if (*blefaikin && (!bleidfaikin || !bleidfaikin->faikinset || bleidfaikin->missing) && !message)
             message = "*Faikin gone";
       }
-      // Manual
-      if (b.manual && b.manualon == b.poweron)
-         b.manual = 0;
       // Work out current values to show / test
       uint8_t tempfrom = tempref;
       float t = NAN;
@@ -1699,15 +1695,6 @@ app_main ()
          co2 = t6793.ppm;
       if (!message && blebat && blebat < 10)
          message = "*Low BLE bat";
-      if (!b.fan && ((co2red && co2 >= co2red) || (rhred && rh >= rhred)))
-      {
-         if (!b.fan)
-            send_fan (1);
-      } else if (b.fan && (!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen))
-      {
-         if (b.fan)
-            send_fan (0);
-      }
       // power set based on time and manual
       int16_t early = 0;
       if (acstart == acstop || b.away)
@@ -1732,7 +1719,7 @@ app_main ()
             else
                b.timeron = 0;
          }
-         if (b.timeron)
+         if (b.manual ? b.manualon : b.timeron)
             b.earlyon = 0;
          else
          {
@@ -1764,16 +1751,22 @@ app_main ()
       if (b.manual && b.manualon == (b.earlyon | b.timeron))
          b.manual = 0;
       b.poweron = (b.manual ? b.manualon : b.earlyon | b.timeron);
-      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
-         targetlow = targethigh = (float) actarget / actarget_scale;    // non faikin mode - simple target
-      else if (!b.poweron && !early)
-      {                         // No range as not power on - allows faikin to turn off itself even - we leave if early so could decide to turn on itself
+      if (!nomode && acmode == REVK_SETTINGS_ACMODE_FAIKIN && !b.poweron && !early)
+      {                         // Full range as not power on - allows faikin to turn off itself even - we leave if early so could decide to turn on itself
          targetlow = (float) tempmin / tempmin_scale;
          targethigh = (float) tempmax / tempmin_scale;
       }
-      // Limits
       if (tm.tm_min != lastmin)
       {
+         if (!b.fan && ((co2red && co2 >= co2red) || (rhred && rh >= rhred)))
+         {
+            if (!b.fan)
+               send_fan (1);
+         } else if (b.fan && (!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen))
+         {
+            if (b.fan)
+               send_fan (0);
+         }
          if (t < targetlow)
          {
             if (!b.rad)
@@ -1784,10 +1777,11 @@ app_main ()
                send_rad (0);
          }
       }
+      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
+         targetlow = targethigh = (float) actarget / actarget_scale;    // non faikin mode - simple target
       xSemaphoreTake (data_mutex, portMAX_DELAY);
-      if (data.poweron != b.poweron ||
-          data.mode != acmode ||
-          data.fan != acfan || (acmode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != (float) actarget / actarget_scale))
+      if (data.poweron != b.poweron || data.mode != acmode || data.fan != acfan
+          || (acmode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != (float) actarget / actarget_scale))
          change = 10;           // Delay incoming updates
       data.poweron = b.poweron;
       data.mode = acmode;
@@ -1954,6 +1948,6 @@ app_main ()
          gfx_text (0, 5, "%d%%", i);
       }
       epd_unlock ();
-      usleep (250000);
+      usleep (100000);
    }
 }
