@@ -23,18 +23,21 @@ struct
    uint8_t ha:1;                // HA update
    uint8_t display:1;           // Display update
    uint8_t night:1;             // Display dark
-   uint8_t away:1;              // Away mode
-   uint8_t poweron:1;           // Logical power on
-   uint8_t manual:1;            // Manual set power
-   uint8_t manualon:1;          // Manual is on
    uint8_t fan:1;               // Fan on
    uint8_t rad:1;               // Rad on
    uint8_t connect:1;           // MQTT connect
    uint8_t faikinheat:1;        // Faikin auto is heating
+   // Power
+   uint8_t manual:1;            // Manual override (cleared when matches non override)
+   uint8_t away:1;              // Away mode (disabled timer functions)
+   uint8_t manualon:1;          // Manual is on
+   uint8_t timeron:1;           // Within time range (and not away)
+   uint8_t earlyon:1;           // Latching, pre timer range outside temp for early, clear on timer or away
+   uint8_t poweron:1;           // Derived state from above
 } b = { 0 };
 
 struct
-{                               // For HA, etc
+{                               //  Snapshot for HA
    uint16_t co2;
    uint8_t rh;
    uint8_t tempfrom;
@@ -44,10 +47,6 @@ struct
    float tmax;
    float lux;
    float pressure;
-   uint8_t extfan:1;
-   uint8_t extrad:1;
-   uint8_t away:1;
-   uint8_t night:1;
    uint8_t poweron:1;
    uint8_t mode:3;
    uint8_t fan:3;
@@ -277,11 +276,10 @@ revk_state_extra (jo_t j)
       add_enum ("mode", data.mode, REVK_SETTINGS_ACMODE_ENUMS);
    if (data.fan)
       add_enum ("fan", data.fan, REVK_SETTINGS_ACFAN_ENUMS);
+   jo_string (j, "state", b.manual ? "manual" : b.away ? "away" : b.earlyon ? "early" : b.timeron ? "timer" : "off");
    jo_bool (j, "power", data.poweron);
-   jo_bool (j, "away", data.away);
-   jo_bool (j, "night", data.night);
-   jo_bool (j, "extfan", data.extfan);
-   jo_bool (j, "extrad", data.extrad);
+   jo_bool (j, "extfan", b.fan);
+   jo_bool (j, "extrad", b.rad);
    xSemaphoreGive (data_mutex);
 }
 
@@ -1015,7 +1013,6 @@ uint8_t
 btnwake (void)
 {
    b.display = 1;
-   b.away = 0;
    if (!wake)
    {
       if (b.night)
@@ -1130,10 +1127,15 @@ btnP (void)
 {
    if (btnwake ())
       return;
-   if (!b.manual)
-      b.manualon = b.poweron;
-   b.manualon ^= 1;
-   b.manual = 1;
+   if (b.away)
+      b.away = 0;
+   else
+   {
+      if (!b.manual)
+         b.manualon = b.poweron;
+      b.manualon ^= 1;
+      b.manual = 1;
+   }
    edit = 0;
 }
 
@@ -1144,7 +1146,7 @@ btnH (void)
       return;
    edit = 0;
    b.away = 1;
-   b.manualon = b.poweron = 0;
+   b.manualon = 0;
    b.manual = 1;
 }
 
@@ -1390,7 +1392,7 @@ show_mode (void)
    }
    if (edit != EDIT_MODE && b.away && !b.manual && !b.manualon)
       icon_plot (icon_modeaway);
-   else if (edit != EDIT_MODE && !(b.manual ? b.manualon : b.poweron))
+   else if (edit != EDIT_MODE && !b.poweron)
       icon_plot (icon_modeoff);
    else if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
       icon_plot (b.faikinheat ? icon_modefaikinheat : icon_modefaikincool);
@@ -1688,27 +1690,31 @@ app_main ()
       }
       // power set based on time and manual
       int16_t early = 0;
-      if (acstart != acstop)
-      {
+      if (acstart == acstop || b.away)
+      {                         // Timer disabled
+         b.timeron = 0;
+         b.earlyon = 0;
+      } else
+      {                         // Timer state
          uint16_t start = acstart / 100 * 60 + acstart % 100;
          uint16_t stop = acstart / 100 * 60 + acstart % 100;
          uint16_t min = tm.tm_hour * 60 + tm.tm_min;
-         if (b.away)
-            b.poweron = 0;
-         else if (start < stop)
+         if (start < stop)
          {
             if (min >= start && now < stop)
-               b.poweron = 1;
+               b.timeron = 1;
             else
-               b.poweron = 0;
+               b.timeron = 0;
          } else
          {
             if (min >= start || now < stop)
-               b.poweron = 1;
+               b.timeron = 1;
             else
-               b.poweron = 0;
+               b.timeron = 0;
          }
-         if (!b.poweron)
+         if (b.timeron)
+            b.earlyon = 0;
+         else
          {
             early = start - min;
             if (early < 0)
@@ -1718,35 +1724,33 @@ app_main ()
       float targetlow = (float) actarget / actarget_scale - (float) tempmargin / tempmargin_scale;
       float targethigh = (float) actarget / actarget_scale + (float) tempmargin / tempmargin_scale;
       if (early)
-      {
+      {                         // Target adjust for early
          if (earlyheat)
             targetlow -= (float) earlyheat / earlyheat_scale * early / 60;
          if (earlycool)
             targethigh += (float) earlycool / earlycool_scale * early / 60;
-      } else if (!(b.manual ? b.manualon : b.poweron))
-      {
-         targetlow = (float) tempmin / tempmin_scale;
-         targethigh = (float) tempmax / tempmin_scale;
       }
+      // Target range clip
       if (targetlow < (float) tempmin / tempmin_scale)
          targetlow = (float) tempmin / tempmin_scale;
-      if (targetlow > (float) tempmax / tempmax_scale)
+      else if (targetlow > (float) tempmax / tempmax_scale)
          targetlow = (float) tempmax / tempmax_scale;
       if (targethigh < (float) tempmin / tempmin_scale)
          targethigh = (float) tempmin / tempmin_scale;
-      if (targethigh > (float) tempmax / tempmax_scale)
+      else if (targethigh > (float) tempmax / tempmax_scale)
          targethigh = (float) tempmax / tempmax_scale;
-      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
-      {                         // Direct control not Faikin auto
-         if (!b.poweron && early && (t < targetlow || t > targethigh))
-         {                      // Early on
-            ESP_LOGE (TAG, "Early on");
-            b.poweron = 1;
-         }
-         targetlow = targethigh = (float) actarget / actarget_scale;
-      }
-      if (b.poweron == b.manualon)
+      if (!b.earlyon && early && (t < targetlow || t > targethigh))
+         b.earlyon = 1;
+      if (b.manual && b.manualon == (b.earlyon | b.timeron))
          b.manual = 0;
+      b.poweron = (b.manual ? b.manualon : b.earlyon | b.timeron);
+      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
+         targetlow = targethigh = (float) actarget / actarget_scale;    // non faikin mode - simple target
+      else if (!b.poweron && !early)
+      {                         // No range as not power on - allows faikin to turn off itself even - we leave if early so could decide to turn on itself
+         targetlow = (float) tempmin / tempmin_scale;
+         targethigh = (float) tempmax / tempmin_scale;
+      }
       // Limits
       if (tm.tm_min != lastmin)
       {
@@ -1761,15 +1765,11 @@ app_main ()
          }
       }
       xSemaphoreTake (data_mutex, portMAX_DELAY);
-      if (data.poweron != (b.manual ? b.manualon : b.poweron) ||
+      if (data.poweron != b.poweron ||
           data.mode != acmode ||
           data.fan != acfan || (acmode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != (float) actarget / actarget_scale))
          change = 10;           // Delay incoming updates
-      data.night = b.night;
-      data.away = b.away;
-      data.poweron = (b.manual ? b.manualon : b.poweron);
-      data.extrad = b.rad;
-      data.extfan = b.fan;
+      data.poweron = b.poweron;
       data.mode = acmode;
       data.fan = acfan;
       data.co2 = co2;
