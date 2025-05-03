@@ -67,8 +67,8 @@ s8	temp.red	25	.live .unit="°"		// Temp considered hot
 
 u8	time.step	15	.live .unit="min"	// Time steps
 
-u8	early.cool	5	.live .unit="°/h" .decimal=1      // Early on assumed cool rate
-u8	early.heat	5	.live .unit="°/h" .decimal=1      // Early on assumed heat rate
+u8	early.cool	3	.live .unit="°/h" .decimal=1      // Early on assumed cool rate
+u8	early.heat	3	.live .unit="°/h" .decimal=1      // Early on assumed heat rate
 
 u8	rh.green	40	.live .unit="%"		// RH considered low
 u8	rh.red		60	.live .unit="%"		// RH considered high
