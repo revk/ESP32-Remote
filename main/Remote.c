@@ -371,20 +371,20 @@ revk_web_extra (httpd_req_t * req, int page)
                           "<li>Aircon temperature via Faikin (AC)</li>" //
                           "<li>Internal pressure sensor (GZP6816D), not recommended</li>"       //
                           "</ul>"       //
-                          "Note that internal sensors may need adjustment, depending on orientation and if in a case, etc.",    //
+                          "Note that internal sensors may need an offset, depending on orientation and if in a case, etc.",    //
                           tmp1075.found ? "TMP1075" : mcp9808.found ? "MCP9808" : "TMP1075/MCP98708"    //
       );
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
-   if (tempref == REVK_SETTINGS_TEMPREF_GZP6816D && gzp6816d.found)
+   if (data.tempfrom == REVK_SETTINGS_TEMPREF_GZP6816D)
       revk_web_setting (req, "Temp offset", "gzp6816ddt");
-   else if (tempref == REVK_SETTINGS_TEMPREF_SCD41 && scd41.found)
+   else if (data.tempfrom == REVK_SETTINGS_TEMPREF_SCD41)
       revk_web_setting (req, "Temp offset", "scd41dt");
-   else if (tempref == REVK_SETTINGS_TEMPREF_AC && bleidfaikin && !bleidfaikin->missing)
+   else if (data.tempfrom == REVK_SETTINGS_TEMPREF_AC)
       revk_web_setting (req, "Temp offset", "acdt");
-   else if (tmp1075.found)
+   else if (data.tempfrom == REVK_SETTINGS_TEMPREF_TMP1075)
       revk_web_setting (req, "Temp offset", "tmp1075dt");
-   else if (mcp9808.found)
+   else if (data.tempfrom == REVK_SETTINGS_TEMPREF_MCP9808)
       revk_web_setting (req, "Temp offset", "mcp9808dt");
    revk_web_setting (req, "Fahrenheit", "fahrenheit");
 }
@@ -899,7 +899,7 @@ i2c_task (void *x)
             tmp1075.t = NAN;
          } else
          {
-            if (uptime () > 5)
+            if (uptime () > 10)
                tmp1075.t = T (((float) (int16_t) v) / 256) + (float) tmp1075dt / tmp1075dt_scale;;
             tmp1075.ok = 1;
          }
@@ -1495,7 +1495,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1585,7 +1586,7 @@ app_main ()
          }
          if (veml6040.ok && veml6040dark)
             b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
-         revk_gpio_set (gfxbl, wake || !b.night ? 1 : 0);
+         revk_gpio_set (gfxbl, wake || hold || !b.night ? 1 : 0);
          bleenv_expire (120);
          if (!bleidtemp || strcmp (bleidtemp->name, bletemp))
          {
