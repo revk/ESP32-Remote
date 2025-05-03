@@ -1,5 +1,5 @@
 $fn=120;
-H=6;
+H=13;
 difference()
 {
     union()
