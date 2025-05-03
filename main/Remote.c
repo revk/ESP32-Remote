@@ -27,6 +27,7 @@ struct
    uint8_t rad:1;               // Rad on
    uint8_t connect:1;           // MQTT connect
    uint8_t faikinheat:1;        // Faikin auto is heating
+   uint8_t faikinbad:1;         // Faikin antifreeze ot slave
    // Power
    uint8_t manual:1;            // Manual override (cleared when matches non override)
    uint8_t away:1;              // Away mode (disabled timer functions)
@@ -1400,7 +1401,9 @@ show_mode (void)
    if (edit != EDIT_MODE && b.away && !b.manual && !b.manualon)
       icon_plot (icon_modeaway);
    else if (edit != EDIT_MODE && !b.poweron)
-      icon_plot (icon_modeoff);
+      icon_plot (b.rad ? icon_moderad : icon_modeoff);
+   else if (b.faikinbad)        // Antifreeze or slave
+      icon_plot (icon_modebad);
    else if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
       icon_plot (b.faikinheat ? icon_modefaikinheat : icon_modefaikincool);
    else
@@ -1808,6 +1811,7 @@ app_main ()
                else
                   b.faikinheat = ((bleidfaikin->mode == REVK_SETTINGS_ACMODE_HEAT) ? 1 : 0);
             }
+            b.faikinbad = bleidfaikin->rad;
             float target = T ((float) (bleidfaikin->targetlow + bleidfaikin->targethigh) / 200);
             if (data.mode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != target)
                jo_litf (j, "actarget", "%.1f", data.target = target);
@@ -1925,12 +1929,12 @@ app_main ()
    b.die = 1;
    while (1)
    {
-      const char *reason;
-      revk_shutting_down (&reason);
       epd_lock ();
       gfx_clear (0);
       gfx_text (0, 5, "Reboot");
       gfx_pos (gfx_width () / 2, gfx_height () / 2, GFX_C | GFX_M);
+      const char *reason;
+      revk_shutting_down (&reason);
       gfx_text (0, 2, "%s", reason);
       int i = revk_ota_progress ();
       if (i >= 0 && i <= 100)
