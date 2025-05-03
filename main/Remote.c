@@ -338,7 +338,7 @@ settings_bletemp (httpd_req_t * req)
          if (!e->missing && e->rssi)
             revk_web_send (req, " %ddB", e->rssi);
       }
-   if (!found && !*bletemp)
+   if (!found && *bletemp)
       revk_web_send (req, "<option selected value=\"%s\">%s", bletemp, bletemp);
    revk_web_send (req, "</select>");
    revk_web_send (req, "</td><td>External BLE temperature reference</td></tr>");
