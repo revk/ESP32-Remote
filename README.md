@@ -71,3 +71,4 @@ Some useful MQTT commands.
 |`home`|Set normal mode (also `away 0` or `away false`)|
 |`light`|Set display on|
 |`dark`|Set display off (also `light 0` or `light false`)|
+|`message`|Display a message|
