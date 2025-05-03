@@ -56,7 +56,7 @@ s	ble.temp		.live 			// ID of BLE reference temp
 s	ble.faikin		.live 			// ID of Faikin to track
 enum	ble.advert		.live .enums="Faikin,BTHome1,BTHome2"	// BLE advertisement type
 
-enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,T6793,GZP6816D,BLE,AC,DS18B20[0],DS18B20[1]"	// Primary reference temperature
+enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,AC,DS18B20[0],DS18B20[1]"	// Primary reference temperature
 s8	temp.margin	1	.live .unit="°" .decimal=1	// Temp target ± margin
 s16	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
 s16	temp.max	32	.live .unit="°" .decimal=1      // Max temp target

@@ -610,6 +610,10 @@ i2c_modbus_read (uint8_t addr, uint16_t a)
 static uint8_t
 scd41_crc (uint8_t b1, uint8_t b2)
 {
+   scd41.t = NAN;
+   tmp1075.t = NAN;
+   mcp9808.t = NAN;
+   gzp6816d.t = NAN;
    uint8_t crc = 0xFF;
    void b (uint8_t v)
    {
@@ -741,7 +745,6 @@ i2c_task (void *x)
    }
    if (scd41i2c)
    {
-      scd41.t = NAN;
       esp_err_t err = 0;
       uint8_t try = 10;
       while (try--)
@@ -779,7 +782,6 @@ i2c_task (void *x)
    }
    if (tmp1075i2c)
    {
-      tmp1075.t = NAN;
       if (i2c_read_16hl (tmp1075i2c, 0x0F) != 0x7500 || i2c_write_16hl (tmp1075i2c, 1, 0x60FF))
          fail (tmp1075i2c, "TMP1075");
       else
@@ -1501,7 +1503,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
