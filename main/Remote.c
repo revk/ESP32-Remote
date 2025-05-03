@@ -363,29 +363,34 @@ revk_web_extra (httpd_req_t * req, int page)
       revk_web_setting (req, "Auto dark", "veml6040dark");
    }
    revk_web_setting_title (req, "Temperature");
-   revk_web_setting_info (req, "Temperature can be read from (in priority order)...<ul>"        //
-                          "<li>External Bluetooth sensor (BLE)</li>"    //
-                          "<li>Connected temperature probe (DS18B20)</li>"      //
-                          "<li>Internal CO₂ sensor (SCD41)</li>"      //
-                          "<li>Internal temperature sensor (%s)</li>"   //
-                          "<li>Aircon temperature via Faikin (AC)</li>" //
-                          "<li>Internal pressure sensor (GZP6816D), not recommended</li>"       //
+   revk_web_setting_info (req, "Configured temperature sources (in priority order)...<ul>"      //
+                          "%s"  //
+                          "%s"  //
+                          "%s"  //
+                          "%s"  //
+                          "%s"  //
+                          "%s"  //
                           "</ul>"       //
-                          "Note that internal sensors may need an offset, depending on orientation and if in a case, etc.",    //
-                          tmp1075.found ? "TMP1075" : mcp9808.found ? "MCP9808" : "TMP1075/MCP98708"    //
+                          "Note that internal sensors may need an offset, depending on orientation and if in a case, etc.",     //
+                          *bletemp ? "<li>External Bluetooth sensor (BLE)</li>" : "",   //
+                          ds18b20_num ? "<li>Connected temperature probe (DS18B20)</li>" : "",  //
+                          scd41.found ? "<li>Internal CO₂ sensor (SCD41)</li>" : t6793.found ? "<li>Internal CO₂ sensor (T6793)</li>" : "", //
+                          tmp1075.found ? "<li>Internal temperature sensor (TMP1075)</li>" : mcp9808.found ? "<li>Internal temperature sensor (MCP9808)</li>" : "",     //
+                          *blefaikin ? "<li>Aircon temperature via Faikin (AC)</li>" : "",      //
+                          gzp6816d.found ? "<li>Internal pressure sensor (GZP6816D), not recommended</li>" : "" //
       );
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
-   if (data.tempfrom == REVK_SETTINGS_TEMPREF_GZP6816D)
-      revk_web_setting (req, "Temp offset", "gzp6816ddt");
-   else if (data.tempfrom == REVK_SETTINGS_TEMPREF_SCD41)
+   if (data.tempfrom == REVK_SETTINGS_TEMPREF_SCD41 || tempref == REVK_SETTINGS_TEMPREF_SCD41)
       revk_web_setting (req, "Temp offset", "scd41dt");
-   else if (data.tempfrom == REVK_SETTINGS_TEMPREF_AC)
-      revk_web_setting (req, "Temp offset", "acdt");
-   else if (data.tempfrom == REVK_SETTINGS_TEMPREF_TMP1075)
+   if (data.tempfrom == REVK_SETTINGS_TEMPREF_TMP1075 || tempref == REVK_SETTINGS_TEMPREF_TMP1075)
       revk_web_setting (req, "Temp offset", "tmp1075dt");
-   else if (data.tempfrom == REVK_SETTINGS_TEMPREF_MCP9808)
+   if (data.tempfrom == REVK_SETTINGS_TEMPREF_MCP9808 || tempref == REVK_SETTINGS_TEMPREF_MCP9808)
       revk_web_setting (req, "Temp offset", "mcp9808dt");
+   if (data.tempfrom == REVK_SETTINGS_TEMPREF_AC || tempref == REVK_SETTINGS_TEMPREF_AC)
+      revk_web_setting (req, "Temp offset", "acdt");
+   if (data.tempfrom == REVK_SETTINGS_TEMPREF_GZP6816D || tempref == REVK_SETTINGS_TEMPREF_GZP6816D)
+      revk_web_setting (req, "Temp offset", "gzp6816ddt");
    revk_web_setting (req, "Fahrenheit", "fahrenheit");
 }
 
@@ -1653,19 +1658,21 @@ app_main ()
          if (bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
             t = T ((float) bleidfaikin->temp / 100);
          break;
-      case REVK_SETTINGS_TEMPREF_DS18B200:
+      case REVK_SETTINGS_TEMPREF_DS18B20_0_:
          if (ds18b20_num >= 1)
             t = ds18b20s[0].t;
          break;
-      case REVK_SETTINGS_TEMPREF_DS18B201:
+      case REVK_SETTINGS_TEMPREF_DS18B20_1_:
          if (ds18b20_num >= 2)
             t = ds18b20s[1].t;
          break;
       }
       if (isnan (t) && !isnan (t = blet))
          tempfrom = REVK_SETTINGS_TEMPREF_BLE;
-      if (isnan (t) && ds18b20_num && !isnan (t = ds18b20s[0].t))
-         tempfrom = REVK_SETTINGS_TEMPREF_DS18B200;
+      if (isnan (t) && ds18b20_num >= 1 && !isnan (t = ds18b20s[0].t))
+         tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_0_;
+      if (isnan (t) && ds18b20_num >= 2 && !isnan (t = ds18b20s[1].t))
+         tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_1_;
       if (isnan (t) && scd41.ok && !isnan (t = scd41.t))
          tempfrom = REVK_SETTINGS_TEMPREF_SCD41;
       if (isnan (t) && tmp1075.ok && !isnan (t = tmp1075.t))

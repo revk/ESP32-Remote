@@ -36,7 +36,6 @@ u8	veml6040.i2c	"10"	.set .hex		// VEML6040 Light sensor
 u16	veml6040.dark		.live .decimal=1 .unit="lux"	// Level below which we turn off display
 
 u8	t6793.i2c	"15"	.set .hex		// T6793 CO2 sensor
-s16	t6793.dt	0	.live .unit="°" .decimal=2	// T6793 Temp offset
 
 bit	no.mode			.live			// No mode control
 bit	no.fan			.live			// No fan control
@@ -57,7 +56,7 @@ s	ble.temp		.live 			// ID of BLE reference temp
 s	ble.faikin		.live 			// ID of Faikin to track
 enum	ble.advert		.live .enums="Faikin,BTHome1,BTHome2"	// BLE advertisement type
 
-enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,AC,DS18B200,DS18B201"	// Primary reference temperature
+enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,T6793,GZP6816D,BLE,AC,DS18B20[0],DS18B20[1]"	// Primary reference temperature
 s8	temp.margin	1	.live .unit="°" .decimal=1	// Temp target ± margin
 s16	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
 s16	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
