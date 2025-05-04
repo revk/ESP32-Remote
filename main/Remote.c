@@ -1014,7 +1014,8 @@ web_root (httpd_req_t * req)
 {
    if (revk_link_down ())
       return revk_web_settings (req);   // Direct to web set up
-   revk_web_head (req, *hostname ? hostname : appname);
+   revk_web_head (req, hostname);
+   revk_web_send (req, "<h1>%s</h1>", hostname);
 #ifdef	CONFIG_LWPNG_ENCODE
    revk_web_send (req, "<p><img src=frame.png style='border:10px solid black;'></p>"    //
                   "<table border=1>"    //
@@ -1510,7 +1511,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
