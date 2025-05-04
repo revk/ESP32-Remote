@@ -815,7 +815,7 @@ i2c_task (void *x)
          tmp1075.found = 1;
    }
    b.ha = 1;
-   sleep (5);
+   sleep (3);
    // Poll
    while (!b.die)
    {
@@ -1547,6 +1547,12 @@ ha_config (void)
 void
 app_main ()
 {
+   data.temp = NAN;
+   data.target = NAN;
+   data.tmin = NAN;
+   data.tmax = NAN;
+   data.lux = NAN;
+   data.pressure = NAN;
    lcd_mutex = xSemaphoreCreateMutex ();
    xSemaphoreGive (lcd_mutex);
    data_mutex = xSemaphoreCreateMutex ();
