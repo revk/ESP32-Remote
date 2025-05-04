@@ -813,9 +813,6 @@ i2c_task (void *x)
       }
       if (mcp9808.found)
       {
-         static int16_t last1 = 20 * 128,
-            last2 = 20 * 128,
-            last3 = 20 * 128;
          int32_t v = i2c_read_16hl (mcp9808i2c, 5);
          if (v < 0)
          {
@@ -823,12 +820,9 @@ i2c_task (void *x)
             mcp9808.t = NAN;
          } else
          {
-            int16_t t = (v << 3),
-               a = (last1 + last2 + last3 + t) / 4;
-            last3 = last2;
-            last2 = last1;
-            last1 = t;
-            mcp9808.t = T ((float) a / 128) + (float) mcp9808dt / mcp9808dt_scale;
+            int16_t t = (v << 3);
+            if (uptime () > 10)
+               mcp9808.t = T ((float) t / 128) + (float) mcp9808dt / mcp9808dt_scale;
             mcp9808.ok = 1;
          }
       }
@@ -1513,7 +1507,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1693,6 +1688,15 @@ app_main ()
       }
       if (isnan (t) && gzp6816d.ok && !isnan (t = gzp6816d.t))
          tempfrom = REVK_SETTINGS_TEMPREF_GZP6816D;
+      if (!isnan (t))
+      {                         // Smoother
+         static float lastt = NAN;
+         float n = t;
+         if (!isnan (lastt))
+            n = (t + lastt) / 2;
+         lastt = t;
+         t = n;
+      }
       uint16_t co2 = 0;
       uint8_t rh = 0;
       if (blerh)
