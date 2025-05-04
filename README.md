@@ -56,7 +56,7 @@ In addition to working with the Faikin this can send MQTT messages to turn on or
 - On board pressure sensor (GZP6816D)
 - On board ambient light sensor with color (VEML6040)
 - The PCB is designed to work with a Waveshare 2" colour LCD. Four M2x3mm screws and 8 way 0.1" header pins are required if you get the display separately.
-- The board can wortk without a display if it is simply to be used as a sensor or temperature reference.
+- The board can work without a display if it is simply to be used as a sensor or temperature reference.
 - The board can work with or without the SCD41 CO₂ sensor - as this is an expensive part, and not always required.
 
 The plan is to sell on Tindie with LCD being optional and SCD41 being optional.
