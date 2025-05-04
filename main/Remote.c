@@ -659,7 +659,39 @@ scd41_read (uint16_t c, int8_t len, uint8_t * buf)
    esp_err_t err = i2c_master_cmd_begin (i2cport, t, 100 / portTICK_PERIOD_MS);
    i2c_cmd_link_delete (t);
    if (err)
-      ESP_LOGE (TAG, "I2C %02X %d fail %s", scd41i2c & 0x7F, len, esp_err_to_name (err));
+      ESP_LOGE (TAG, "I2C read %02X %04X %d fail %s", scd41i2c & 0x7F, c, len, esp_err_to_name (err));
+   if (!err)
+   {                            // CRC checks
+      int p = 0;
+      while (p < len && !err)
+      {
+         if (scd41_crc (buf[p], buf[p + 1]) != buf[p + 2])
+         {
+            ESP_LOGE (TAG, "SCD41 CRC fail on read %02x", c);
+            err = ESP_FAIL;
+         }
+         p += 3;
+      }
+   }
+   return err;
+}
+
+static esp_err_t
+scd41_write (uint16_t c, uint16_t v)
+{
+   i2c_cmd_handle_t t = i2c_cmd_link_create ();
+   i2c_master_start (t);
+   i2c_master_write_byte (t, (scd41i2c << 1) | I2C_MASTER_WRITE, true);
+   i2c_master_write_byte (t, c >> 8, true);
+   i2c_master_write_byte (t, c, true);
+   i2c_master_write_byte (t, v >> 8, true);
+   i2c_master_write_byte (t, v, true);
+   i2c_master_write_byte (t, scd41_crc (v >> 8, v), true);
+   i2c_master_stop (t);
+   esp_err_t err = i2c_master_cmd_begin (i2cport, t, 100 / portTICK_PERIOD_MS);
+   i2c_cmd_link_delete (t);
+   if (err)
+      ESP_LOGE (TAG, "SCD41 write %02X %04X %04X fail %s", scd41i2c & 0x7F, c, v, esp_err_to_name (err));
    return err;
 }
 
@@ -767,17 +799,12 @@ i2c_task (void *x)
          fail (scd41i2c, "SCD41");
       else
       {
-         if (scd41_crc (buf[0], buf[1]) == buf[2] && scd41_crc (buf[3], buf[4]) == buf[5] && scd41_crc (buf[6], buf[7]) == buf[8])
-         {
-            scd41.serial =
-               ((unsigned long long) buf[0] << 40) + ((unsigned long long) buf[1] << 32) +
-               ((unsigned long long) buf[3] << 24) + ((unsigned long long) buf[4] << 16) +
-               ((unsigned long long) buf[6] << 8) + ((unsigned long long) buf[7]);
-            if (!scd41_command (0x21B1))
-               scd41.found = 1;
-         } else
-            ESP_LOGE (TAG, "SCD41 CRC bad %02X %02X %02X %02X %02X %02X %02X %02X %02X", buf[0], buf[1], buf[2], buf[3], buf[4],
-                      buf[5], buf[6], buf[7], buf[8]);
+         scd41.serial =
+            ((unsigned long long) buf[0] << 40) + ((unsigned long long) buf[1] << 32) +
+            ((unsigned long long) buf[3] << 24) + ((unsigned long long) buf[4] << 16) +
+            ((unsigned long long) buf[6] << 8) + ((unsigned long long) buf[7]);
+         if (!scd41_command (0x21B1))
+            scd41.found = 1;
       }
    }
    if (tmp1075i2c)
@@ -788,6 +815,7 @@ i2c_task (void *x)
          tmp1075.found = 1;
    }
    b.ha = 1;
+   sleep (5);
    // Poll
    while (!b.die)
    {
@@ -821,8 +849,7 @@ i2c_task (void *x)
          } else
          {
             int16_t t = (v << 3);
-            if (uptime () > 10)
-               mcp9808.t = T ((float) t / 128) + (float) mcp9808dt / mcp9808dt_scale;
+            mcp9808.t = T ((float) t / 128) + (float) mcp9808dt / mcp9808dt_scale;
             mcp9808.ok = 1;
          }
       }
@@ -875,15 +902,15 @@ i2c_task (void *x)
       {
          uint8_t buf[9];
          esp_err_t err = 0;
-         if (!(err = scd41_read (0xE4B8, 3, buf)) && scd41_crc (buf[0], buf[1]) == buf[2] && ((buf[0] & 0x7) || buf[1]) &&
-             !(err = scd41_read (0xEC05, sizeof (buf), buf)) &&
-             scd41_crc (buf[0], buf[1]) == buf[2] && scd41_crc (buf[3], buf[4]) == buf[5] && scd41_crc (buf[6], buf[7]) == buf[8])
+         if (!(err = scd41_read (0xE4B8, 3, buf)) && ((buf[0] & 0x7) || buf[1]) && !(err = scd41_read (0xEC05, sizeof (buf), buf)))
          {
             scd41.ppm = (buf[0] << 8) + buf[1];
-            if (uptime () > 30)
+            if (uptime () > 180)        // Starts off way out for some reason
                scd41.t = T (-45.0 + 175.0 * (float) ((buf[3] << 8) + buf[4]) / 65536.0) + (float) scd41dt / scd41dt_scale;
             scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
             scd41.ok = 1;
+            if (gzp6816d.ok)
+               scd41_write (0x0E000, gzp6816d.hpa);
          } else if (err)
          {
             scd41.ok = 0;
@@ -900,12 +927,15 @@ i2c_task (void *x)
             tmp1075.t = NAN;
          } else
          {
-            if (uptime () > 10)
-               tmp1075.t = T (((float) (int16_t) v) / 256) + (float) tmp1075dt / tmp1075dt_scale;;
+            tmp1075.t = T (((float) (int16_t) v) / 256) + (float) tmp1075dt / tmp1075dt_scale;;
             tmp1075.ok = 1;
          }
       }
-      usleep (500000);
+      {                         // Next second
+         struct timeval tv;
+         gettimeofday (&tv, NULL);
+         usleep (1000000 - tv.tv_usec);
+      }
    }
    vTaskDelete (NULL);
 }
@@ -1507,8 +1537,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1571,6 +1600,10 @@ app_main ()
    uint8_t blerh = 0;
    uint8_t blebat = 0;
    uint8_t change = 0;
+   uint8_t tempfrom = tempref;
+   float t = NAN;
+   uint16_t co2 = 0;
+   uint8_t rh = 0;
    while (!revk_shutting_down (NULL))
    {
       message = NULL;           // set by Show functions
@@ -1582,6 +1615,9 @@ app_main ()
       b.display = 0;
       if (tm.tm_sec != lastsec)
       {                         // Once per second
+         t = NAN;
+         co2 = 0;
+         rh = 0;
          if (wake && !--wake)
             edit = 0;
          if (b.ha)
@@ -1635,81 +1671,77 @@ app_main ()
          }
          if (*blefaikin && (!bleidfaikin || !bleidfaikin->faikinset || bleidfaikin->missing) && !message)
             message = "*Faikin gone";
-      }
-      // Work out current values to show / test
-      uint8_t tempfrom = tempref;
-      float t = NAN;
-      switch (tempref)
-      {
-      case REVK_SETTINGS_TEMPREF_MCP9808:
-         t = mcp9808.t;
-         break;
-      case REVK_SETTINGS_TEMPREF_TMP1075:
-         t = tmp1075.t;
-         break;
-      case REVK_SETTINGS_TEMPREF_SCD41:
-         t = scd41.t;
-         break;
-      case REVK_SETTINGS_TEMPREF_GZP6816D:
-         t = gzp6816d.t;
-         break;
-      case REVK_SETTINGS_TEMPREF_BLE:
-         t = blet;
-         break;
-      case REVK_SETTINGS_TEMPREF_AC:
-         if (bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
+         // Work out current values to show / test
+         switch (tempref)
+         {
+         case REVK_SETTINGS_TEMPREF_MCP9808:
+            t = mcp9808.t;
+            break;
+         case REVK_SETTINGS_TEMPREF_TMP1075:
+            t = tmp1075.t;
+            break;
+         case REVK_SETTINGS_TEMPREF_SCD41:
+            t = scd41.t;
+            break;
+         case REVK_SETTINGS_TEMPREF_GZP6816D:
+            t = gzp6816d.t;
+            break;
+         case REVK_SETTINGS_TEMPREF_BLE:
+            t = blet;
+            break;
+         case REVK_SETTINGS_TEMPREF_AC:
+            if (bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
+               t = T ((float) bleidfaikin->temp / 100);
+            break;
+         case REVK_SETTINGS_TEMPREF_DS18B20_0_:
+            if (ds18b20_num >= 1)
+               t = ds18b20s[0].t;
+            break;
+         case REVK_SETTINGS_TEMPREF_DS18B20_1_:
+            if (ds18b20_num >= 2)
+               t = ds18b20s[1].t;
+            break;
+         }
+         if (isnan (t) && !isnan (t = blet))
+            tempfrom = REVK_SETTINGS_TEMPREF_BLE;
+         if (isnan (t) && ds18b20_num >= 1 && !isnan (t = ds18b20s[0].t))
+            tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_0_;
+         if (isnan (t) && ds18b20_num >= 2 && !isnan (t = ds18b20s[1].t))
+            tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_1_;
+         if (isnan (t) && scd41.ok && !isnan (t = scd41.t))
+            tempfrom = REVK_SETTINGS_TEMPREF_SCD41;
+         if (isnan (t) && tmp1075.ok && !isnan (t = tmp1075.t))
+            tempfrom = REVK_SETTINGS_TEMPREF_TMP1075;
+         if (isnan (t) && mcp9808.ok && !isnan (t = mcp9808.t))
+            tempfrom = REVK_SETTINGS_TEMPREF_MCP9808;
+         if (isnan (t) && bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
+         {
             t = T ((float) bleidfaikin->temp / 100);
-         break;
-      case REVK_SETTINGS_TEMPREF_DS18B20_0_:
-         if (ds18b20_num >= 1)
-            t = ds18b20s[0].t;
-         break;
-      case REVK_SETTINGS_TEMPREF_DS18B20_1_:
-         if (ds18b20_num >= 2)
-            t = ds18b20s[1].t;
-         break;
+            tempfrom = REVK_SETTINGS_TEMPREF_AC;
+         }
+         if (isnan (t) && gzp6816d.ok && !isnan (t = gzp6816d.t))
+            tempfrom = REVK_SETTINGS_TEMPREF_GZP6816D;
+         if (!isnan (t))
+         {                      // Smoother
+            static float lastt = NAN;
+            float n = t;
+            if (!isnan (lastt))
+               n = (t + lastt) / 2;
+            lastt = t;
+            t = n;
+         }
+         if (blerh)
+            rh = blerh;
+         if (scd41.ok)
+         {
+            co2 = scd41.ppm;
+            if (!rh)
+               rh = scd41.rh;
+         } else if (t6793.ok)
+            co2 = t6793.ppm;
+         if (!message && blebat && blebat < 10)
+            message = "*Low BLE bat";
       }
-      if (isnan (t) && !isnan (t = blet))
-         tempfrom = REVK_SETTINGS_TEMPREF_BLE;
-      if (isnan (t) && ds18b20_num >= 1 && !isnan (t = ds18b20s[0].t))
-         tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_0_;
-      if (isnan (t) && ds18b20_num >= 2 && !isnan (t = ds18b20s[1].t))
-         tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_1_;
-      if (isnan (t) && scd41.ok && !isnan (t = scd41.t))
-         tempfrom = REVK_SETTINGS_TEMPREF_SCD41;
-      if (isnan (t) && tmp1075.ok && !isnan (t = tmp1075.t))
-         tempfrom = REVK_SETTINGS_TEMPREF_TMP1075;
-      if (isnan (t) && mcp9808.ok && !isnan (t = mcp9808.t))
-         tempfrom = REVK_SETTINGS_TEMPREF_MCP9808;
-      if (isnan (t) && bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
-      {
-         t = T ((float) bleidfaikin->temp / 100);
-         tempfrom = REVK_SETTINGS_TEMPREF_AC;
-      }
-      if (isnan (t) && gzp6816d.ok && !isnan (t = gzp6816d.t))
-         tempfrom = REVK_SETTINGS_TEMPREF_GZP6816D;
-      if (!isnan (t))
-      {                         // Smoother
-         static float lastt = NAN;
-         float n = t;
-         if (!isnan (lastt))
-            n = (t + lastt) / 2;
-         lastt = t;
-         t = n;
-      }
-      uint16_t co2 = 0;
-      uint8_t rh = 0;
-      if (blerh)
-         rh = blerh;
-      if (scd41.ok)
-      {
-         co2 = scd41.ppm;
-         if (!rh)
-            rh = scd41.rh;
-      } else if (t6793.ok)
-         co2 = t6793.ppm;
-      if (!message && blebat && blebat < 10)
-         message = "*Low BLE bat";
       // power set based on time and manual
       int16_t early = 0;
       if (acstart == acstop || b.away)
