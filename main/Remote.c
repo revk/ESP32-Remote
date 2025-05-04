@@ -1994,7 +1994,7 @@ app_main ()
       gfx_pos (gfx_width () / 2, gfx_height () / 2, GFX_C | GFX_M);
       const char *reason;
       revk_shutting_down (&reason);
-      gfx_text (0, 2, "%s", reason);
+      gfx_text (1, 2, "%s", reason);
       int i = revk_ota_progress ();
       if (i >= 0 && i <= 100)
       {
