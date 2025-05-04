@@ -1039,6 +1039,11 @@ btnwake (void)
          wake = 10;
          return 1;              // Woken up
       }
+      if (hold)
+      {
+         hold = 0;
+         return 1;
+      }
    }
    if (!edit)
       edit = EDIT_TARGET;
@@ -1503,8 +1508,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1593,7 +1597,6 @@ app_main ()
          }
          if (veml6040.ok && veml6040dark)
             b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
-         revk_gpio_set (gfxbl, wake || hold || !b.night ? 1 : 0);
          bleenv_expire (120);
          if (!bleidtemp || strcmp (bleidtemp->name, bletemp))
          {
@@ -1929,6 +1932,7 @@ app_main ()
          epd_unlock ();
       }
 #endif
+      revk_gpio_set (gfxbl, wake || hold || !b.night ? 1 : 0);
       usleep (10000);
       lastsec = tm.tm_sec;
       lastmin = tm.tm_min;
