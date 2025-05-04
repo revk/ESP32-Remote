@@ -1350,7 +1350,9 @@ rh_colour (uint8_t rh)
    gfx_colour_t c = 0x888888;
    if (rh)
    {
-      if (rh < rhgreen)
+      if (rh < rhblue)
+         c = 0x0000FF;
+      else if (rh < rhgreen)
          c = 0x00FF00;
       else if (rh < rhred)
          c = 0xFFFF00;

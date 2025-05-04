@@ -70,8 +70,9 @@ u8	time.step	15	.live .unit="min"	// Time steps
 u8	early.cool	3	.live .unit="°/h" .decimal=1      // Early on assumed cool rate
 u8	early.heat	3	.live .unit="°/h" .decimal=1      // Early on assumed heat rate
 
-u8	rh.green	40	.live .unit="%"		// RH considered low
-u8	rh.red		60	.live .unit="%"		// RH considered high
+u8	rh.blue		30	.live .unit="%"		// RH considered low
+u8	rh.green	50	.live .unit="%"		// RH considered high
+u8	rh.red		60	.live .unit="%"		// RH trigger fan
 
 u16	co2.green	800	.live .unit="ppm"	// CO2 considered low
 u16	co2.red		1200	.live .unit="ppm"	// CO2 considered high
