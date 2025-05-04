@@ -18,6 +18,7 @@ glowlog
 icons/*.png
 icons/*.gray
 icons/*.h
+icons/CMakeLists.txt
 managed_components
 dependencies.lock
 settings.h
