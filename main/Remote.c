@@ -1539,8 +1539,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1639,8 +1638,10 @@ app_main ()
          if (b.connect)
          {
             b.connect = 0;
-            send_rad (b.rad);
-            send_fan (b.fan);
+            if (radcontrol)
+               send_rad (b.rad);
+            if (fancontrol)
+               send_fan (b.fan);
          }
          if (veml6040.ok && veml6040dark)
             b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
@@ -1887,8 +1888,10 @@ app_main ()
       {
          lastreport = now / reporting;
          revk_command ("status", NULL);
-         send_rad (b.rad);      // Periodic rather than retained as could be separate commands or even just one command one way
-         send_fan (b.fan);
+         if (radcontrol)
+            send_rad (b.rad);   // Periodic rather than retained as could be separate commands or even just one command one way
+         if (fancontrol)
+            send_fan (b.fan);
       }
       // BLE
       switch (bleadvert)
