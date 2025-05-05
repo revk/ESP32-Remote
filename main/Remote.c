@@ -1768,7 +1768,7 @@ app_main ()
       } else
       {                         // Timer state
          uint16_t start = acstart / 100 * 60 + acstart % 100;
-         uint16_t stop = acstart / 100 * 60 + acstart % 100;
+         uint16_t stop = acstop / 100 * 60 + acstop % 100;
          uint16_t min = tm.tm_hour * 60 + tm.tm_min;
          if (start < stop)
          {
