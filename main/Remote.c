@@ -1166,7 +1166,7 @@ btnEW (int8_t d)
    edit += d;
    if (!edit)
       edit = EDIT_NUM - 1;
-   while ((nomode && edit == EDIT_MODE) || (nofan && edit == EDIT_FAN))
+   while (((faikinonly || nomode) && edit == EDIT_MODE) || (nofan && edit == EDIT_FAN))
       edit += d;
    if (edit == EDIT_NUM)
       edit = 1;
@@ -1539,7 +1539,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1626,6 +1627,8 @@ app_main ()
          t = NAN;
          co2 = 0;
          rh = 0;
+         if (faikinonly)
+            acmode = REVK_SETTINGS_ACMODE_FAIKIN;
          if (wake && !--wake)
             edit = 0;
          if (b.ha)
