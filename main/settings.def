@@ -79,3 +79,11 @@ u16	co2.red		1200	.live .unit="ppm"	// CO2 considered high
 
 s	mqtt.fan		.live			// MQTT to control Fan
 s	mqtt.rad		.live			// MQTT to control Radiator
+
+bit	rad.control		.live			// Enable radiator control logic
+s	rad.on			.live			// MQTT to send for radiator on
+s	rad.off			.live			// MQTT to send for radiator off
+
+bit	fan.control		.live			// Enable external fan control logic
+s	fan.on			.live			// MQTT to send for external fan on
+s	fan.off			.live			// MQTT to send for external fan off

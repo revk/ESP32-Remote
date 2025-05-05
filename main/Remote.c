@@ -1394,16 +1394,18 @@ void
 send_fan (uint8_t fan)
 {
    b.fan = fan;
-   if (*mqttfan)
-      revk_mqtt_send_raw (mqttfan, 1, fan ? "1" : "0", 1);
+   char *m = fan ? fanon : fanoff;
+   if (*m)
+      revk_mqtt_send_str (m);
 }
 
 void
 send_rad (uint8_t rad)
 {
    b.rad = rad;
-   if (*mqttrad)
-      revk_mqtt_send_raw (mqttrad, 1, rad ? "1" : "0", 1);
+   char *m = rad ? radon : radoff;
+   if (*m)
+      revk_mqtt_send_str (m);
 }
 
 void
@@ -1441,7 +1443,7 @@ show_mode (void)
    }
    if (edit != EDIT_MODE && b.away && !b.poweron)
       icon_plot (icon_modeaway);
-   else if (edit != EDIT_MODE && *mqttrad && b.rad && (!b.poweron || nomode))
+   else if (edit != EDIT_MODE && radcontrol && b.rad && (!b.poweron || nomode))
       icon_plot (icon_moderad);
    else if (edit != EDIT_MODE && !b.poweron)
       icon_plot (icon_modeoff);
@@ -1811,7 +1813,7 @@ app_main ()
       }
       if (tm.tm_min != lastmin)
       {
-         if (!b.fan && ((co2red && co2 >= co2red) || (rhred && rh >= rhred)))
+         if (fancontrol && !b.fan && ((co2red && co2 >= co2red) || (rhred && rh >= rhred)))
          {
             if (!b.fan)
                send_fan (1);
@@ -1820,7 +1822,7 @@ app_main ()
             if (b.fan)
                send_fan (0);
          }
-         if (t < targetlow)
+         if (radcontrol && t < targetlow)
          {
             if (!b.rad)
                send_rad (1);
@@ -1882,6 +1884,8 @@ app_main ()
       {
          lastreport = now / reporting;
          revk_command ("status", NULL);
+         send_rad (b.rad);      // Periodic rather than retained as could be separate commands or even just one command one way
+         send_fan (b.fan);
       }
       // BLE
       switch (bleadvert)
