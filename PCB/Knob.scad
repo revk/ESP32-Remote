@@ -1,5 +1,5 @@
 $fn=120;
-H=13;
+H=12.5;
 difference()
 {
     union()
@@ -9,7 +9,7 @@ difference()
              cylinder(d=8,h=1);
              translate([0,0,2])cube([10,10,1],center=true);
         }
-        cylinder(d=5,h=H-0.01);
+        cylinder(d=5.5,h=H-0.01);
     }
-    translate([0,0,H-1])cube([2.3,2.3,4],center=true);
+    translate([0,0,H-1.5])cube([2.25,2.25,4],center=true);
 }
