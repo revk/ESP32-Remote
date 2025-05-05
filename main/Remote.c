@@ -1284,7 +1284,7 @@ pixel (void *opaque, uint32_t x, uint32_t y, uint16_t r, uint16_t g, uint16_t b,
 #endif
 
 void
-icon_plot (uint8_t i)
+icon_plot (uint8_t i, uint8_t m)
 {
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (i >= sizeof (icons) / sizeof (*icons))
@@ -1296,7 +1296,7 @@ icon_plot (uint8_t i)
       return;
    gfx_pos_t ox = 0,
       oy = 0;
-   gfx_draw (w, h, 0, 0, &ox, &oy);
+   gfx_draw (w, h, m, m, &ox, &oy);
    plot_t settings = { ox, oy };
    lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
    lwpng_data (p, icons[i].end - icons[i].start, icons[i].start);
@@ -1442,19 +1442,19 @@ show_mode (void)
       message = icon_mode_message[acmode];
    }
    if (edit != EDIT_MODE && b.away && !b.poweron)
-      icon_plot (icon_modeaway);
+      icon_plot (icon_modeaway, 2);
    else if (edit != EDIT_MODE && radcontrol && b.rad && (!b.poweron || nomode))
-      icon_plot (icon_moderad);
+      icon_plot (icon_moderad, 2);
    else if (edit != EDIT_MODE && !b.poweron)
-      icon_plot (icon_modeoff);
+      icon_plot (icon_modeoff, 2);
    else if (nomode)
       return;
    else if (b.faikinbad)        // Antifreeze or slave
-      icon_plot (icon_modebad);
+      icon_plot (icon_modebad, 2);
    else if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
-      icon_plot (b.faikinheat ? icon_modefaikinheat : icon_modefaikincool);
+      icon_plot (b.faikinheat ? icon_modefaikinheat : icon_modefaikincool, 2);
    else
-      icon_plot (icon_mode[acmode]);
+      icon_plot (icon_mode[acmode], 2);
 }
 
 void
@@ -1467,7 +1467,7 @@ show_fan (void)
    }
    if (nofan)
       return;
-   icon_plot ((fan3 ? icon_fans3 : icon_fans5)[acfan]);
+   icon_plot ((fan3 ? icon_fans3 : icon_fans5)[acfan], 2);
 }
 
 void
@@ -1476,10 +1476,14 @@ show_co2 (uint16_t co2)
    if (noco2)
       return;
    co2_colour (co2);
+   if (gfx_a () & GFX_R)
+      icon_plot (icon_co2, 5);
    if (co2 < 400 || co2 > 10000)
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "----");
+      gfx_7seg (0, 5, "----");
    else
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%4u", co2);
+      gfx_7seg (0, 5, "%4u", co2);
+   if (!(gfx_a () & GFX_R))
+      icon_plot (icon_co2, 5);
    if (!message && co2 >= co2red)
       message = "*High CO₂";
 }
@@ -1491,13 +1495,13 @@ show_rh (uint8_t rh)
       return;
    rh_colour (rh);
    if (gfx_a () & GFX_R)
-      gfx_text (0, 4, "%%");
+      icon_plot (icon_humidity, 5);
    if (!rh || rh >= 100)
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--");
+      gfx_7seg (0, 5, "--");
    else
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%2u", rh);
+      gfx_7seg (0, 5, "%2u", rh);
    if (!(gfx_a () & GFX_R))
-      gfx_text (0, 4, "%%");
+      icon_plot (icon_humidity, 5);
    if (!message && rh >= rhred)
       message = "*High humidity";
 }
@@ -1539,7 +1543,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1947,7 +1952,7 @@ app_main ()
             gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_rh (rh);
             if (blerh)
-               icon_plot (icon_bt);
+               icon_plot (icon_bt, 0);
          } else
          {                      // Landscape
             gfx_pos (2, 2, GFX_T | GFX_L);
@@ -1962,13 +1967,13 @@ app_main ()
                show_stop ();
             } else
             {
-               gfx_pos (gfx_width () - 3, 135, GFX_T | GFX_R);
+               gfx_pos (gfx_width () - 3, 135, GFX_T | GFX_R | GFX_H);
                show_co2 (co2);
                gfx_pos (2, gfx_y (), GFX_T | GFX_L | GFX_H);
-               show_rh (rh);
                if (blerh)
-                  icon_plot (icon_bt);
-               gfx_pos (gfx_width () / 2, gfx_y () - 10, GFX_T | GFX_C);
+                  icon_plot (icon_bt, 0);
+               show_rh (rh);
+               gfx_pos (gfx_width () / 2 - 10, gfx_y () - 10, GFX_T | GFX_C);
                show_fan ();
             }
          }
