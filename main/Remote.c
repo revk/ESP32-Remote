@@ -1772,13 +1772,13 @@ app_main ()
          uint16_t min = tm.tm_hour * 60 + tm.tm_min;
          if (start < stop)
          {
-            if (min >= start && now < stop)
+            if (min >= start && min < stop)
                b.timeron = 1;
             else
                b.timeron = 0;
          } else
          {
-            if (min >= start || now < stop)
+            if (min >= start || min < stop)
                b.timeron = 1;
             else
                b.timeron = 0;
