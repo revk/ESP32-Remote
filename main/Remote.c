@@ -1296,7 +1296,7 @@ icon_plot (uint8_t i)
       return;
    gfx_pos_t ox = 0,
       oy = 0;
-   gfx_draw (w, h, 0, 0, &ox, &oy);
+   gfx_draw (w, h, 2, 2, &ox, &oy);
    plot_t settings = { ox, oy };
    lwpng_decode_t *p = lwpng_decode (&settings, NULL, &pixel, &my_alloc, &my_free, NULL);
    lwpng_data (p, icons[i].end - icons[i].start, icons[i].start);
@@ -1476,10 +1476,14 @@ show_co2 (uint16_t co2)
    if (noco2)
       return;
    co2_colour (co2);
+   if (gfx_a () & GFX_R)
+      icon_plot (icon_co2);
    if (co2 < 400 || co2 > 10000)
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "----");
+      gfx_7seg (0, 5, "----");
    else
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%4u", co2);
+      gfx_7seg (0, 5, "%4u", co2);
+   if (!(gfx_a () & GFX_R))
+      icon_plot (icon_co2);
    if (!message && co2 >= co2red)
       message = "*High CO₂";
 }
@@ -1491,13 +1495,13 @@ show_rh (uint8_t rh)
       return;
    rh_colour (rh);
    if (gfx_a () & GFX_R)
-      gfx_text (0, 4, "%%");
+      icon_plot (icon_humidity);
    if (!rh || rh >= 100)
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "--");
+      gfx_7seg (0, 5, "--");
    else
-      gfx_7seg (GFX_7SEG_SMALL_DOT, 5, "%2u", rh);
+      gfx_7seg (0, 5, "%2u", rh);
    if (!(gfx_a () & GFX_R))
-      gfx_text (0, 4, "%%");
+      icon_plot (icon_humidity);
    if (!message && rh >= rhred)
       message = "*High humidity";
 }
@@ -1962,13 +1966,13 @@ app_main ()
                show_stop ();
             } else
             {
-               gfx_pos (gfx_width () - 3, 135, GFX_T | GFX_R);
+               gfx_pos (gfx_width () - 3, 135, GFX_T | GFX_R | GFX_H);
                show_co2 (co2);
                gfx_pos (2, gfx_y (), GFX_T | GFX_L | GFX_H);
-               show_rh (rh);
                if (blerh)
                   icon_plot (icon_bt);
-               gfx_pos (gfx_width () / 2, gfx_y () - 10, GFX_T | GFX_C);
+               show_rh (rh);
+               gfx_pos (gfx_width () / 2 - 10, gfx_y () - 10, GFX_T | GFX_C);
                show_fan ();
             }
          }
