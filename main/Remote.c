@@ -272,7 +272,7 @@ revk_state_extra (jo_t j)
          add_enum ("source", data.tempfrom, REVK_SETTINGS_TEMPREF_ENUMS);
    }
    if (!isnan (data.tmin) && !isnan (data.tmax) && data.tmin == data.tmax)
-      jo_litf (j, "target-temp", "%.2f", data.tmin);
+      jo_litf (j, "temp-target", "%.2f", data.tmin);
    else
    {
       jo_array (j, "target-temp");
