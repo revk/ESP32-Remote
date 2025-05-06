@@ -1048,8 +1048,10 @@ web_root (httpd_req_t * req)
    char *qs = NULL;
    revk_web_send (req, "<h1>%s</h1>", revk_web_safe (&qs, hostname));
    free (qs);
+#ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
 #ifdef	CONFIG_LWPNG_ENCODE
    revk_web_send (req, "<p><img src=frame.png style='border:10px solid black;'></p>");
+#endif
 #endif
    if (btnu.set || btnd.set || btnl.set || btnr.set)
       revk_web_send (req, "<table border=1>"    //
@@ -1057,8 +1059,10 @@ web_root (httpd_req_t * req)
                      "<tr><td><a href='btn?L'><b>L</b></a></td><td><a href='btn?l'>L</a></td><td>◆</td><td><a href='btn?r'>R</a></td><td><a href='btn?R'><b>R</b></a></td></tr>"      //
                      "<tr><td colspan=2></td><td><a href='btn?d'>D</a></td><td colspan=2></td></tr>"    //
                      "</table>");
+#ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
 #ifdef	CONFIG_LWPNG_ENCODE
    revk_web_send (req, "<p><a href=/>Reload</a></p>");
+#endif
 #endif
    return revk_web_foot (req, 0, 1, NULL);
 }
