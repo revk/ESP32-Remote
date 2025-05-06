@@ -363,22 +363,24 @@ revk_web_extra (httpd_req_t * req, int page)
       revk_web_setting (req, "Auto dark", "veml6040dark");
    }
    revk_web_setting_title (req, "Temperature");
-   revk_web_setting_info (req, "Configured temperature sources (in priority order)...<ul>"      //
-                          "%s"  //
-                          "%s"  //
-                          "%s"  //
-                          "%s"  //
-                          "%s"  //
-                          "%s"  //
-                          "</ul>"       //
-                          "Note that internal sensors may need an offset, depending on orientation and if in a case, etc.",     //
-                          *bletemp ? "<li>External Bluetooth sensor (BLE)</li>" : "",   //
-                          ds18b20_num ? "<li>Connected temperature probe (DS18B20)</li>" : "",  //
-                          scd41.found ? "<li>Internal CO₂ sensor (SCD41)</li>" : t6793.found ? "<li>Internal CO₂ sensor (T6793)</li>" : "", //
-                          tmp1075.found ? "<li>Internal temperature sensor (TMP1075)</li>" : mcp9808.found ? "<li>Internal temperature sensor (MCP9808)</li>" : "",     //
-                          *blefaikin ? "<li>Aircon temperature via Faikin (AC)</li>" : "",      //
-                          gzp6816d.found ? "<li>Internal pressure sensor (GZP6816D), not recommended</li>" : "" //
-      );
+   revk_web_setting_info (req, "Configured temperature sources (in priority order)...");
+   if (*bletemp)
+      revk_web_send (req, "<tr><td>%s</td><td align=right>%.2f°</td><td>External BLE sensor.</td></tr>", bletemp,
+                     bleidtemp ? T ((float) bleidtemp->temp / 100.0) : NAN);
+   if (ds18b20_num)
+      revk_web_send (req, "<tr><td>DS18B20</td><td align=right>%.2f°</td><td>External wired sensor.</td></tr>", ds18b20s[0].t);
+   if (scd41.found)
+      revk_web_send (req, "<tr><td>SCD41</td><td align=right>%.2f°</td><td>Internal CO₂ sensor.</td></tr>", scd41.t);
+   if (tmp1075.found)
+      revk_web_send (req, "<tr><td>TMP1075</td><td align=right>%.2f°</td><td>Internal temperature sensor.</td></tr>", tmp1075.t);
+   if (mcp9808.found)
+      revk_web_send (req, "<tr><td>MCP9808</td><td align=right>%.2f°</td><td>Internal temperature sensor.</td></tr>", mcp9808.t);
+   if (*blefaikin)
+      revk_web_send (req, "<tr><td>%s</td><td align=right>%.2f°</td><td>Aircon temperature via Faikin.</td></tr>", blefaikin,
+                     bleidfaikin ? T ((float) bleidfaikin->temp / 100.0) : NAN);
+   if (gzp6816d.found)
+      revk_web_send (req, "<tr><td>GZP6816D</td><td align=right>%.2f°</td><td>Internal pressure sensor.</td></tr>", gzp6816d.t);
+   revk_web_setting_info (req, "Note that internal sensors may need an offset, depending on orientation and if in a case, etc.");
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_SCD41 || tempref == REVK_SETTINGS_TEMPREF_SCD41)
@@ -1202,6 +1204,7 @@ btnH (void)
 void
 btn (char c)
 {
+   ESP_LOGE (TAG, "Btn %c", c);
    switch (c)
    {
    case 'N':
@@ -1236,11 +1239,11 @@ btn_task (void *x)
    {
       for (int i = 0; i < 5; i++)
       {
-         if (revk_gpio_get (btns[i]))
+         if (revk_gpio_get (btns[i]) && (i == 4 || !t[4]))
          {
             if (t[i] < 255)
                t[i]++;
-            if (t[i] == 2)
+            if (t[i] == 10)
                btn (b[i]);
             else if (i == 4 && t[i] == 200)
                btn ('H');
