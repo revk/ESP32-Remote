@@ -272,13 +272,15 @@ revk_state_extra (jo_t j)
          add_enum ("source", data.tempfrom, REVK_SETTINGS_TEMPREF_ENUMS);
    }
    if (!isnan (data.tmin) && !isnan (data.tmax) && data.tmin == data.tmax)
-      jo_litf (j, "target", "%.2f", data.tmin);
+      jo_litf (j, "target-temp", "%.2f", data.tmin);
    else
    {
+      jo_array (j, "target-temp");
       if (!isnan (data.tmin))
-         jo_litf (j, "min", "%.2f", data.tmin);
+         jo_litf (j, NULL, "%.2f", data.tmin);
       if (!isnan (data.tmax))
-         jo_litf (j, "max", "%.2f", data.tmax);
+         jo_litf (j, NULL, "%.2f", data.tmax);
+      jo_close (j);
    }
    if (data.mode)
       add_enum ("mode", data.mode, REVK_SETTINGS_ACMODE_ENUMS);
@@ -379,7 +381,9 @@ revk_web_extra (httpd_req_t * req, int page)
       revk_web_send (req, "<tr><td>%s</td><td align=right>%.2f°</td><td>Aircon temperature via Faikin.</td></tr>", blefaikin,
                      bleidfaikin ? T ((float) bleidfaikin->temp / 100.0) : NAN);
    if (gzp6816d.found)
-      revk_web_send (req, "<tr><td>GZP6816D</td><td align=right>%.2f°</td><td>Internal pressure sensor, not recommended.</td></tr>", gzp6816d.t);
+      revk_web_send (req,
+                     "<tr><td>GZP6816D</td><td align=right>%.2f°</td><td>Internal pressure sensor, not recommended.</td></tr>",
+                     gzp6816d.t);
    revk_web_setting_info (req, "Note that internal sensors may need an offset, depending on orientation and if in a case, etc.");
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
@@ -1047,44 +1051,18 @@ web_root (httpd_req_t * req)
 #ifdef	CONFIG_LWPNG_ENCODE
    revk_web_send (req, "<p><img src=frame.png style='border:10px solid black;'></p>"    //
                   "<table border=1>"    //
-                  "<tr><td></td><td><a href='btn?N'>N</a></td><td></td></tr>"   //
-                  "<tr><td><a href='btn?W'>W</a></td><td><a href='btn?P'>P</a></td><td><a href='btn?E'>E</a></td></tr>" //
-                  "<tr><td></td><td><a href='btn?S'>S</a></td><td></td><td><a href='btn?H'>Hold</a></td></tr>"  //
+                  "<tr><td colspan=2></td><td><a href='btn?u'>U</a></td><td colspan=2></td></tr>"       //
+                  "<tr><td><a href='btn?L'><b>L</b></a></td><td><a href='btn?l'>L</a></td><td>◆</td><td><a href='btn?r'>R</a></td><td><a href='btn?R'><b>R</b></a></td></tr>" //
+                  "<tr><td colspan=2></td><td><a href='btn?d'>D</a></td><td colspan=2></td></tr>"       //
                   "</table>"    //
                   "<p><a href=/>Reload</a></p>");
 #endif
    return revk_web_foot (req, 0, 1, NULL);
 }
 
-uint8_t
-btnwake (void)
-{
-   b.display = 1;
-   if (!wake)
-   {
-      if (b.night)
-      {
-         edit = 0;
-         wake = 10;
-         return 1;              // Woken up
-      }
-      if (hold)
-      {
-         hold = 0;
-         return 1;
-      }
-   }
-   if (!edit)
-      edit = EDIT_TARGET;
-   wake = 10;
-   return 0;
-}
-
 void
-btnNS (int8_t d)
+btnud (int8_t d)
 {
-   if (btnwake ())
-      return;
    jo_t j = jo_object_alloc ();
    switch (edit)
    {
@@ -1161,69 +1139,93 @@ btnNS (int8_t d)
 }
 
 void
-btnEW (int8_t d)
+btnlr (int8_t d)
 {
-   if (btnwake ())
-      return;
-   edit += d;
-   if (!edit)
-      edit = EDIT_NUM - 1;
-   while (((faikinonly || nomode) && edit == EDIT_MODE) || (nofan && edit == EDIT_FAN))
-      edit += d;
-   if (edit == EDIT_NUM)
-      edit = 1;
-}
-
-void
-btnP (void)
-{
-   if (btnwake ())
-      return;
-   if (b.away)
-      b.away = 0;
-   else
+   if (edit >= EDIT_MODE)
    {
-      if (!b.manual)
-         b.manualon = b.poweron;
-      b.manualon ^= 1;
+      edit += d;
+      if (edit <= EDIT_TARGET)
+         edit = EDIT_NUM - 1;
+      while (((faikinonly || nomode) && edit == EDIT_MODE) || (nofan && edit == EDIT_FAN))
+         edit += d;
+      if (edit == EDIT_NUM)
+         edit = EDIT_MODE;
+   } else if (b.away)
+   {
+      edit = 0;
+      b.away = 0;
+      message = "Home mode";
+   } else if (d < 0)
+   {
+      edit = 0;
+      b.manualon = 0;
       b.manual = 1;
+      message = "Power off";
+   } else
+   {
+      edit = 0;
+      b.manualon = 1;
+      b.manual = 1;
+      message = "Power on";
    }
-   edit = 0;
 }
 
 void
-btnH (void)
+btnL (void)
 {
-   if (btnwake ())
-      return;
    edit = 0;
    b.away = 1;
    b.manual = 0;
+   message = "Away mode";
+}
+
+void
+btnR (void)
+{
+   if (edit < EDIT_MODE)
+      edit = EDIT_MODE;
+   while (((faikinonly || nomode) && edit == EDIT_MODE) || (nofan && edit == EDIT_FAN))
+      edit++;
 }
 
 void
 btn (char c)
 {
+   message = NULL;
    ESP_LOGE (TAG, "Btn %c", c);
+   b.display = 1;
+   wake = 10;
+   if (b.night)
+   {                            // Light up
+      edit = 0;
+      return;
+   }
+   if (hold)
+   {                            // Remove hold message
+      hold = 0;
+      return;
+   }
+   if (!edit)
+      edit = EDIT_TARGET;
    switch (c)
    {
-   case 'N':
-      btnNS (1);
+   case 'u':
+      btnud (1);
       break;
-   case 'S':
-      btnNS (-1);
+   case 'd':
+      btnud (-1);
       break;
-   case 'E':
-      btnEW (1);
+   case 'l':
+      btnlr (-1);
       break;
-   case 'W':
-      btnEW (-1);
+   case 'r':
+      btnlr (1);
       break;
-   case 'P':
-      btnP ();
+   case 'L':
+      btnL ();
       break;
-   case 'H':
-      btnH ();
+   case 'R':
+      btnR ();
       break;
    }
 }
@@ -1231,31 +1233,47 @@ btn (char c)
 void
 btn_task (void *x)
 {
-   for (int i = 0; i < 5; i++)
-      revk_gpio_input (btns[i]);
-   uint8_t t[5] = { 0 };
-   const char b[] = "NSEWP";
+   // We accept one button at a time
+   revk_gpio_t btng[] = { btnu, btnd, btnl, btnr };
+   const char btns[] = "udlr";
+   uint8_t b;
+   for (b = 0; b < 4; b++)
+      revk_gpio_input (btng[b]);
    while (1)
    {
-      for (int i = 0; i < 5; i++)
+      // Wait for a button press
+      for (b = 0; b < 4 && !revk_gpio_get (btng[b]); b++);
+      if (b == 4)
       {
-         if (revk_gpio_get (btns[i]) && (i == 4 || !t[4]))
-         {
-            if (t[i] < 255)
-               t[i]++;
-            if (t[i] == 10)
-               btn (b[i]);
-            else if (i == 4 && t[i] == 200)
-               btn ('H');
-            else if (i < 4 && t[i] == 100)
-            {
-               btn (b[i]);
-               t[i] = 50;
-            }
-         } else
-            t[i] = 0;
+         usleep (10000);
+         continue;
       }
-      usleep (10000);
+      uint8_t c = 0;
+      while (revk_gpio_get (btng[b]))
+      {
+         if (c < 255)
+            c++;
+         if (c == 5)
+         {                      // Initial press
+            btn (btns[b]);
+         } else if (c == 100 && b < 2)
+         {                      // Simple repeat
+            btn (btns[b]);
+            c = 50;             // Repeat
+         } else if (c == 200)
+         {                      // Hold
+            btn (toupper ((int) (uint8_t) btns[b]));
+         }
+         usleep (10000);
+      }
+      // Wait all clear
+      while (1)
+      {
+         for (b = 0; b < 4 && !revk_gpio_get (btng[b]); b++);
+         if (b == 4)
+            break;
+         usleep (10000);
+      }
    }
 }
 
@@ -1546,8 +1564,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1588,7 +1605,7 @@ app_main ()
    }
    if (sda.set && scl.set)
       revk_task ("i2c", i2c_task, NULL, 10);
-   if (btns[0].set || btns[1].set || btns[2].set || btns[3].set || btns[4].set)
+   if (btnu.set || btnd.set || btnl.set || btnr.set)
       revk_task ("btn", btn_task, NULL, 10);
    if (ds18b20.set)
       revk_task ("18b20", ds18b20_task, NULL, 10);
@@ -1622,7 +1639,8 @@ app_main ()
    uint8_t rh = 0;
    while (!revk_shutting_down (NULL))
    {
-      message = NULL;           // set by Show functions
+      if (!wake)
+         message = NULL;        // set by Show functions
       struct tm tm;
       time_t now = time (0);
       localtime_r (&now, &tm);

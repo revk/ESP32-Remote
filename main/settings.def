@@ -13,7 +13,10 @@ u8	gfx.flip					// Display Flip
 bit	ha.announce	1				// Home Assistant announce
 u16	reporting	60	.unit="s"		// Report interval
 
-gpio	btns		"-38 -37 -39 -40 -36" .array=5	// Buttons N/S/E/W/P
+gpio	btn.u		-38				// Button up
+gpio	btn.d		-37				// Button down
+gpio	btn.l		-40				// Button left
+gpio	btn.r		-39				// Button right
 
 gpio	scl		1				// I2C SCL
 gpio	sda		2				// I2C SDA
