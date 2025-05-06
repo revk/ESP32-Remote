@@ -379,7 +379,7 @@ revk_web_extra (httpd_req_t * req, int page)
       revk_web_send (req, "<tr><td>%s</td><td align=right>%.2f°</td><td>Aircon temperature via Faikin.</td></tr>", blefaikin,
                      bleidfaikin ? T ((float) bleidfaikin->temp / 100.0) : NAN);
    if (gzp6816d.found)
-      revk_web_send (req, "<tr><td>GZP6816D</td><td align=right>%.2f°</td><td>Internal pressure sensor.</td></tr>", gzp6816d.t);
+      revk_web_send (req, "<tr><td>GZP6816D</td><td align=right>%.2f°</td><td>Internal pressure sensor, not recommended.</td></tr>", gzp6816d.t);
    revk_web_setting_info (req, "Note that internal sensors may need an offset, depending on orientation and if in a case, etc.");
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
