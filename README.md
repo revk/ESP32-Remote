@@ -1,6 +1,6 @@
-<img src=https://github.com/user-attachments/assets/fe21073f-2d91-4ceb-891b-1b56910d66a1 width=25% align=right>
-
 # Faikin Remote
+
+<img src=https://github.com/user-attachments/assets/fe21073f-2d91-4ceb-891b-1b56910d66a1 width=25% align=right>
 
 A remote control for Daikin air conditioners which use the [Faikin](https://faikin.revk.uk/) controller.
 
