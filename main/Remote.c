@@ -260,7 +260,7 @@ revk_state_extra (jo_t j)
    if (data.co2)
       jo_int (j, "co2", data.co2);
    if (data.rh)
-      jo_int (j, "rh", data.rh);
+      jo_litf (j, "rh", "%.2f", data.rh);
    if (!isnan (data.lux))
       jo_litf (j, "lux", "%.4f", data.lux);
    if (!isnan (data.pressure))
