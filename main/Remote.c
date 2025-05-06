@@ -1049,13 +1049,16 @@ web_root (httpd_req_t * req)
    revk_web_send (req, "<h1>%s</h1>", revk_web_safe (&qs, hostname));
    free (qs);
 #ifdef	CONFIG_LWPNG_ENCODE
-   revk_web_send (req, "<p><img src=frame.png style='border:10px solid black;'></p>"    //
-                  "<table border=1>"    //
-                  "<tr><td colspan=2></td><td><a href='btn?u'>U</a></td><td colspan=2></td></tr>"       //
-                  "<tr><td><a href='btn?L'><b>L</b></a></td><td><a href='btn?l'>L</a></td><td>◆</td><td><a href='btn?r'>R</a></td><td><a href='btn?R'><b>R</b></a></td></tr>" //
-                  "<tr><td colspan=2></td><td><a href='btn?d'>D</a></td><td colspan=2></td></tr>"       //
-                  "</table>"    //
-                  "<p><a href=/>Reload</a></p>");
+   revk_web_send (req, "<p><img src=frame.png style='border:10px solid black;'></p>");
+#endif
+   if (btnu.set || btnd.set || btnl.set || btnr.set)
+      revk_web_send (req, "<table border=1>"    //
+                     "<tr><td colspan=2></td><td><a href='btn?u'>U</a></td><td colspan=2></td></tr>"    //
+                     "<tr><td><a href='btn?L'><b>L</b></a></td><td><a href='btn?l'>L</a></td><td>◆</td><td><a href='btn?r'>R</a></td><td><a href='btn?R'><b>R</b></a></td></tr>"      //
+                     "<tr><td colspan=2></td><td><a href='btn?d'>D</a></td><td colspan=2></td></tr>"    //
+                     "</table>");
+#ifdef	CONFIG_LWPNG_ENCODE
+   revk_web_send (req, "<p><a href=/>Reload</a></p>");
 #endif
    return revk_web_foot (req, 0, 1, NULL);
 }
@@ -1564,7 +1567,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1836,10 +1840,10 @@ app_main ()
       if (b.manual && b.manualon == (b.earlyon | b.timeron))
          b.manual = 0;
       b.poweron = (b.manual ? b.manualon : b.earlyon | b.timeron);
-      if (!nomode && acmode == REVK_SETTINGS_ACMODE_FAIKIN && !b.poweron && !early)
+      if ((nomode || acmode == REVK_SETTINGS_ACMODE_FAIKIN) && !b.poweron && !early)
       {                         // Full range as not power on - allows faikin to turn off itself even - we leave if early so could decide to turn on itself
          targetmin = (float) tempmin / tempmin_scale;
-         targetmax = (float) tempmax / tempmin_scale;
+         targetmax = (float) tempmax / tempmax_scale;
       }
       if (tm.tm_min != lastmin)
       {
@@ -1863,7 +1867,7 @@ app_main ()
          }
       }
       if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
-         targetmin = targetmax = (float) actarget / actarget_scale;    // non faikin mode - simple target
+         targetmin = targetmax = (float) actarget / actarget_scale;     // non faikin mode - simple target
       xSemaphoreTake (data_mutex, portMAX_DELAY);
       if (data.poweron != b.poweron || data.mode != acmode || data.fan != acfan
           || (acmode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != (float) actarget / actarget_scale))
