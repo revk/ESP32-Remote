@@ -1,13 +1,17 @@
 $fn=120;
-H=12.5;
+H=13.5;
 difference()
 {
     union()
     {
         hull()
         {
-             cylinder(d=8,h=1);
-             translate([0,0,2])cube([10,10,1],center=true);
+             cylinder(d=10,h=1);
+             rotate([0,0,45])translate([0,0,3])minkowski()
+             {
+                cube([3,3,1],center=true);
+                cylinder(r=5,h=0.1);
+             }
         }
         cylinder(d=5.5,h=H-0.01);
     }

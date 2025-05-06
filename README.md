@@ -16,15 +16,34 @@ A key feature is that this can work as the temperature reference for *Faikin aut
 
 ## Basic operation
 
-The display shows current temperature, target temperature, operation mode and fan speed, as well as other details (e.g. CO₂ if fitted)
+The display shows current temperature, target temperature, operation mode and fan speed, as well as other details (e.g. CO₂ if fitted). There is a button which can be pushed up, down, left, or right.
 
-- Push in to turn on/off
-- Push and hold to set *away* mode
-- Up/down on control changes target temp.
-- Left/right moves to another feature which can be controller with up/down, such as mode, fan speed, power on and off times.
-- Light sensor can turn off display when dark, so press control (any way) to light up.
-- Other settings can be set via web interface over WiFi.
-- The display can be set to go off when it is dark.
+### Display off
+
+If the display is off, or displaying some override message, pushing the button any direction will simply cause the display to turn on for a whiole, in normal (idle) mode. The display can be turned off by MQTT or based on light sensor.
+
+### Idle mode
+
+In an idle mode the buttons work as follows :-
+
+|Button|Action|
+|------|------|
+|Up/Down|Change target temperature, hold to step quickly|
+|Left|Turn off|
+|Right|Turn on|
+|Hold left|Holding left will go to *away* mode (and turn off)|
+|Hold right|Holding right will go to settings mode, selectign first adjustable setting (normallt a/c mode)|
+
+### Settings
+
+One in settings mode the buttons operate differently.
+
+|Button|Action|
+|------|------|
+|Up/Down|Change selected setting|
+|Left/Right|Move through possible settings|
+
+Waiting several seconds will end settings mode.
 
 ## BLE working
 
@@ -51,7 +70,7 @@ In addition to working with the Faikin this can send MQTT messages to turn on or
 - ESP32-S3-MINI-1-N4-R2 dual processor, 4M flash, 2M SPIRAM.
 - USB-C power, or DC 5V-36V (WAGO).
 - Connection for DS18B20 external temperature sensors (WAGO).
-- 5 way *joystick* control button.
+- 4 way *joystick* control button.
 - On board temperatrure sensor (TMP1075)
 - On board pressure sensor (GZP6816D)
 - On board ambient light sensor with color (VEML6040)
