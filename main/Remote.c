@@ -1571,8 +1571,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1776,7 +1775,7 @@ app_main ()
             lastt = t;
             t = n;
          }
-         if (blerh)
+         if (!isnan (blerh))
             rh = blerh;
          if (scd41.ok)
          {
@@ -1980,7 +1979,7 @@ app_main ()
             show_co2 (co2);
             gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
             show_rh (rh);
-            if (blerh)
+            if (!isnan (blerh))
                icon_plot (icon_bt, 0);
          } else
          {                      // Landscape
@@ -1999,7 +1998,7 @@ app_main ()
                gfx_pos (gfx_width () - 3, 135, GFX_T | GFX_R | GFX_H);
                show_co2 (co2);
                gfx_pos (2, gfx_y (), GFX_T | GFX_L | GFX_H);
-               if (blerh)
+               if (!isnan (blerh))
                   icon_plot (icon_bt, 0);
                show_rh (rh);
                gfx_pos (gfx_width () / 2 - 10, gfx_y () - 10, GFX_T | GFX_C);
