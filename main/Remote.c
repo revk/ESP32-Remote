@@ -1813,33 +1813,33 @@ app_main ()
                early += 24 * 60;
          }
       }
-      float targetlow = (float) actarget / actarget_scale - (float) tempmargin / tempmargin_scale;
-      float targethigh = (float) actarget / actarget_scale + (float) tempmargin / tempmargin_scale;
+      float targetmin = (float) actarget / actarget_scale - (float) tempmargin / tempmargin_scale;
+      float targetmax = (float) actarget / actarget_scale + (float) tempmargin / tempmargin_scale;
       if (early)
       {                         // Target adjust for early
          if (earlyheat)
-            targetlow -= (float) earlyheat / earlyheat_scale * early / 60;
+            targetmin -= (float) earlyheat / earlyheat_scale * early / 60;
          if (earlycool)
-            targethigh += (float) earlycool / earlycool_scale * early / 60;
+            targetmax += (float) earlycool / earlycool_scale * early / 60;
       }
       // Target range clip
-      if (targetlow < (float) tempmin / tempmin_scale)
-         targetlow = (float) tempmin / tempmin_scale;
-      else if (targetlow > (float) tempmax / tempmax_scale)
-         targetlow = (float) tempmax / tempmax_scale;
-      if (targethigh < (float) tempmin / tempmin_scale)
-         targethigh = (float) tempmin / tempmin_scale;
-      else if (targethigh > (float) tempmax / tempmax_scale)
-         targethigh = (float) tempmax / tempmax_scale;
-      if (!b.earlyon && early && (t < targetlow || t > targethigh))
+      if (targetmin < (float) tempmin / tempmin_scale)
+         targetmin = (float) tempmin / tempmin_scale;
+      else if (targetmin > (float) tempmax / tempmax_scale)
+         targetmin = (float) tempmax / tempmax_scale;
+      if (targetmax < (float) tempmin / tempmin_scale)
+         targetmax = (float) tempmin / tempmin_scale;
+      else if (targetmax > (float) tempmax / tempmax_scale)
+         targetmax = (float) tempmax / tempmax_scale;
+      if (!b.earlyon && early && (t < targetmin || t > targetmax))
          b.earlyon = 1;
       if (b.manual && b.manualon == (b.earlyon | b.timeron))
          b.manual = 0;
       b.poweron = (b.manual ? b.manualon : b.earlyon | b.timeron);
       if (!nomode && acmode == REVK_SETTINGS_ACMODE_FAIKIN && !b.poweron && !early)
       {                         // Full range as not power on - allows faikin to turn off itself even - we leave if early so could decide to turn on itself
-         targetlow = (float) tempmin / tempmin_scale;
-         targethigh = (float) tempmax / tempmin_scale;
+         targetmin = (float) tempmin / tempmin_scale;
+         targetmax = (float) tempmax / tempmin_scale;
       }
       if (tm.tm_min != lastmin)
       {
@@ -1852,7 +1852,7 @@ app_main ()
             if (b.fan)
                send_fan (0);
          }
-         if (radcontrol && t < targetlow)
+         if (radcontrol && t < targetmin)
          {
             if (!b.rad)
                send_rad (1);
@@ -1863,7 +1863,7 @@ app_main ()
          }
       }
       if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
-         targetlow = targethigh = (float) actarget / actarget_scale;    // non faikin mode - simple target
+         targetmin = targetmax = (float) actarget / actarget_scale;    // non faikin mode - simple target
       xSemaphoreTake (data_mutex, portMAX_DELAY);
       if (data.poweron != b.poweron || data.mode != acmode || data.fan != acfan
           || (acmode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != (float) actarget / actarget_scale))
@@ -1875,8 +1875,8 @@ app_main ()
       data.rh = rh;
       data.tempfrom = tempfrom;
       data.temp = t;
-      data.tmin = targetlow;
-      data.tmax = targethigh;
+      data.tmin = targetmin;
+      data.tmax = targetmax;
       data.target = (float) actarget / actarget_scale;
       data.lux = (veml6040.ok ? veml6040.w : NAN);
       data.pressure = (gzp6816d.ok ? gzp6816d.hpa : NAN);
@@ -1902,7 +1902,7 @@ app_main ()
                   b.faikinheat = ((bleidfaikin->mode == REVK_SETTINGS_ACMODE_HEAT) ? 1 : 0);
             }
             b.faikinbad = bleidfaikin->rad;
-            float target = T ((float) (bleidfaikin->targetlow + bleidfaikin->targethigh) / 200);
+            float target = T ((float) (bleidfaikin->targetmin + bleidfaikin->targetmax) / 200);
             if (data.mode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != target)
                jo_litf (j, "actarget", "%.1f", data.target = target);
             revk_setting (j);
@@ -1923,7 +1923,7 @@ app_main ()
       switch (bleadvert)
       {
       case REVK_SETTINGS_BLEADVERT_FAIKIN:
-         bleenv_faikin (hostname, C (t), C (targetlow), C (targethigh), b.manual ? b.manualon : b.poweron, b.rad, acmode, acfan);
+         bleenv_faikin (hostname, C (t), C (targetmin), C (targetmax), b.manual ? b.manualon : b.poweron, b.rad, acmode, acfan);
          break;
       case REVK_SETTINGS_BLEADVERT_BTHOME1:
          bleenv_bthome1 (hostname, C (t), rh, co2, veml6040.w);
