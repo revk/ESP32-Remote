@@ -275,7 +275,7 @@ revk_state_extra (jo_t j)
       jo_litf (j, "temp-target", "%.2f", data.tmin);
    else
    {
-      jo_array (j, "target-temp");
+      jo_array (j, "temp-target");
       if (!isnan (data.tmin))
          jo_litf (j, NULL, "%.2f", data.tmin);
       if (!isnan (data.tmax))
