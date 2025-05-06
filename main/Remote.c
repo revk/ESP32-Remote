@@ -40,13 +40,13 @@ struct
 struct
 {                               //  Snapshot for HA
    uint16_t co2;
-   uint8_t rh;
    uint8_t tempfrom;
    float temp;
    float target;
    float tmin;
    float tmax;
    float lux;
+   float rh;
    float pressure;
    uint8_t poweron:1;
    uint8_t mode:3;
@@ -259,7 +259,7 @@ revk_state_extra (jo_t j)
    }
    if (data.co2)
       jo_int (j, "co2", data.co2);
-   if (data.rh)
+   if (!isnan (data.rh))
       jo_litf (j, "rh", "%.2f", data.rh);
    if (!isnan (data.lux))
       jo_litf (j, "lux", "%.4f", data.lux);
@@ -921,7 +921,7 @@ i2c_task (void *x)
          {
             scd41.ok = 0;
             scd41.t = NAN;
-            scd41.rh = 0;
+            scd41.rh = NAN;
          }
       }
       if (tmp1075.found)
@@ -1517,17 +1517,17 @@ show_co2 (uint16_t co2)
 }
 
 void
-show_rh (uint8_t rh)
+show_rh (float rh)
 {
    if (norh)
       return;
    rh_colour (rh);
    if (gfx_a () & GFX_R)
       icon_plot (icon_humidity, 5);
-   if (!rh || rh >= 100)
+   if (isnan (rh) || rh >= 100)
       gfx_7seg (0, 5, "--");
    else
-      gfx_7seg (0, 5, "%2u", rh);
+      gfx_7seg (0, 5, "%2.0f", rh);
    if (!(gfx_a () & GFX_R))
       icon_plot (icon_humidity, 5);
    if (!message && rh >= rhred)
@@ -1638,13 +1638,13 @@ app_main ()
    int8_t lastmin = -1;
    int8_t lastreport = -1;
    float blet = NAN;
-   uint8_t blerh = 0;
+   float blerh = NAN;
    uint8_t blebat = 0;
    uint8_t change = 0;
    uint8_t tempfrom = tempref;
    float t = NAN;
    uint16_t co2 = 0;
-   uint8_t rh = 0;
+   float rh = NAN;
    while (!revk_shutting_down (NULL))
    {
       if (!wake)
@@ -1658,8 +1658,8 @@ app_main ()
       if (tm.tm_sec != lastsec)
       {                         // Once per second
          t = NAN;
+         rh = NAN;
          co2 = 0;
-         rh = 0;
          if (faikinonly)
             acmode = REVK_SETTINGS_ACMODE_FAIKIN;
          if (wake && !--wake)
@@ -1707,13 +1707,13 @@ app_main ()
             if (bleidtemp->tempset)
                blet = T ((float) bleidtemp->temp / 100.0);
             if (bleidtemp->humset)
-               blerh = bleidtemp->hum / 100;
+               blerh = (float) bleidtemp->hum / 100;
             if (bleidtemp->batset)
                blebat = bleidtemp->bat;
          } else
          {
             blet = NAN;
-            blerh = 0;
+            blerh = NAN;
          }
          if (*blefaikin && (!bleidfaikin || !bleidfaikin->faikinset || bleidfaikin->missing) && !message)
             message = "*Faikin gone";
@@ -1781,7 +1781,7 @@ app_main ()
          if (scd41.ok)
          {
             co2 = scd41.ppm;
-            if (!rh)
+            if (isnan (rh))
                rh = scd41.rh;
          } else if (t6793.ok)
             co2 = t6793.ppm;
