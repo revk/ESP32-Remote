@@ -373,7 +373,8 @@ revk_web_extra (httpd_req_t * req, int page)
    if (ds18b20_num)
       revk_web_send (req, "<tr><td>DS18B20</td><td align=right>%.2f°</td><td>External wired sensor.</td></tr>", ds18b20s[0].t);
    if (scd41.found)
-      revk_web_send (req, "<tr><td>SCD41</td><td align=right>%.2f°</td><td>Internal CO₂ sensor.</td></tr>", scd41.t);
+      revk_web_send (req, "<tr><td>SCD41</td><td align=right>%.2f°</td><td>Internal CO₂ sensor%s.</td></tr>", scd41.t,
+                     isnan (scd41.t) ? ", only ready after a few minutes" : "");
    if (tmp1075.found)
       revk_web_send (req, "<tr><td>TMP1075</td><td align=right>%.2f°</td><td>Internal temperature sensor.</td></tr>", tmp1075.t);
    if (mcp9808.found)
@@ -802,7 +803,11 @@ i2c_task (void *x)
          sleep (1);
       }
       uint8_t buf[9];
-      if (err || scd41_read (0x3682, 9, buf))
+      if (!err)
+         err = scd41_write (0x241D, (uint32_t) scd41to * 65536 / scd41to_scale / 175);
+      if (!err)
+         err = scd41_read (0x3682, 9, buf);
+      if (err)
          fail (scd41i2c, "SCD41");
       else
       {

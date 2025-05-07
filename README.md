@@ -93,3 +93,15 @@ Some useful MQTT commands.
 |`light`|Set display on|
 |`dark`|Set display off (also `light 0` or `light false`)|
 |`message`|Display a message|
+
+## Temperature calibration
+
+Temperature is tricky stuff. The actual sensors on the board are very accurate and calibrated, but a key challenge is internal heating and heat from PCB from other components - this means the temperature typically needs some offset applied, and you can only really tell after installing the module, in a case if needed, and running for several minutes to be up to temperature.
+
+For this purpose the on board sensors can have a simple offset added/subtracted to the temperature read, after it is read. For convenience this is in degrees (°C or °F as set).
+
+The most reliable connected sensor is a DS18B20 on a lead as this does not pick up heat from the PCB - do no position above the module to avoid heating by convention. We do not apply an offset to this (let us know if you find a case where that is actually useful). The other reliable sensor is an external BLE sensor - these have such low power usage they do not have internal heating and are also very accurate - again no offset is configurable for these.
+
+The internal sensors (TMP1075 or MCP9808) pick up heat from the PCB and often need several degrees of adjustment. As I say, do this after installing, in case, in position, and running for some time. The pressure sensor also does temperature, but this is right next to the processor, so typically needs way more adjustment.
+
+The SCD41 provides CO₂, temperature, and humidity. Whilst the CO₂ is not affected by temperature, it does have atmospheric pressure adjustment applied automatically from the on board pressure sensor. However the humidity accuracy is impacted by the temperature, so it is not ideal to simply apply an adjustment after the fact. For this reason there is an internal adjustment register, so it knows the real temperature and so can accurately report humidity. For this reason it is recommended that you set the `scd41to` value, which is *negative* °C set in the SCD41. This causes a reboot and temperature is not then reported for several minutes. Ideally the `scd41dt` should then be zero.

@@ -30,7 +30,8 @@ u8	tmp1075.i2c	"48"	.set .hex		// TMP1075 Temp sensor
 s16	tmp1075.dt	-4	.live .unit="°" .decimal=2	// TMP1075 Temp offset
 
 u8	scd41.i2c	"62"	.set .hex		// SCD41 CO2 sensor
-s16	scd41.dt	-4	.live .unit="°" .decimal=2	// SCD41 Temp offset
+u16	scd41.to	8	.decimal=2 .unit="-°C"	// SCD41 internal adjust register
+s16	scd41.dt	0	.live .unit="°" .decimal=2	// SCD41 Extra temp offset (ideally 0)
 
 u8	gzp6816d.i2c	"78"	.set .hex		// GZP6816D Pressure sensor
 s16	gzp6816d.dt	-4	.live .unit="°" .decimal=2	// GZP6816D Temp offset
