@@ -710,6 +710,7 @@ void
 i2c_task (void *x)
 {
    scd41.t = NAN;
+   scd41.rh = NAN;
    tmp1075.t = NAN;
    mcp9808.t = NAN;
    gzp6816d.t = NAN;
