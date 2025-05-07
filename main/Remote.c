@@ -27,6 +27,7 @@ struct
    uint8_t rad:1;               // Rad on
    uint8_t connect:1;           // MQTT connect
    uint8_t faikinheat:1;        // Faikin auto is heating
+   uint8_t faikincool:1;        // Faikin auto is cooling
    uint8_t faikinbad:1;         // Faikin antifreeze ot slave
    // Power
    uint8_t manual:1;            // Manual override (cleared when matches non override)
@@ -1481,7 +1482,7 @@ show_mode (void)
    else if (b.faikinbad)        // Antifreeze or slave
       icon_plot (icon_modebad, 2);
    else if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
-      icon_plot (b.faikinheat ? icon_modefaikinheat : icon_modefaikincool, 2);
+      icon_plot (b.faikinheat ? icon_modefaikinheat : b.faikincool ? icon_modefaikincool : icon_modefaikin, 2);
    else
       icon_plot (icon_mode[acmode], 2);
 }
@@ -1718,6 +1719,12 @@ app_main ()
          }
          if (*blefaikin && (!bleidfaikin || !bleidfaikin->faikinset || bleidfaikin->missing) && !message)
             message = "*Faikin gone";
+         b.faikinheat =
+            ((bleidfaikin && bleidfaikin->faikinset && !bleidfaikin->missing && bleidfaikin->power &&
+              bleidfaikin->mode == REVK_SETTINGS_ACMODE_HEAT) ? 1 : 0);
+         b.faikincool =
+            ((bleidfaikin && bleidfaikin->faikinset && !bleidfaikin->missing && bleidfaikin->power &&
+              bleidfaikin->mode == REVK_SETTINGS_ACMODE_COOL) ? 1 : 0);
          // Work out current values to show / test
          switch (tempref)
          {
@@ -1861,7 +1868,7 @@ app_main ()
             if (b.fan)
                send_fan (0);
          }
-         if (radcontrol && t < targetmin)
+         if (radcontrol && t < targetmin && !b.faikincool)
          {
             if (!b.rad)
                send_rad (1);
@@ -1903,13 +1910,8 @@ app_main ()
             }
             if (bleidfaikin->fan != data.fan)
                jo_int (j, "acfan", data.fan = bleidfaikin->fan);
-            if (bleidfaikin->mode != data.mode)
-            {
-               if (data.mode != REVK_SETTINGS_ACMODE_FAIKIN)
-                  jo_int (j, "acmode", data.mode = bleidfaikin->mode);
-               else
-                  b.faikinheat = ((bleidfaikin->mode == REVK_SETTINGS_ACMODE_HEAT) ? 1 : 0);
-            }
+            if (bleidfaikin->mode != data.mode && data.mode != REVK_SETTINGS_ACMODE_FAIKIN)
+               jo_int (j, "acmode", data.mode = bleidfaikin->mode);
             b.faikinbad = bleidfaikin->rad;
             float target = T ((float) (bleidfaikin->targetmin + bleidfaikin->targetmax) / 200);
             if (data.mode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != target)
