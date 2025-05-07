@@ -1163,12 +1163,15 @@ btnlr (int8_t d)
    if (edit >= EDIT_MODE)
    {
       edit += d;
-      if (edit <= EDIT_TARGET)
-         edit = EDIT_NUM - 1;
-      while (((faikinonly || nomode) && edit == EDIT_MODE) || (nofan && edit == EDIT_FAN))
+      while (edit <= EDIT_TARGET || edit >= EDIT_NUM || ((faikinonly || nomode) && edit == EDIT_MODE)
+             || (nofan && edit == EDIT_FAN))
+      {
+         if (edit <= EDIT_TARGET)
+            edit = EDIT_NUM;
          edit += d;
-      if (edit == EDIT_NUM)
-         edit = EDIT_MODE;
+         if (edit == EDIT_NUM)
+            edit = EDIT_MODE;
+      }
    } else if (b.away)
    {
       edit = 0;
@@ -1413,10 +1416,10 @@ co2_colour (uint16_t co2)
 }
 
 void
-rh_colour (uint8_t rh)
+rh_colour (float rh)
 {
    gfx_colour_t c = 0x888888;
-   if (rh)
+   if (!isnan (rh))
    {
       if (rh < rhblue)
          c = 0x0000FF;
@@ -1584,7 +1587,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
