@@ -390,7 +390,10 @@ revk_web_extra (httpd_req_t * req, int page)
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_SCD41 || tempref == REVK_SETTINGS_TEMPREF_SCD41)
+   {
+      revk_web_setting (req, "Temp offset", "scd41to");
       revk_web_setting (req, "Temp offset", "scd41dt");
+   }
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_TMP1075 || tempref == REVK_SETTINGS_TEMPREF_TMP1075)
       revk_web_setting (req, "Temp offset", "tmp1075dt");
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_MCP9808 || tempref == REVK_SETTINGS_TEMPREF_MCP9808)
