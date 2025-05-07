@@ -391,7 +391,7 @@ revk_web_extra (httpd_req_t * req, int page)
    settings_bletemp (req);
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_SCD41 || tempref == REVK_SETTINGS_TEMPREF_SCD41)
    {
-      revk_web_setting (req, "Temp offset", "scd41to");
+      revk_web_setting (req, "Internal adjust", "scd41to");
       revk_web_setting (req, "Temp offset", "scd41dt");
    }
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_TMP1075 || tempref == REVK_SETTINGS_TEMPREF_TMP1075)
@@ -921,8 +921,10 @@ i2c_task (void *x)
          {
             scd41.ppm = (buf[0] << 8) + buf[1];
             if (uptime () > 180)        // Starts off way out for some reason
+            {
                scd41.t = T (-45.0 + 175.0 * (float) ((buf[3] << 8) + buf[4]) / 65536.0) + (float) scd41dt / scd41dt_scale;
-            scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
+               scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
+            }
             scd41.ok = 1;
             if (gzp6816d.ok)
                scd41_write (0x0E000, gzp6816d.hpa);
@@ -1581,8 +1583,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
