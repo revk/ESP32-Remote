@@ -294,26 +294,31 @@ revk_state_extra (jo_t j)
       if (data.tempfrom)
          add_enum ("source", data.tempfrom, REVK_SETTINGS_TEMPREF_ENUMS);
    }
-   if (!isnan (data.tmin) && !isnan (data.tmax) && data.tmin == data.tmax)
-      jo_litf (j, "temp-target", "%.2f", data.tmin);
-   else
+   if (!notarget)
    {
-      jo_array (j, "temp-target");
-      if (!isnan (data.tmin))
-         jo_litf (j, NULL, "%.2f", data.tmin);
-      if (!isnan (data.tmax))
-         jo_litf (j, NULL, "%.2f", data.tmax);
-      jo_close (j);
+      if (!isnan (data.tmin) && !isnan (data.tmax) && data.tmin == data.tmax)
+         jo_litf (j, "temp-target", "%.2f", data.tmin);
+      else
+      {
+         jo_array (j, "temp-target");
+         if (!isnan (data.tmin))
+            jo_litf (j, NULL, "%.2f", data.tmin);
+         if (!isnan (data.tmax))
+            jo_litf (j, NULL, "%.2f", data.tmax);
+         jo_close (j);
+      }
    }
-   if (data.mode)
+   if (data.mode && !nomode)
       add_enum ("mode", data.mode, REVK_SETTINGS_ACMODE_ENUMS);
-   if (data.fan)
+   if (data.fan && !nofan)
       add_enum ("fan", data.fan, REVK_SETTINGS_ACFAN_ENUMS);
    jo_string (j, "state",
               b.faikinbad ? "bad" : b.manual ? "manual" : b.away ? "away" : b.earlyon ? "early" : b.timeron ? "timer" : "off");
    jo_bool (j, "power", data.poweron);
-   jo_bool (j, "extfan", b.fan);
-   jo_bool (j, "extrad", b.rad);
+   if (fancontrol)
+      jo_bool (j, "extfan", b.fan);
+   if (radcontrol)
+      jo_bool (j, "extrad", b.rad);
    xSemaphoreGive (data_mutex);
 }
 
@@ -1628,8 +1633,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
