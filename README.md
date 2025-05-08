@@ -105,3 +105,5 @@ The most reliable connected sensor is a DS18B20 on a lead as this does not pick 
 The internal sensors (TMP1075 or MCP9808) pick up heat from the PCB and often need several degrees of adjustment. As I say, do this after installing, in case, in position, and running for some time. The pressure sensor also does temperature, but this is right next to the processor, so typically needs way more adjustment.
 
 The SCD41 provides CO₂, temperature, and humidity. Whilst the CO₂ is not affected by temperature, it does have atmospheric pressure adjustment applied automatically from the on board pressure sensor. However the humidity accuracy is impacted by the temperature. As such the temperature offset is initially set in the SCD41 at boot. Any changes to `scd41dt` will apply in real time, but it is recommended that you reboot once you are happy with it to ensure humidity is calculated correctly.
+
+Note that `autocal` adjusts temp offsets to get closer selected/best temp every hour (once on for at least half an hour).
