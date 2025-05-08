@@ -23,8 +23,8 @@ gpio	sda		2				// I2C SDA
 
 gpio	ds18b20		35				// DS18B20 Temp sensors
 
-u8	mcp9808.i2c	"18"	.set .hex .fix		// MCP9808 Temp sensor
-s16	mcp9808.dt	-4	.live .unit="°" .decimal=2	// MCP9808 Temp offset
+u8	mcp9808.i2c	""	.set .hex .fix		// MCP9808 Temp sensor
+s16	mcp9808.dt		.live .unit="°" .decimal=2	// MCP9808 Temp offset
 
 u8	tmp1075.i2c	"48"	.set .hex .fix		// TMP1075 Temp sensor
 s16	tmp1075.dt	-4	.live .unit="°" .decimal=2	// TMP1075 Temp offset
@@ -40,7 +40,7 @@ u16	veml6040.dark		.live .decimal=1 .unit="lux"	// Night based on light
 u16	veml6040.start		.live .digits=4 .unit="HHMM"		// Night start time
 u16	veml6040.stop		.live .digits=4 .unit="HHMM"		// Night stop time
 
-u8	t6793.i2c	"15"	.set .hex .fix		// T6793 CO2 sensor
+u8	t6793.i2c	""	.set .hex .fix		// T6793 CO2 sensor
 
 bit	autocal		1	.live			// Hourly auto adjust temp offsets
 
