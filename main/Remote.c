@@ -29,6 +29,7 @@ struct
    uint8_t faikinheat:1;        // Faikin auto is heating
    uint8_t faikincool:1;        // Faikin auto is cooling
    uint8_t faikinbad:1;         // Faikin antifreeze ot slave
+   uint8_t cal:1;               // Auto cal manuall
    // Power
    uint8_t manual:1;            // Manual override (cleared when matches non override)
    uint8_t away:1;              // Away mode (disabled timer functions)
@@ -254,6 +255,8 @@ app_callback (int client, const char *prefix, const char *target, const char *su
       free (override);
       override = strdup (value);
    }
+   if (!strcmp (suffix, "autocal"))
+      b.cal = 1;
    return NULL;
 }
 
@@ -416,6 +419,7 @@ revk_web_extra (httpd_req_t * req, int page)
       revk_web_setting (req, "Temp offset", "acdt");
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_GZP6816D || tempref == REVK_SETTINGS_TEMPREF_GZP6816D)
       revk_web_setting (req, "Temp offset", "gzp6816ddt");
+   revk_web_setting (req, "Auto cal", "autocal");
    revk_web_setting (req, "Fahrenheit", "fahrenheit");
 }
 
@@ -1616,7 +1620,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1680,6 +1685,7 @@ app_main ()
 #endif
    int8_t lastsec = -1;
    int8_t lastmin = -1;
+   int8_t lasthour = -1;
    int8_t lastreport = -1;
    float blet = NAN;
    float blerh = NAN;
@@ -1960,6 +1966,32 @@ app_main ()
          }
       }
       xSemaphoreGive (data_mutex);
+      if (!isnan (t) && (b.cal || (tm.tm_hour != lasthour && uptime () > 15 * 60 && autocal)))
+      {                         // Autocal
+         uint8_t found = 0;
+         jo_t j = jo_object_alloc ();
+         void cal (const char *tag, float dt, float temp)
+         {
+            if (isnan (temp))
+               return;
+            if (temp - t < 0.1 && t - temp < 0.1)
+               return;
+            float a = (t - temp);
+            if (!b.cal)
+               a /= 10;         // Slowly
+            jo_litf (j, tag, "%.2f", dt + a);
+            found++;
+            ESP_LOGE (TAG, "Adjust %s %.2f to %.2f", tag, dt, dt + a);
+         }
+         cal ("scd41dt", (float) scd41dt / scd41dt_scale, scd41.t);
+         cal ("tmp1075dt", (float) tmp1075dt / tmp1075dt_scale, tmp1075.t);
+         cal ("mcp9808dt", (float) mcp9808dt / mcp9808dt_scale, mcp9808.t);
+         cal ("gzp6816ddt", (float) gzp6816ddt / gzp6816ddt_scale, gzp6816d.t);
+         if (found)
+            revk_setting (j);
+         jo_free (&j);
+         b.cal = 0;
+      }
       if (reporting && (int8_t) (now / reporting) != lastreport)
       {
          lastreport = now / reporting;
@@ -2069,6 +2101,7 @@ app_main ()
       usleep (10000);
       lastsec = tm.tm_sec;
       lastmin = tm.tm_min;
+      lasthour = tm.tm_hour;
    }
 
    b.die = 1;

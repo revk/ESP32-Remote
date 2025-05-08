@@ -40,6 +40,8 @@ u16	veml6040.dark		.live .decimal=1 .unit="lux"	// Level below which we turn off
 
 u8	t6793.i2c	"15"	.set .hex		// T6793 CO2 sensor
 
+bit	autocal		1	.live			// Hourly auto adjust temp offsets
+
 bit	no.mode			.live			// No mode control for faikin
 bit	no.fan			.live			// No fan control for faikin
 bit	no.co2			.live			// No CO2 display
