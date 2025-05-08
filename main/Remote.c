@@ -959,7 +959,8 @@ i2c_task (void *x)
                scd41.t =
                   T (-45.0 + 175.0 * (float) (((uint32_t) ((buf[3] << 8) + buf[4])) + scd41.to) / 65536.0) +
                   (float) scd41dt / scd41dt_scale;
-               scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
+               if (buf[6] || buf[7])
+                  scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
             }
             scd41.ok = 1;
             if (gzp6816d.ok)
@@ -1633,7 +1634,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
