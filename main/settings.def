@@ -36,7 +36,9 @@ u8	gzp6816d.i2c	"78"	.set .hex		// GZP6816D Pressure sensor
 s16	gzp6816d.dt	-4	.live .unit="°" .decimal=2	// GZP6816D Temp offset
 
 u8	veml6040.i2c	"10"	.set .hex		// VEML6040 Light sensor
-u16	veml6040.dark		.live .decimal=1 .unit="lux"	// Level below which we turn off display
+u16	veml6040.dark		.live .decimal=1 .unit="lux"	// Night based on light
+u16	veml6040.start		.live .digits=4 .unit="HHMM"		// Night start time
+u16	veml6040.stop		.live .digits=4 .unit="HHMM"		// Night stop time
 
 u8	t6793.i2c	"15"	.set .hex		// T6793 CO2 sensor
 

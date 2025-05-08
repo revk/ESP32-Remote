@@ -23,6 +23,8 @@ struct
    uint8_t ha:1;                // HA update
    uint8_t display:1;           // Display update
    uint8_t night:1;             // Display dark
+   uint8_t nightdark:1;         // Night set by light
+   uint8_t nighttime:1;         // Night set by timer
    uint8_t fan:1;               // Fan on
    uint8_t rad:1;               // Rad on
    uint8_t connect:1;           // MQTT connect
@@ -360,6 +362,8 @@ settings_bletemp (httpd_req_t * req)
          revk_web_send (req, ">%s", e->name);
          if (!e->missing && e->rssi)
             revk_web_send (req, " %ddB", e->rssi);
+         if (!e->missing && e->tempset)
+            revk_web_send (req, " %.2f°", (float) e->temp / 100);
       }
    if (!found && *bletemp)
       revk_web_send (req, "<option selected value=\"%s\">%s", bletemp, bletemp);
@@ -384,6 +388,8 @@ revk_web_extra (httpd_req_t * req, int page)
       revk_web_setting_info (req, "The display can go dark below specified light level, 0 to disable. Current light level %.2f",
                              veml6040.w);
       revk_web_setting (req, "Auto dark", "veml6040dark");
+      revk_web_setting (req, "Start", "veml6040start");
+      revk_web_setting (req, "Stop", "veml6040stop");
    }
    revk_web_setting_title (req, "Temperature");
    revk_web_setting_info (req, "Configured temperature sources (in priority order)...");
@@ -1728,7 +1734,22 @@ app_main ()
                send_fan (b.fan);
          }
          if (veml6040.ok && veml6040dark)
-            b.night = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
+         {
+            uint8_t darkness = ((veml6040.w < (float) veml6040dark / veml6040dark_scale) ? 1 : 0);
+            if (darkness != b.nightdark)
+               b.nightdark = b.night = darkness;
+         }
+         if (tm.tm_min != lastmin && veml6040start != veml6040stop)
+         {
+            uint8_t darkness = 0;
+            uint16_t hhmm = tm.tm_hour * 100 + tm.tm_min;
+            if (veml6040start < veml6040stop)
+               darkness = ((veml6040start <= hhmm && hhmm < veml6040stop) ? 1 : 0);
+            else
+               darkness = ((veml6040start <= hhmm || hhmm < veml6040stop) ? 1 : 0);
+            if (darkness != b.nighttime)
+               b.nighttime = b.night = darkness;
+         }
          bleenv_expire (120);
          if (!bleidtemp || strcmp (bleidtemp->name, bletemp))
          {
@@ -1856,18 +1877,9 @@ app_main ()
          uint16_t stop = acstop / 100 * 60 + acstop % 100;
          uint16_t min = tm.tm_hour * 60 + tm.tm_min;
          if (start < stop)
-         {
-            if (min >= start && min < stop)
-               b.timeron = 1;
-            else
-               b.timeron = 0;
-         } else
-         {
-            if (min >= start || min < stop)
-               b.timeron = 1;
-            else
-               b.timeron = 0;
-         }
+            b.timeron = ((min >= start && min < stop) ? 1 : 0);
+         else
+            b.timeron = ((min >= start || min < stop) ? 1 : 0);
          if (b.manual ? b.manualon : b.timeron)
             b.earlyon = 0;
          else
