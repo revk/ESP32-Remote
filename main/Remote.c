@@ -1119,6 +1119,17 @@ web_root (httpd_req_t * req)
    return revk_web_foot (req, 0, 1, NULL);
 }
 
+static esp_err_t
+web_status (httpd_req_t * req)
+{
+   jo_t j = jo_object_alloc ();
+   revk_state_extra (j);
+   char *js = jo_finisha (&j);
+   httpd_resp_set_type (req, "application/json");
+   httpd_resp_send (req, js, strlen (js));
+   return ESP_OK;
+}
+
 void
 btnud (int8_t d)
 {
@@ -1634,8 +1645,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1661,10 +1671,11 @@ app_main ()
    httpd_config_t config = HTTPD_DEFAULT_CONFIG ();
    config.stack_size += 1024 * 4;
    config.lru_purge_enable = true;
-   config.max_uri_handlers = 6 + revk_num_web_handlers ();
+   config.max_uri_handlers = 7 + revk_num_web_handlers ();
    if (!httpd_start (&webserver, &config))
    {
       register_get_uri ("/", web_root);
+      register_get_uri ("/status", web_status);
 #ifdef	CONFIG_LWPNG_ENCODE
       register_get_uri ("/frame.png", web_frame);
 #endif
