@@ -103,6 +103,22 @@ C (float T)
    return T;
 }
 
+static inline float
+DT (float C)
+{                               // Celsius offset to temp
+   if (fahrenheit && !isnan (C))
+      return 1.8;
+   return C;
+}
+
+static inline float
+DC (float T)
+{                               // Temp offset to Celsuis
+   if (fahrenheit && !isnan (T))
+      return 1.8;
+   return T;
+}
+
 struct
 {
    uint8_t found:1;
@@ -148,6 +164,7 @@ struct
    uint8_t ok:1;
    uint32_t serial;
    uint16_t ppm;
+   uint16_t to;
    float t;
    float rh;
 } scd41 = { 0 };
@@ -390,10 +407,7 @@ revk_web_extra (httpd_req_t * req, int page)
    revk_web_setting (req, "Temp", "tempref");
    settings_bletemp (req);
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_SCD41 || tempref == REVK_SETTINGS_TEMPREF_SCD41)
-   {
-      revk_web_setting (req, "Internal adjust", "scd41to");
       revk_web_setting (req, "Temp offset", "scd41dt");
-   }
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_TMP1075 || tempref == REVK_SETTINGS_TEMPREF_TMP1075)
       revk_web_setting (req, "Temp offset", "tmp1075dt");
    if (data.tempfrom == REVK_SETTINGS_TEMPREF_MCP9808 || tempref == REVK_SETTINGS_TEMPREF_MCP9808)
@@ -808,7 +822,11 @@ i2c_task (void *x)
       }
       uint8_t buf[9];
       if (!err)
-         err = scd41_write (0x241D, (uint32_t) scd41to * 65536 / scd41to_scale / 175);
+         err = scd41_write (0x241D, (uint32_t) DC (scd41dt < 0 ? -scd41dt : 0) * 65536 / scd41dt_scale / 175);
+      if (!err)
+         err = scd41_read (0x2318, 3, buf);
+      if (!err)
+         ESP_LOGE (TAG, "SCD41 TO %04X", scd41.to = (buf[0] << 8) + buf[1]);
       if (!err)
          err = scd41_read (0x3682, 9, buf);
       if (err)
@@ -923,7 +941,9 @@ i2c_task (void *x)
             scd41.ppm = (buf[0] << 8) + buf[1];
             if (uptime () > 180)        // Starts off way out for some reason
             {
-               scd41.t = T (-45.0 + 175.0 * (float) ((buf[3] << 8) + buf[4]) / 65536.0) + (float) scd41dt / scd41dt_scale;
+               scd41.t =
+                  T (-45.0 + 175.0 * (float) (((uint32_t) ((buf[3] << 8) + buf[4])) + scd41.to) / 65536.0) +
+                  (float) scd41dt / scd41dt_scale;
                scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
             }
             scd41.ok = 1;
@@ -1000,13 +1020,17 @@ ds18b20_task (void *x)
    b.ha = 1;
    while (!b.die)
    {
-      usleep (250000);
       for (int i = 0; i < ds18b20_num; ++i)
       {
          float c;
          REVK_ERR_CHECK (ds18b20_trigger_temperature_conversion (ds18b20s[i].handle));
          REVK_ERR_CHECK (ds18b20_get_temperature (ds18b20s[i].handle, &c));
          ds18b20s[i].t = T (c);
+      }
+      {                         // Next second
+         struct timeval tv;
+         gettimeofday (&tv, NULL);
+         usleep (1000000 - tv.tv_usec);
       }
    }
    vTaskDelete (NULL);
@@ -1166,10 +1190,10 @@ btnlr (int8_t d)
       while (edit <= EDIT_TARGET || edit >= EDIT_NUM || ((faikinonly || nomode) && edit == EDIT_MODE)
              || (nofan && edit == EDIT_FAN))
       {
+         edit += d;
          if (edit <= EDIT_TARGET)
             edit = EDIT_NUM;
-         edit += d;
-         if (edit == EDIT_NUM)
+         else if (edit >= EDIT_NUM)
             edit = EDIT_MODE;
       }
    } else if (b.away)
@@ -1219,12 +1243,14 @@ btn (char c)
    {                            // Light up
       wake = 10;
       edit = 0;
+      b.display = 1;
       return;
    }
    wake = 10;
    if (hold)
    {                            // Remove hold message
       hold = 0;
+      b.display = 1;
       return;
    }
    if (!edit)
@@ -1290,10 +1316,13 @@ btn_task (void *x)
          usleep (10000);
       }
       // Wait all clear
+      c = 0;
       while (1)
       {
          for (b = 0; b < 4 && !revk_gpio_get (btng[b]); b++);
-         if (b == 4)
+         if (b < 4)
+            c = 0;
+         if (++c == 5)
             break;
          usleep (10000);
       }
@@ -1587,8 +1616,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1871,26 +1899,23 @@ app_main ()
          targetmin = (float) tempmin / tempmin_scale;
          targetmax = (float) tempmax / tempmax_scale;
       }
-      if (tm.tm_min != lastmin)
-      {
-         if (fancontrol && !b.fan && ((co2red && co2 >= co2red) || (rhred && rh >= rhred)))
-         {
-            if (!b.fan)
-               send_fan (1);
-         } else if (b.fan && (!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen))
-         {
-            if (b.fan)
-               send_fan (0);
-         }
-         if (radcontrol && t < targetmin && !b.faikincool)
-         {
-            if (!b.rad)
-               send_rad (1);
-         } else
-         {
-            if (b.rad)
-               send_rad (0);
-         }
+      if (!fancontrol || ((!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen)))
+      {                         // Fan off
+         if (b.fan)
+            send_fan (0);
+      } else if (tm.tm_min != lastmin && ((co2red && co2 >= co2red) || (rhred && rh >= rhred)))
+      {                         // Fan on
+         if (!b.fan)
+            send_fan (1);
+      }
+      if (!radcontrol || t > targetmin || b.faikincool)
+      {                         // Rad off
+         if (b.rad)
+            send_rad (0);
+      } else if (tm.tm_min != lastmin)
+      {                         // Rad on
+         if (!b.rad)
+            send_rad (1);
       }
       if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
          targetmin = targetmax = (float) actarget / actarget_scale;     // non faikin mode - simple target
