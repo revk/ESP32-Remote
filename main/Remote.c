@@ -1263,7 +1263,7 @@ btn (char c)
       b.display = 1;
       return;
    }
-   if (!edit)
+   if (!edit && !notarget)
       edit = EDIT_TARGET;
    switch (c)
    {
@@ -1509,6 +1509,8 @@ show_target (float t)
       select_icon_plot (icon_select2, -2, -2);
       message = "Target temp";
    }
+   if (notarget)
+      return;
    temp_colour (t);
    if (isnan (t) || t <= -10 || t >= 100)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 6, "--.-%c", fahrenheit ? 'F' : 'C');
@@ -1917,7 +1919,7 @@ app_main ()
          targetmin = (float) tempmin / tempmin_scale;
          targetmax = (float) tempmax / tempmax_scale;
       }
-      if (!fancontrol || ((!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen)))
+      if (!fancontrol || b.away || ((!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen)))
       {                         // Fan off
          if (b.fan)
             send_fan (0);

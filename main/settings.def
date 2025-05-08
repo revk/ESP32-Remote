@@ -23,27 +23,28 @@ gpio	sda		2				// I2C SDA
 
 gpio	ds18b20		35				// DS18B20 Temp sensors
 
-u8	mcp9808.i2c	"18"	.set .hex		// MCP9808 Temp sensor
+u8	mcp9808.i2c	"18"	.set .hex .fix		// MCP9808 Temp sensor
 s16	mcp9808.dt	-4	.live .unit="°" .decimal=2	// MCP9808 Temp offset
 
-u8	tmp1075.i2c	"48"	.set .hex		// TMP1075 Temp sensor
+u8	tmp1075.i2c	"48"	.set .hex .fix		// TMP1075 Temp sensor
 s16	tmp1075.dt	-4	.live .unit="°" .decimal=2	// TMP1075 Temp offset
 
-u8	scd41.i2c	"62"	.set .hex		// SCD41 CO2 sensor
+u8	scd41.i2c	"62"	.set .hex .fix		// SCD41 CO2 sensor
 s16	scd41.dt	-8	.live .unit="°" .decimal=2	// SCD41 Temp offset
 
-u8	gzp6816d.i2c	"78"	.set .hex		// GZP6816D Pressure sensor
+u8	gzp6816d.i2c	"78"	.set .hex .fix		// GZP6816D Pressure sensor
 s16	gzp6816d.dt	-4	.live .unit="°" .decimal=2	// GZP6816D Temp offset
 
-u8	veml6040.i2c	"10"	.set .hex		// VEML6040 Light sensor
+u8	veml6040.i2c	"10"	.set .hex .fix		// VEML6040 Light sensor
 u16	veml6040.dark		.live .decimal=1 .unit="lux"	// Night based on light
 u16	veml6040.start		.live .digits=4 .unit="HHMM"		// Night start time
 u16	veml6040.stop		.live .digits=4 .unit="HHMM"		// Night stop time
 
-u8	t6793.i2c	"15"	.set .hex		// T6793 CO2 sensor
+u8	t6793.i2c	"15"	.set .hex .fix		// T6793 CO2 sensor
 
 bit	autocal		1	.live			// Hourly auto adjust temp offsets
 
+bit	no.target		.live			// No target control for faikin
 bit	no.mode			.live			// No mode control for faikin
 bit	no.fan			.live			// No fan control for faikin
 bit	no.co2			.live			// No CO2 display
