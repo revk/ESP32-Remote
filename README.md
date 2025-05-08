@@ -8,9 +8,9 @@ This provides hardware and software for a wall mounted controller with 2" full c
 
 USB-C powered (or DC 5V-36V), linked via Bluetooth BLE to the Faikin. This provides a display of current mode and simple controls of basic operations. This is ideal for installations that do not have Home Assistant or MQTT.
 
-It can also work fan and radiator controls via MQTT and so operate in cases without an airconditioner / Faikin or where these supplement the air conditioner.
+It can also work fan and radiator controls via MQTT and so operate in cases without an air-conditioner / Faikin or where these supplement the air conditioner.
 
-A number of sensors are included, which can be reported to Home Assistant. The hardware can also run my [EPD project](https://epd.revk.uk/) code.
+A number of sensors are included, which can be reported to Home Assistant. The hardware can also run my [EPD project](https://epd.revk.uk/) code. This is ideas as a general purpose environmental monitor for home and offices, including CO₂ and multiple DS18B20 temperature probes.
 
 A key feature is that this can work as the temperature reference for *Faikin auto* mode.
 
@@ -32,7 +32,7 @@ In an idle mode the buttons work as follows :-
 |Left|Turn off|
 |Right|Turn on|
 |Hold left|Holding left will go to *away* mode (and turn off)|
-|Hold right|Holding right will go to settings mode, selectign first adjustable setting (normallt a/c mode)|
+|Hold right|Holding right will go to settings mode, selecting first adjustable setting (normallt a/c mode)|
 
 ### Settings
 
