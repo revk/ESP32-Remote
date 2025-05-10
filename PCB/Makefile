@@ -1,6 +1,6 @@
 all:	png stl
 
-stl:	Remote/Remote.stl Remote/RemoteCO2.stl Remote/RemoteBlind.stl $(patsubst %.scad,%.stl,$(wildcard *.scad))
+stl:	Remote/Remote.stl Remote/RemoteCO2.stl Remote/RemoteBlind.stl Remote/RemoteNOCO2.stl $(patsubst %.scad,%.stl,$(wildcard *.scad))
 
 PCBCase/clean: PCBCase/clean.c
 	make -C PCBCase
@@ -23,6 +23,9 @@ Remote/Remote.scad: Remote/Remote.kicad_pcb PCBCase/case Makefile
 
 Remote/RemoteCO2.scad: Remote/Remote.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --top=12 --bottom=2 --pcb=2 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7
+
+Remote/RemoteNOCO2.scad: Remote/Remote.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --top=12 --bottom=2 --pcb=2 --case=3 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7
 
 Remote/RemoteBlind.scad: Remote/Remote.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --top=12 --bottom=2 --pcb=2 --ignore=J1

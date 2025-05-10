@@ -1,6 +1,6 @@
 use <blankplate.scad>
 use <LCD2.scad>
-use <Remote/RemoteCO2.scad>
+use <Remote/RemoteNoCO2.scad>
 W=34.5;
 H=58;
 M=4;
@@ -8,19 +8,10 @@ $fn=24;
 
 difference()
 {
-    union()
-    {
-        blankplate();
-        translate([-(W+M)/2,-(H+M)/2,0])cube([W+M,H+M,9]);
-    }
-    translate([0,0,10])rotate([180,0,90])lcd2(0.2);
-    translate([-13-W/2,-H/2,11])rotate([0,180,-90])
-    {
-        minkowski()
-        {
-           pcb();
-           translate([0,0,-10])cube([0.3,0.3,10]);
-        }
-        parts_top(part=true,hole=true);
-    }
+   blankplate();
+   cube([34.5,58,10],center=true);
+   for(y=[0:5:20])translate([-30,y+10,-1])cylinder(d=3,h=10,$fn=24);
+  # translate([-30,-25,-10])cylinder(d=8,h=20);
 }
+translate([20.5,-32,0])rotate([0,0,90])top();
+translate([20.5+80,-32,0])rotate([0,0,90])bottom();
