@@ -959,8 +959,7 @@ i2c_task (void *x)
                scd41.t =
                   T (-45.0 + 175.0 * (float) (((uint32_t) ((buf[3] << 8) + buf[4])) + scd41.to) / 65536.0) +
                   (float) scd41dt / scd41dt_scale;
-               if (buf[6] || buf[7])
-                  scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
+               scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
             }
             scd41.ok = 1;
             if (gzp6816d.ok)
@@ -1661,6 +1660,7 @@ app_main ()
    data.tmax = NAN;
    data.lux = NAN;
    data.pressure = NAN;
+   data.rh = NAN;
    lcd_mutex = xSemaphoreCreateMutex ();
    xSemaphoreGive (lcd_mutex);
    data_mutex = xSemaphoreCreateMutex ();
@@ -1952,7 +1952,7 @@ app_main ()
       } else if (tm.tm_min != lastmin)
       {                         // Rad on
          static float lastt = 0;
-         uint8_t heat = (t <= lastt || t < targetmin - 1 ? 1 : 0);      // Stop once temp starts to rise and gets close - arbitrary margin
+         uint8_t heat = (t <= lastt || t < targetmin - DT (1) ? 1 : 0); // Stop once temp starts to rise and gets close - arbitrary margin
          lastt = t;
          if (b.rad != heat)
             send_rad (heat);
