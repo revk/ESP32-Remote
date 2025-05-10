@@ -1645,8 +1645,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1953,7 +1952,7 @@ app_main ()
       } else if (tm.tm_min != lastmin)
       {                         // Rad on
          static float lastt = 0;
-         uint8_t heat = (t <= lastt ? 1 : 0);   // Stop once temp starts to rise
+         uint8_t heat = (t <= lastt || t < targetmin - 1 ? 1 : 0);      // Stop once temp starts to rise and gets close - arbitrary margin
          lastt = t;
          if (b.rad != heat)
             send_rad (heat);
