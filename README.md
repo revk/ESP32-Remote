@@ -71,7 +71,7 @@ In addition to working with the Faikin this can send MQTT messages to turn on or
 - USB-C power, or DC 5V-36V (WAGO).
 - Connection for DS18B20 external temperature sensors (WAGO).
 - 4 way *joystick* control button.
-- On board temperatrure sensor (TMP1075)
+- On board temperatrure sensor (TMP1075 or SHT40)
 - On board pressure sensor (GZP6816D)
 - On board ambient light sensor with color (VEML6040)
 - The PCB is designed to work with a Waveshare 2" colour LCD. Four M2x3mm screws and 8 way 0.1" header pins are required if you get the display separately.
@@ -102,7 +102,7 @@ For this purpose the on board sensors can have a simple offset added/subtracted 
 
 The most reliable connected sensor is a DS18B20 on a lead as this does not pick up heat from the PCB - do no position above the module to avoid heating by convention. We do not apply an offset to this (let us know if you find a case where that is actually useful). The other reliable sensor is an external BLE sensor - these have such low power usage they do not have internal heating and are also very accurate - again no offset is configurable for these.
 
-The internal sensors (TMP1075 or MCP9808) pick up heat from the PCB and often need several degrees of adjustment. As I say, do this after installing, in case, in position, and running for some time. The pressure sensor also does temperature, but this is right next to the processor, so typically needs way more adjustment.
+The internal sensors (TMP1075 or MCP9808 or SHT40) pick up heat from the PCB and often need several degrees of adjustment. As I say, do this after installing, in case, in position, and running for some time. The pressure sensor also does temperature, but this is right next to the processor, so typically needs way more adjustment.
 
 The SCD41 provides CO₂, temperature, and humidity. Whilst the CO₂ is not affected by temperature, it does have atmospheric pressure adjustment applied automatically from the on board pressure sensor. However the humidity accuracy is impacted by the temperature. As such the temperature offset is initially set in the SCD41 at boot. Any changes to `scd41dt` will apply in real time, but it is recommended that you reboot once you are happy with it to ensure humidity is calculated correctly.
 
