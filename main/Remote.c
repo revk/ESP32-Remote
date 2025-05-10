@@ -1937,7 +1937,7 @@ app_main ()
          targetmin = (float) tempmin / tempmin_scale;
          targetmax = (float) tempmax / tempmax_scale;
       }
-      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN || !nomode)
+      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN || nomode)
          targetmin = targetmax = (float) actarget / actarget_scale;     // non faikin mode - simple target
       if (!fancontrol || b.away || ((!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen)))
       {                         // Fan off
