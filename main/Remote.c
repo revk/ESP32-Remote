@@ -1644,8 +1644,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1948,8 +1947,9 @@ app_main ()
       }
       if (tm.tm_min != lastmin)
       {                         // Rad control
-         static float last = NAN;
-         if (!radcontrol || t + (t - last) > targetmin || b.faikincool)
+         static float last2 = NAN,
+            last1 = NAN;
+         if (!radcontrol || isnan (last2) || t + (t - last2) > targetmin || b.faikincool)
          {                      // Rad off
             if (b.rad)
                send_rad (0);
@@ -1958,7 +1958,8 @@ app_main ()
             if (!b.rad)
                send_rad (1);
          }
-         last = t;
+         last2 = last1;
+         last1 = t;
       }
       if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
          targetmin = targetmax = (float) actarget / actarget_scale;     // non faikin mode - simple target
