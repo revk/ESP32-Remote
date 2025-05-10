@@ -1937,6 +1937,8 @@ app_main ()
          targetmin = (float) tempmin / tempmin_scale;
          targetmax = (float) tempmax / tempmax_scale;
       }
+      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN || !nomode)
+         targetmin = targetmax = (float) actarget / actarget_scale;     // non faikin mode - simple target
       if (!fancontrol || b.away || ((!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen)))
       {                         // Fan off
          if (b.fan)
@@ -1962,8 +1964,6 @@ app_main ()
          last2 = last1;
          last1 = t;
       }
-      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN || !nomode)
-         targetmin = targetmax = (float) actarget / actarget_scale;     // non faikin mode - simple target
       xSemaphoreTake (data_mutex, portMAX_DELAY);
       if (data.poweron != b.poweron || data.mode != acmode || data.fan != acfan
           || (acmode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != (float) actarget / actarget_scale))
