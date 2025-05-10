@@ -1644,7 +1644,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1961,7 +1962,7 @@ app_main ()
          last2 = last1;
          last1 = t;
       }
-      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN)
+      if (acmode != REVK_SETTINGS_ACMODE_FAIKIN || !nomode)
          targetmin = targetmax = (float) actarget / actarget_scale;     // non faikin mode - simple target
       xSemaphoreTake (data_mutex, portMAX_DELAY);
       if (data.poweron != b.poweron || data.mode != acmode || data.fan != acfan
