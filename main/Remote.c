@@ -382,7 +382,8 @@ revk_web_extra (httpd_req_t * req, int page)
    revk_web_setting_title (req, "Controls");
    settings_blefaikin (req);
    revk_web_setting (req, "Target", "actarget");
-   revk_web_setting (req, "±", "tempmargin");
+   if (!nomode)
+      revk_web_setting (req, "±", "tempmargin");
    revk_web_setting (req, "Mode", "acmode");
    revk_web_setting (req, "Fan", "acfan");
    revk_web_setting (req, "Start", "acstart");
@@ -1644,8 +1645,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
