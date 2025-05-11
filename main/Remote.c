@@ -72,6 +72,7 @@ enum
    EDIT_FAN,
    EDIT_START,
    EDIT_STOP,
+   EDIT_REVERT,
    EDIT_NUM,
 };
 uint8_t edit = EDIT_NONE;       // Edit mode
@@ -382,7 +383,8 @@ revk_web_extra (httpd_req_t * req, int page)
    revk_web_setting_title (req, "Controls");
    if (!nofaikin)
       settings_blefaikin (req);
-   revk_web_setting (req, "Target", "actarget");
+   revk_web_setting (req, "Target now", "actarget");
+   revk_web_setting (req, "Target fixed", "acrevert");
    if (!nofaikin)
    {
       revk_web_setting (req, "±", "tempmargin");
@@ -1154,6 +1156,19 @@ btnud (int8_t d)
          jo_litf (j, "actarget", "%.1f", (float) t / actarget_scale);
       }
       break;
+   case EDIT_REVERT:
+      if (tempstep)
+      {
+         int16_t t = acrevert;
+         t = t / tempstep * tempstep;
+         t += d * tempstep;
+         if (t < tempmin)
+            t = tempmin;
+         if (t > tempmax)
+            t = tempmax;
+         jo_litf (j, "acrevert", "%.1f", (float) t / acrevert_scale);
+      }
+      break;
    case EDIT_MODE:
       {
          uint8_t m = acmode;
@@ -1526,10 +1541,10 @@ show_temp (float t)
 void
 show_target (float t)
 {                               // Show target temp
-   if (edit == EDIT_TARGET)
+   if (edit == EDIT_TARGET || edit == EDIT_REVERT)
    {
       select_icon_plot (icon_select2, -2, -2);
-      message = "Target temp";
+      message = (edit == EDIT_TARGET ? "Temp" : "Target temp");
    }
    if (notarget)
       return;
@@ -1718,6 +1733,7 @@ app_main ()
    int8_t lastsec = -1;
    int8_t lastmin = -1;
    int8_t lasthour = -1;
+   int8_t lastday = -1;
    int8_t lastreport = -1;
    float blet = NAN;
    float blerh = NAN;
@@ -1893,26 +1909,41 @@ app_main ()
       }
       // power set based on time and manual
       int16_t early = 0;
-      if (acstart == acstop || b.away)
-      {                         // Timer disabled
-         b.timeron = 0;
-         b.earlyon = 0;
-      } else
-      {                         // Timer state
-         uint16_t start = acstart / 100 * 60 + acstart % 100;
-         uint16_t stop = acstop / 100 * 60 + acstop % 100;
-         uint16_t min = tm.tm_hour * 60 + tm.tm_min;
-         if (start < stop)
-            b.timeron = ((min >= start && min < stop) ? 1 : 0);
-         else
-            b.timeron = ((min >= start || min < stop) ? 1 : 0);
-         if (b.manual ? b.manualon : b.timeron)
+      {
+         uint8_t on = 0;
+         if (acstart == acstop || b.away)
+         {                      // Timer disabled
+            on = 0;
             b.earlyon = 0;
-         else
-         {
-            early = start - min;
-            if (early < 0)
-               early += 24 * 60;
+         } else
+         {                      // Timer state
+            uint16_t start = acstart / 100 * 60 + acstart % 100;
+            uint16_t stop = acstop / 100 * 60 + acstop % 100;
+            uint16_t min = tm.tm_hour * 60 + tm.tm_min;
+            uint8_t on = 0;
+            if (start < stop)
+               on = ((min >= start && min < stop) ? 1 : 0);
+            else
+               on = ((min >= start || min < stop) ? 1 : 0);
+            if (b.manual ? b.manualon : on)
+               b.earlyon = 0;
+            else
+            {
+               early = start - min;
+               if (early < 0)
+                  early += 24 * 60;
+            }
+         }
+         if (on != b.timeron || (acstart == acstop && tm.tm_mday != lastday))
+         {                      // Change
+            b.timeron = on;
+            if (!on && actarget != acrevert)
+            {                   // Revert temp
+               jo_t j = jo_object_alloc ();
+               jo_litf (j, "actarget", "%.2f", (float) acrevert / acrevert_scale);
+               revk_setting (j);
+               jo_free (&j);
+            }
          }
       }
       float targetmin = (float) actarget / actarget_scale - (nofaikin ? 0 : (float) tempmargin / tempmargin_scale);
@@ -2096,7 +2127,10 @@ app_main ()
                show_stop ();
             } else
             {
-               show_target ((float) actarget / actarget_scale);
+               if (edit == EDIT_REVERT)
+                  show_target ((float) acrevert / acrevert_scale);
+               else
+                  show_target ((float) actarget / actarget_scale);
                gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
                show_fan ();
                gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
@@ -2111,7 +2145,10 @@ app_main ()
          } else
          {                      // Landscape
             gfx_pos (2, 2, GFX_T | GFX_L);
-            show_target ((float) actarget / actarget_scale);
+            if (edit == EDIT_REVERT)
+               show_target ((float) acrevert / acrevert_scale);
+            else
+               show_target ((float) actarget / actarget_scale);
             gfx_pos (0, 66, GFX_T | GFX_L);
             show_mode ();
             if (edit == EDIT_START || edit == EDIT_STOP)
@@ -2154,6 +2191,7 @@ app_main ()
       lastsec = tm.tm_sec;
       lastmin = tm.tm_min;
       lasthour = tm.tm_hour;
+      lastday = tm.tm_mday;
    }
 
    b.die = 1;
