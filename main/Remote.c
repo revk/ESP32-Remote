@@ -955,7 +955,7 @@ i2c_task (void *x)
          if (!(err = scd41_read (0xE4B8, 3, buf)) && ((buf[0] & 0x7) || buf[1]) && !(err = scd41_read (0xEC05, sizeof (buf), buf)))
          {
             scd41.ppm = (buf[0] << 8) + buf[1];
-            if (uptime () > 180)        // Starts off way out for some reason
+            if (uptime () > scd41start)        // Starts off way out for some reason
             {
                scd41.t =
                   T (-45.0 + 175.0 * (float) (((uint32_t) ((buf[3] << 8) + buf[4])) + scd41.to) / 65536.0) +
