@@ -308,9 +308,9 @@ revk_state_extra (jo_t j)
          jo_close (j);
       }
    }
-   if (data.mode && !nomode)
+   if (data.mode && !nomode && !nofaikin)
       add_enum ("mode", data.mode, REVK_SETTINGS_ACMODE_ENUMS);
-   if (data.fan && !nofan)
+   if (data.fan && !nofan && !nofaikin)
       add_enum ("fan", data.fan, REVK_SETTINGS_ACFAN_ENUMS);
    jo_string (j, "state",
               b.faikinbad ? "bad" : b.manual ? "manual" : b.away ? "away" : b.earlyon ? "early" : b.timeron ? "timer" : "off");
@@ -380,12 +380,17 @@ void
 revk_web_extra (httpd_req_t * req, int page)
 {
    revk_web_setting_title (req, "Controls");
-   settings_blefaikin (req);
+   if (!nofaikin)
+      settings_blefaikin (req);
    revk_web_setting (req, "Target", "actarget");
-   if (!nomode)
+   if (!nofaikin)
+   {
       revk_web_setting (req, "±", "tempmargin");
-   revk_web_setting (req, "Mode", "acmode");
-   revk_web_setting (req, "Fan", "acfan");
+      if (!nofaikin && !nomode)
+         revk_web_setting (req, "Mode", "acmode");
+      if (!nofaikin && !nofan)
+         revk_web_setting (req, "Fan", "acfan");
+   }
    revk_web_setting (req, "Start", "acstart");
    revk_web_setting (req, "Stop", "acstop");
    if (veml6040.found)
@@ -955,7 +960,7 @@ i2c_task (void *x)
          if (!(err = scd41_read (0xE4B8, 3, buf)) && ((buf[0] & 0x7) || buf[1]) && !(err = scd41_read (0xEC05, sizeof (buf), buf)))
          {
             scd41.ppm = (buf[0] << 8) + buf[1];
-            if (uptime () > scd41start)        // Starts off way out for some reason
+            if (uptime () > scd41start) // Starts off way out for some reason
             {
                scd41.t =
                   T (-45.0 + 175.0 * (float) (((uint32_t) ((buf[3] << 8) + buf[4])) + scd41.to) / 65536.0) +
@@ -1214,8 +1219,8 @@ btnlr (int8_t d)
    if (edit >= EDIT_MODE)
    {
       edit += d;
-      while (edit <= EDIT_TARGET || edit >= EDIT_NUM || ((faikinonly || nomode) && edit == EDIT_MODE)
-             || (nofan && edit == EDIT_FAN))
+      while (edit <= EDIT_TARGET || edit >= EDIT_NUM || ((faikinonly || nomode || nofaikin) && edit == EDIT_MODE)
+             || ((nofaikin || nofan) && edit == EDIT_FAN))
       {
          edit += d;
          if (edit <= EDIT_TARGET)
@@ -1257,7 +1262,7 @@ btnR (void)
 {
    if (edit < EDIT_MODE)
       edit = EDIT_MODE;
-   while (((faikinonly || nomode) && edit == EDIT_MODE) || (nofan && edit == EDIT_FAN))
+   while (((faikinonly || nomode || nofaikin) && edit == EDIT_MODE) || ((nofaikin || nofan) && edit == EDIT_FAN))
       edit++;
 }
 
@@ -1545,11 +1550,11 @@ show_mode (void)
    }
    if (edit != EDIT_MODE && b.away && !b.poweron)
       icon_plot (icon_modeaway, 2);
-   else if (edit != EDIT_MODE && radcontrol && b.rad && (!b.poweron || nomode))
+   else if (edit != EDIT_MODE && radcontrol && b.rad && (!b.poweron || nomode || nofaikin))
       icon_plot (icon_moderad, 2);
    else if (edit != EDIT_MODE && !b.poweron)
       icon_plot (icon_modeoff, 2);
-   else if (nomode)
+   else if (nomode || nofaikin)
       return;
    else if (b.faikinbad)        // Antifreeze or slave
       icon_plot (icon_modebad, 2);
@@ -1567,7 +1572,7 @@ show_fan (void)
       select_icon_plot (icon_select, 0, 0);
       message = (fan3 ? icon_fan3_message : icon_fan5_message)[acfan];
    }
-   if (nofan)
+   if (nofan || nofaikin)
       return;
    icon_plot ((fan3 ? icon_fans3 : icon_fans5)[acfan], 2);
 }
@@ -1910,8 +1915,8 @@ app_main ()
                early += 24 * 60;
          }
       }
-      float targetmin = (float) actarget / actarget_scale - (float) tempmargin / tempmargin_scale;
-      float targetmax = (float) actarget / actarget_scale + (float) tempmargin / tempmargin_scale;
+      float targetmin = (float) actarget / actarget_scale - (nofaikin ? 0 : (float) tempmargin / tempmargin_scale);
+      float targetmax = (float) actarget / actarget_scale + (nofaikin ? 0 : (float) tempmargin / tempmargin_scale);
       if (early)
       {                         // Target adjust for early
          if (earlyheat)
@@ -1933,12 +1938,13 @@ app_main ()
       if (b.manual && b.manualon == (b.earlyon | b.timeron))
          b.manual = 0;
       b.poweron = (b.manual ? b.manualon : b.earlyon | b.timeron);
-      if ((nomode || acmode == REVK_SETTINGS_ACMODE_FAIKIN) && !b.poweron && !early)
+      if ((nomode || nofaikin || acmode == REVK_SETTINGS_ACMODE_FAIKIN) && !b.poweron && !early)
       {                         // Full range as not power on - allows faikin to turn off itself even - we leave if early so could decide to turn on itself
          targetmin = (float) tempmin / tempmin_scale;
          targetmax = (float) tempmax / tempmax_scale;
-      } else if (b.poweron && (acmode != REVK_SETTINGS_ACMODE_FAIKIN || nomode))
-         targetmin = targetmax = (float) actarget / actarget_scale;     // non faikin mode - simple target when on
+      }
+      if (nofaikin)
+         targetmax = targetmin; //  not a range just a setting for rad
       if (!fancontrol || b.away || ((!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen)))
       {                         // Fan off
          if (b.fan)

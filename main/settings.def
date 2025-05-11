@@ -45,6 +45,7 @@ u8	t6793.i2c	""	.set .hex .fix		// T6793 CO2 sensor
 
 bit	autocal		1	.live			// Hourly auto adjust temp offsets
 
+bit	no.faikin		.live			// No faikin, i.e. rad and fan only
 bit	no.target		.live			// No target control for faikin
 bit	no.mode			.live			// No mode control for faikin
 bit	no.fan			.live			// No fan control for faikin
