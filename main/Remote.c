@@ -1645,7 +1645,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1936,8 +1937,7 @@ app_main ()
       {                         // Full range as not power on - allows faikin to turn off itself even - we leave if early so could decide to turn on itself
          targetmin = (float) tempmin / tempmin_scale;
          targetmax = (float) tempmax / tempmax_scale;
-      }
-      else if (acmode != REVK_SETTINGS_ACMODE_FAIKIN || nomode)
+      } else if (acmode != REVK_SETTINGS_ACMODE_FAIKIN || nomode)
          targetmin = targetmax = (float) actarget / actarget_scale;     // non faikin mode - simple target
       if (!fancontrol || b.away || ((!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen)))
       {                         // Fan off
@@ -1950,14 +1950,19 @@ app_main ()
       }
       if (tm.tm_min != lastmin)
       {                         // Rad control
-         static float last2 = NAN,
-            last1 = NAN;
-         if (!radcontrol || isnan (last2) || t + (t - last2) > targetmin || b.faikincool)
-         {                      // Rad off
+         static float last1 = NAN,
+            last2 = NAN;
+         float predict = t;
+         if (radahead && !isnan(last2) && ((last2 <= last1 && last1 <= t) ||    // going up - turn off early if predict above target
+                           ((last2 >= last1 && last1 >= t) &&   // going down - turn on early in 10 (heatfadem) min stages if predict is below target
+                            (!radfade || !radfadem || (lastmin % radfadem) < (targetmin + radfade/radfade_scale - t) * radfadem / radfade))))
+            predict += radahead * (t - last2) / 2;     // Use predicted value, i.e. turn on/off early
+         if (!radcontrol || predict > targetmin || b.faikincool)
+         {                      /* Heat off */
             if (b.rad)
                send_rad (0);
          } else
-         {                      // Rad on control
+         {                      /* Heat on, change */
             if (!b.rad)
                send_rad (1);
          }

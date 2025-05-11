@@ -89,6 +89,9 @@ u16	co2.red		1200	.live .unit="ppm"	// CO2 considered high
 bit	rad.control		.live			// Enable radiator control logic
 s	rad.on			.live			// MQTT to send for radiator on
 s	rad.off			.live			// MQTT to send for radiator off
+u8	rad.ahead	30	.live			// Heat ahead time
+u8	rad.fadem	10	.live .unit="min"		// Heat fade
+u32	rad.fade	1	.live .decimal=3 .unit="°"	// Heat fade
 
 bit	fan.control		.live			// Enable external fan control logic
 s	fan.on			.live			// MQTT to send for external fan on
