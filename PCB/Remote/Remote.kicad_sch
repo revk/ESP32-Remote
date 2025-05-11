@@ -11940,7 +11940,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_LGA:Bosch_LGA-8_2x2.5mm_P0.65mm_ClockwisePinNumbering"
+		(property "Footprint" "RevK:Bosch_LGA-8_2x2.5mm_P0.65mm_ClockwisePinNumbering"
 			(at 118.745 186.055 0)
 			(effects
 				(font
