@@ -47,6 +47,7 @@ bit	autocal		1	.live			// Hourly auto adjust temp offsets
 
 bit	no.faikin		.live			// No faikin, i.e. rad and fan only
 bit	no.target		.live			// No target control for faikin
+bit	no.revert		.live			// No target revert
 bit	no.mode			.live			// No mode control for faikin
 bit	no.fan			.live			// No fan control for faikin
 bit	no.co2			.live			// No CO2 display
@@ -58,10 +59,11 @@ bit	fahrenheit					// Fahrenheit
 
 u16	ac.start		.live .digits=4 .unit="HHMM"		// Start time
 u16	ac.stop			.live .digits=4 .unit="HHMM"		// Stop time
-s16	ac.target	22	.live .unit="°" .decimal=1      // Current target
-s16	ac.revert	22	.live .unit="°" .decimal=1      // Revert/fixed target
-enum	ac.mode		1	.live .enums="Unspecified,Auto,Fan,Dry,Cool,Heat,Reserved,Faikin"	// A/C Mode
-enum	ac.fan		1	.live .enums="Unspecified,Auto,1,2,3,4,5,Quiet"		// A/C Fan
+s16	ac.target	22	.hide .live .unit="°" .decimal=1      // Current target
+s16	ac.revert	22	.hide .live .unit="°" .decimal=1      // Revert/fixed target
+s8	ac.margin	1	.hide .live .unit="°" .decimal=1 .old="tempmargin"	// Target temp ± margin
+enum	ac.mode		1	.hide .live .enums="Unspecified,Auto,Fan,Dry,Cool,Heat,Reserved,Faikin"	// A/C Mode
+enum	ac.fan		1	.hide .live .enums="Unspecified,Auto,1,2,3,4,5,Quiet"		// A/C Fan
 s16	ac.dt		0	.live .unit="°" .decimal=2	// AC Temp offset (Faikin auto)
 
 s	ble.temp		.live 			// ID of BLE reference temp
@@ -69,7 +71,6 @@ s	ble.faikin		.live 			// ID of Faikin to track
 enum	ble.advert		.live .enums="Faikin,BTHome1,BTHome2"	// BLE advertisement type
 
 enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,AC,DS18B20[0],DS18B20[1]"	// Primary reference temperature
-s8	temp.margin	1	.live .unit="°" .decimal=1	// Temp target ± margin
 s16	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
 s16	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
 u8	temp.step	0.5	.live .unit="°" .decimal=1      // Target steps
