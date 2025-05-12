@@ -28,7 +28,7 @@ In an idle mode the buttons work as follows :-
 
 |Button|Action|
 |------|------|
-|Up/Down|Change target temperature, hold to step quickly|
+|Up/Down|Change current target temperature, hold to step quickly|
 |Left|Turn off|
 |Right|Turn on|
 |Hold left|Holding left will go to *away* mode (and turn off)|
@@ -44,6 +44,16 @@ One in settings mode the buttons operate differently.
 |Left/Right|Move through possible settings|
 
 Waiting several seconds will end settings mode.
+
+The settings include...
+
+- Mode for a/c
+- Fan for a/c
+- Start time
+- Stop time
+- Fixed target temp
+
+Current target temp reverts to fixed target temp on end of timed period, or end of day if no timed period.
 
 ## BLE working
 
