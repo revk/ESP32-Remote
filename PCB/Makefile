@@ -19,13 +19,13 @@ png:	$(patsubst %.kicad_pcb,%.png,$(wildcard */*.kicad_pcb))
 	echo "Made $@"
 
 Remote/Remote.scad: Remote/Remote.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --top=6 --bottom=2 --pcb=2 --case=3 --ignore=U2,J1.2
+	PCBCase/case -o $@ $< --top=6 --bottom=2 --pcb=2 --case=3 --ignore=U2,J1.2 -y92.5
 
 Remote/RemoteCO2.scad: Remote/Remote.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --top=12 --bottom=2 --pcb=2 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7
+	PCBCase/case -o $@ $< --top=12 --bottom=2 --pcb=2 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 -y92.5
 
 Remote/RemoteNOCO2.scad: Remote/Remote.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --top=12 --bottom=2 --pcb=2 --case=3 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7
+	PCBCase/case -o $@ $< --top=12 --bottom=2 --pcb=2 --case=3 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 -y92.5
 
 Remote/RemoteBlind.scad: Remote/Remote.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --top=12 --bottom=2 --pcb=2 --ignore=J1
+	PCBCase/case -o $@ $< --top=12 --bottom=2 --pcb=2 --ignore=J1 -y92.5
