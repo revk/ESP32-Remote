@@ -333,8 +333,8 @@ settings_blefaikin (httpd_req_t * req)
    for (bleenv_t * e = bleenv; e; e = e->next)
       if (e->faikinset)
       {
-         revk_web_send (req, "<option value=\"%s\"", e->name);
-         if (*blefaikin && !strcmp (blefaikin, e->name))
+         revk_web_send (req, "<option value=\"%s\"", e->mac);
+         if (*blefaikin && (!strcmp (blefaikin, e->name) || !strcmp (blefaikin, e->mac)))
          {
             revk_web_send (req, " selected");
             found = 1;
@@ -359,8 +359,8 @@ settings_bletemp (httpd_req_t * req)
    for (bleenv_t * e = bleenv; e; e = e->next)
       if (!e->faikinset)
       {
-         revk_web_send (req, "<option value=\"%s\"", e->name);
-         if (*bletemp && !strcmp (bletemp, e->name))
+         revk_web_send (req, "<option value=\"%s\"", e->mac);
+         if (*bletemp && (!strcmp (bletemp, e->name) || !strcmp (bletemp, e->mac)))
          {
             revk_web_send (req, " selected");
             found = 1;
@@ -1669,7 +1669,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1796,23 +1797,23 @@ app_main ()
                b.nighttime = b.night = darkness;
          }
          bleenv_expire (120);
-         if (!bleidtemp || strcmp (bleidtemp->name, bletemp))
+         if (!bleidtemp || (strcmp (bleidtemp->name, bletemp) && strcmp (bleidtemp->mac, bletemp)))
          {
             bleidtemp = NULL;
             bleenv_clean ();
             for (bleenv_t * e = bleenv; e; e = e->next)
-               if (!strcmp (e->name, bletemp))
+               if (!strcmp (e->name, bletemp) || !strcmp (e->mac, bletemp))
                {
                   bleidtemp = e;
                   break;
                }
          }
-         if (!bleidfaikin || strcmp (bleidfaikin->name, blefaikin))
+         if (!bleidfaikin || (strcmp (bleidfaikin->name, blefaikin) && strcmp (bleidfaikin->mac, blefaikin)))
          {
             bleidfaikin = NULL;
             bleenv_clean ();
             for (bleenv_t * e = bleenv; e; e = e->next)
-               if (!strcmp (e->name, blefaikin))
+               if (!strcmp (e->name, blefaikin) || !strcmp (e->mac, blefaikin))
                {
                   bleidfaikin = e;
                   break;
