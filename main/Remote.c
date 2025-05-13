@@ -1942,7 +1942,16 @@ app_main ()
             if (!norevert && !on && actarget != acrevert)
             {                   // Revert temp
                jo_t j = jo_object_alloc ();
-               jo_litf (j, "actarget", "%.2f", (float) acrevert / acrevert_scale);
+               float t = (float) acrevert / acrevert_scale;
+               if (temprevstep)
+               {
+                  if (actarget > acrevert)
+                     t += (float) temprevstep / temprevstep_scale;
+                  else if (actarget < acrevert)
+                     t -= (float) temprevstep / temprevstep_scale;
+                  jo_litf (j, "acrevert", "%.2f", t);
+               }
+               jo_litf (j, "actarget", "%.2f", t);
                revk_setting (j);
                jo_free (&j);
             }

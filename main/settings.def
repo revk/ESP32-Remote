@@ -74,6 +74,7 @@ enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,AC,DS18B20[
 s16	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
 s16	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
 u8	temp.step	0.5	.live .unit="°" .decimal=1      // Target steps
+u8	temp.revstep	0.5	.live .unit="°" .decimal=1      // Target steps to update revert at end of day
 
 s8	temp.blue	15	.live .unit="°"		// Temp considered cold 
 s8	temp.red	25	.live .unit="°"		// Temp considered hot
