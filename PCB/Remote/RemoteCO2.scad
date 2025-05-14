@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-05-12 13:22:49
+// Generated 2025-05-14 09:22:48
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -75,7 +75,7 @@ translate([-1.250000,10.250000,1.200000])rotate([0,0,180.000000])m1(part,hole,bl
 };
 module part_R7(part=true,hole=false,block=false)
 {
-translate([-24.400000,11.700000,1.200000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
+translate([-21.800000,9.300000,1.200000])rotate([0,0,90.000000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
 };
 module part_C22(part=true,hole=false,block=false)
 {
@@ -132,6 +132,10 @@ translate([-1.500000,-11.070000,1.200000])translate([0.000000,-2.400000,0.000000
 module part_C4(part=true,hole=false,block=false)
 {
 translate([-20.762500,5.837500,1.200000])rotate([0,0,90.000000])m14(part,hole,block,casetop); // C4 (back)
+};
+module part_C12(part=true,hole=false,block=false)
+{
+translate([-24.000000,10.500000,1.200000])rotate([0,0,-90.000000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 };
 module part_J2(part=true,hole=false,block=false)
 {
@@ -202,7 +206,11 @@ translate([-22.750000,8.250000,1.200000])rotate([0,0,-90.000000])m0(part,hole,bl
 };
 module part_R6(part=true,hole=false,block=false)
 {
-translate([-22.600000,11.700000,1.200000])rotate([0,0,180.000000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
+translate([-20.500000,10.800000,1.200000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
+};
+module part_T1(part=true,hole=false,block=false)
+{
+translate([-23.000000,13.250000,1.200000])rotate([0,0,180.000000])m21(part,hole,block,casetop); // T1 (back)
 };
 // Parts to go on PCB (top)
 module parts_top(part=false,hole=false,block=false){
@@ -232,6 +240,7 @@ part_U2(part,hole,block);
 part_J3(part,hole,block);
 part_J6(part,hole,block);
 part_C4(part,hole,block);
+part_C12(part,hole,block);
 part_J2(part,hole,block);
 part_V4(part,hole,block);
 part_U3(part,hole,block);
@@ -251,9 +260,10 @@ part_R4(part,hole,block);
 part_C6(part,hole,block);
 part_C7(part,hole,block);
 part_R6(part,hole,block);
+part_T1(part,hole,block);
 }
 
-parts_top=14;
+parts_top=15;
 module part_J7(part=true,hole=false,block=false)
 {
 };
@@ -612,6 +622,19 @@ translate([-15.4/2,-15.45/2,0])
 	{
 		cube([15.4,20.5,0.8]);
 	}
+}
+}
+
+module m21(part=false,hole=false,block=false,height)
+{ // T1
+if(part)
+{
+	b(0,0,0,2.65,3.5,0.98);
+}
+if(hole)
+{
+	translate([0,-0.75,-height-0.1])
+		cylinder(d1=2,d2=1,h=height);
 }
 }
 
