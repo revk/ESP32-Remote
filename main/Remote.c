@@ -831,31 +831,32 @@ i2c_task (void *x)
    if (scd41i2c)
    {
       esp_err_t err = 0;
-      uint8_t try = 10;
+      uint8_t try = 5;
       while (try--)
       {
-         err = scd41_command (0x3F86);  /* Stop measurement(SCD41) */
+         err = scd41_command (0x3F86);  // Stop periodic
          if (!err)
          {
             usleep (500000);
-            err = scd41_command (0x3646);       /* Reinit */
-         }
-         if (!err)
-         {
-            usleep (20000);
             break;
          }
          sleep (1);
       }
       uint8_t buf[9];
+      scd41.to = (uint32_t) DC (scd41dt < 0 ? -scd41dt : 0) * 65536 / scd41dt_scale / 175;      // Temp offset
       if (!err)
-         err = scd41_write (0x241D, (uint32_t) DC (scd41dt < 0 ? -scd41dt : 0) * 65536 / scd41dt_scale / 175);
+         err = scd41_read (0x2318, 3, buf);     // get offset
+      if (!err && scd41.to != (buf[0] << 8) + buf[1])
+      {
+         err = scd41_write (0x241D, scd41.to);  // set offset
+         if (!err)
+            err = scd41_command (0x3615);       // persist
+         usleep (800000);
+      }
       if (!err)
-         err = scd41_read (0x2318, 3, buf);
+         ESP_LOGE (TAG, "SCD41 TO %04X", scd41.to);
       if (!err)
-         ESP_LOGE (TAG, "SCD41 TO %04X", scd41.to = (buf[0] << 8) + buf[1]);
-      if (!err)
-         err = scd41_read (0x3682, 9, buf);
+         err = scd41_read (0x3682, 9, buf);     // Get serial
       if (err)
          fail (scd41i2c, "SCD41");
       else
@@ -864,7 +865,7 @@ i2c_task (void *x)
             ((unsigned long long) buf[0] << 40) + ((unsigned long long) buf[1] << 32) +
             ((unsigned long long) buf[3] << 24) + ((unsigned long long) buf[4] << 16) +
             ((unsigned long long) buf[6] << 8) + ((unsigned long long) buf[7]);
-         if (!scd41_command (0x21B1))
+         if (!scd41_command (0x21B1))   // Start periodic
             scd41.found = 1;
       }
    }
@@ -966,13 +967,10 @@ i2c_task (void *x)
          if (!(err = scd41_read (0xE4B8, 3, buf)) && ((buf[0] & 0x7) || buf[1]) && !(err = scd41_read (0xEC05, sizeof (buf), buf)))
          {
             scd41.ppm = (buf[0] << 8) + buf[1];
-            if (uptime () > scd41start) // Starts off way out for some reason
-            {
-               scd41.t =
-                  T (-45.0 + 175.0 * (float) (((uint32_t) ((buf[3] << 8) + buf[4])) + scd41.to) / 65536.0) +
-                  (float) scd41dt / scd41dt_scale;
-               scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
-            }
+            scd41.t =
+               T (-45.0 + 175.0 * (float) (((uint32_t) ((buf[3] << 8) + buf[4])) + scd41.to) / 65536.0) +
+               (float) scd41dt / scd41dt_scale;
+            scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
             scd41.ok = 1;
             if (gzp6816d.ok)
                scd41_write (0x0E000, gzp6816d.hpa);
