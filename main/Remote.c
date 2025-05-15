@@ -966,10 +966,13 @@ i2c_task (void *x)
          if (!(err = scd41_read (0xE4B8, 3, buf)) && ((buf[0] & 0x7) || buf[1]) && !(err = scd41_read (0xEC05, sizeof (buf), buf)))
          {
             scd41.ppm = (buf[0] << 8) + buf[1];
-            scd41.t =
-               T (-45.0 + 175.0 * (float) (((uint32_t) ((buf[3] << 8) + buf[4])) + scd41.to) / 65536.0) +
-               (float) scd41dt / scd41dt_scale;
-            scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
+            if (uptime () >= scd41startup)
+            {
+               scd41.t =
+                  T (-45.0 + 175.0 * (float) (((uint32_t) ((buf[3] << 8) + buf[4])) + scd41.to) / 65536.0) +
+                  (float) scd41dt / scd41dt_scale;
+               scd41.rh = 100.0 * (float) ((buf[6] << 8) + buf[7]) / 65536.0;
+            }
             scd41.ok = 1;
             if (gzp6816d.ok)
                scd41_write (0x0E000, gzp6816d.hpa);
@@ -2172,8 +2175,10 @@ app_main ()
                show_target ((float) acrevert / acrevert_scale);
             else
                show_target ((float) actarget / actarget_scale);
-            gfx_pos (0, 66, GFX_T | GFX_L);
+            gfx_pos (0, 66, GFX_T | GFX_L | GFX_H);
             show_mode ();
+            gfx_pos (gfx_x () + 10, gfx_y (), GFX_T | GFX_L | GFX_H);
+            show_fan ();
             if (edit == EDIT_START || edit == EDIT_STOP)
             {
                gfx_pos (2, 135, GFX_T | GFX_L);
@@ -2188,8 +2193,8 @@ app_main ()
                if (!isnan (blerh))
                   icon_plot (icon_bt, 0);
                show_rh (rh);
-               gfx_pos (gfx_width () / 2 - 10, gfx_y () - 10, GFX_T | GFX_C);
-               show_fan ();
+               //gfx_pos (gfx_width () / 2 - 10, gfx_y () - 10, GFX_T | GFX_C);
+               //show_fan ();
             }
          }
          gfx_pos (gfx_width () / 2, gfx_height () - 4, GFX_C | GFX_B);
