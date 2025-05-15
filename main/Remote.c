@@ -565,6 +565,15 @@ i2c_read_16lh (uint8_t addr, uint8_t cmd)
    return (h << 8) + l;
 }
 
+static int32_t
+i2c_read_16lh2 (uint8_t addr, uint8_t cmd)
+{                               // try twice
+   int32_t v = i2c_read_16lh (addr, cmd);
+   if (v < 0)
+      v = i2c_read_16lh (addr, cmd);
+   return v;
+}
+
 static esp_err_t
 i2c_write_16lh (uint8_t addr, uint8_t cmd, uint16_t val)
 {
@@ -793,7 +802,7 @@ i2c_task (void *x)
    // Init
    if (veml6040i2c)
    {
-      if (i2c_read_16lh (veml6040i2c, 0) < 0 && i2c_read_16lh (veml6040i2c, 0) < 0)
+      if (i2c_read_16lh2 (veml6040i2c, 0) < 0)
          fail (veml6040i2c, "VEML6040");
       else
       {
@@ -854,8 +863,6 @@ i2c_task (void *x)
          usleep (800000);
       }
       if (!err)
-         ESP_LOGE (TAG, "SCD41 TO %04X", scd41.to);
-      if (!err)
          err = scd41_read (0x3682, 9, buf);     // Get serial
       if (err)
          fail (scd41i2c, "SCD41");
@@ -895,10 +902,10 @@ i2c_task (void *x)
       if (veml6040.found)
       {                         // Scale to lux
          int32_t v;
-         veml6040.r = (v = i2c_read_16lh (veml6040i2c, 0x08)) >= 0 ? (float) v *1031 / 65535 : NAN;
-         veml6040.g = v >= 0 && (v = i2c_read_16lh (veml6040i2c, 0x09)) >= 0 ? (float) v *1031 / 65535 : NAN;
-         veml6040.b = v >= 0 && (v = i2c_read_16lh (veml6040i2c, 0x0A)) >= 0 ? (float) v *1031 / 65535 : NAN;
-         veml6040.w = v >= 0 && (v = i2c_read_16lh (veml6040i2c, 0x0B)) >= 0 ? (float) v *1031 / 65535 : NAN;
+         veml6040.r = (v = i2c_read_16lh2 (veml6040i2c, 0x08)) >= 0 ? (float) v *1031 / 65535 : NAN;
+         veml6040.g = v >= 0 && (v = i2c_read_16lh2 (veml6040i2c, 0x09)) >= 0 ? (float) v *1031 / 65535 : NAN;
+         veml6040.b = v >= 0 && (v = i2c_read_16lh2 (veml6040i2c, 0x0A)) >= 0 ? (float) v *1031 / 65535 : NAN;
+         veml6040.w = v >= 0 && (v = i2c_read_16lh2 (veml6040i2c, 0x0B)) >= 0 ? (float) v *1031 / 65535 : NAN;
          veml6040.ok = (v < 0 ? 0 : 1);
       }
       if (mcp9808.found)
@@ -1670,7 +1677,8 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
+                     found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
