@@ -416,7 +416,8 @@ revk_web_extra (httpd_req_t * req, int page)
    if (ds18b20_num)
       revk_web_send (req, "<tr><td>DS18B20</td><td align=right>%.2f°</td><td>External wired sensor.</td></tr>", ds18b20s[0].t);
    if (scd41.found)
-      revk_web_send (req, "<tr><td>SCD41</td><td align=right>%.2f°</td><td>Internal CO₂ sensor.</td></tr>", scd41.t);
+      revk_web_send (req, "<tr><td>SCD41</td><td align=right>%.2f°</td><td>Internal CO₂ sensor%s.</td></tr>", scd41.t,
+                     isnan (scd41.t) ? ", shows after startup delay" : "");
    if (tmp1075.found)
       revk_web_send (req, "<tr><td>TMP1075</td><td align=right>%.2f°</td><td>Internal temperature sensor.</td></tr>", tmp1075.t);
    if (mcp9808.found)
@@ -1548,7 +1549,7 @@ show_target (float t)
    if (edit == EDIT_TARGET || edit == EDIT_REVERT)
    {
       select_icon_plot (icon_select2, -2, -2);
-      message = (edit == EDIT_TARGET ? "Temp" : "Target temp");
+      message = (edit == EDIT_TARGET ? "Target temp" : "Revert temp");
    }
    if (notarget)
       return;
@@ -1669,8 +1670,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -2146,6 +2146,15 @@ app_main ()
          if (gfx_width () < gfx_height ())
          {                      // Portrait
             gfx_pos (2, 125, GFX_L | GFX_T | GFX_H);
+            if (edit == EDIT_REVERT)
+               show_target ((float) acrevert / acrevert_scale);
+            else
+               show_target ((float) actarget / actarget_scale);
+            gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
+            show_fan ();
+            gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
+            show_mode ();
+            gfx_pos (0, 205, GFX_L | GFX_T | GFX_H);
             if (edit == EDIT_START || edit == EDIT_STOP)
             {
                show_start ();
@@ -2153,21 +2162,12 @@ app_main ()
                show_stop ();
             } else
             {
-               if (edit == EDIT_REVERT)
-                  show_target ((float) acrevert / acrevert_scale);
-               else
-                  show_target ((float) actarget / actarget_scale);
-               gfx_pos (gfx_width () - 3, gfx_y (), GFX_R | GFX_T | GFX_H);
-               show_fan ();
-               gfx_pos (gfx_x () - 10, gfx_y (), GFX_R | GFX_T | GFX_H);
-               show_mode ();
+               if (!isnan (blerh))
+                  icon_plot (icon_bt, 0);
+               show_rh (rh);
+               gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
+               show_co2 (co2);
             }
-            gfx_pos (0, 205, GFX_L | GFX_T | GFX_H);
-            show_co2 (co2);
-            gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
-            show_rh (rh);
-            if (!isnan (blerh))
-               icon_plot (icon_bt, 0);
          } else
          {                      // Landscape
             gfx_pos (2, 2, GFX_T | GFX_L);
@@ -2193,8 +2193,6 @@ app_main ()
                if (!isnan (blerh))
                   icon_plot (icon_bt, 0);
                show_rh (rh);
-               //gfx_pos (gfx_width () / 2 - 10, gfx_y () - 10, GFX_T | GFX_C);
-               //show_fan ();
             }
          }
          gfx_pos (gfx_width () / 2, gfx_height () - 4, GFX_C | GFX_B);
