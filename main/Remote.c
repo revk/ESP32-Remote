@@ -250,13 +250,13 @@ app_callback (int client, const char *prefix, const char *target, const char *su
       else
       {
          b.night = 0;
-	 bl=100;
+         bl = 100;
       }
    }
    if (!strcmp (suffix, "dark"))
    {
       b.night = 1;
-      bl=0;
+      bl = 0;
    }
    if (!strcmp (suffix, "message"))
    {
@@ -1734,8 +1734,7 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
+ ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.found);
  ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
  ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
  ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
@@ -1777,13 +1776,14 @@ app_main ()
       revk_web_settings_add (webserver);
    }
    if (sda.set && scl.set)
-      revk_task ("i2c", i2c_task, NULL, 10);
+      revk_task ("i2c", i2c_task, NULL, 4);
    if (btnu.set || btnd.set || btnl.set || btnr.set)
-      revk_task ("btn", btn_task, NULL, 10);
+      revk_task ("btn", btn_task, NULL, 4);
    if (ds18b20.set)
-      revk_task ("18b20", ds18b20_task, NULL, 10);
+      revk_task ("18b20", ds18b20_task, NULL, 4);
    bleenv_run ();
-   if(gfxbl.set)revk_task("BL",bl_task,NULL,10);
+   if (gfxbl.set)
+      revk_task ("BL", bl_task, NULL, 4);
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)
    {
@@ -2278,7 +2278,7 @@ app_main ()
          epd_unlock ();
       }
 #endif
-      bl= ( wake || hold || !b.night ? 100 : 0);
+      bl = (wake || hold || !b.night ? 100 : 0);
       usleep (10000);
       lastsec = tm.tm_sec;
       lastmin = tm.tm_min;
@@ -2287,7 +2287,7 @@ app_main ()
    }
 
    b.die = 1;
-   bl=255;
+   bl = 255;
    while (1)
    {
       epd_lock ();
