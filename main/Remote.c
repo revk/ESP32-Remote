@@ -250,13 +250,13 @@ app_callback (int client, const char *prefix, const char *target, const char *su
       else
       {
          b.night = 0;
-         bl = 100;
+         bl = gfxhigh;
       }
    }
    if (!strcmp (suffix, "dark"))
    {
       b.night = 1;
-      bl = 0;
+      bl = gfxlow;
    }
    if (!strcmp (suffix, "message"))
    {
@@ -2278,7 +2278,7 @@ app_main ()
          epd_unlock ();
       }
 #endif
-      bl = (wake || hold || !b.night ? 100 : 0);
+      bl = (wake || hold || !b.night ? gfxhigh : gfxlow);
       usleep (10000);
       lastsec = tm.tm_sec;
       lastmin = tm.tm_min;
@@ -2287,7 +2287,7 @@ app_main ()
    }
 
    b.die = 1;
-   bl = 255;
+   bl = gfxhigh;
    while (1)
    {
       epd_lock ();
