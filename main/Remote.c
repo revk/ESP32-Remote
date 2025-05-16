@@ -8,6 +8,7 @@ const char TAG[] = "Remote";
 #include <math.h>
 #include <esp_sntp.h>
 #include "esp_http_server.h"
+#include <driver/mcpwm_prelude.h>
 #include <onewire_bus.h>
 #include <ds18b20.h>
 #include "gfx.h"
@@ -40,6 +41,10 @@ struct
    uint8_t earlyon:1;           // Latching, pre timer range outside temp for early, clear on timer or away
    uint8_t poweron:1;           // Derived state from above
 } b = { 0 };
+
+#define BL_TIMEBASE_RESOLUTION_HZ 1000000       // 1MHz, 1us per tick
+#define BL_TIMEBASE_PERIOD        1000
+uint8_t bl = 0;
 
 struct
 {                               //  Snapshot for HA
@@ -245,13 +250,13 @@ app_callback (int client, const char *prefix, const char *target, const char *su
       else
       {
          b.night = 0;
-         revk_gpio_set (gfxbl, 1);
+	 bl=100;
       }
    }
    if (!strcmp (suffix, "dark"))
    {
       b.night = 1;
-      revk_gpio_set (gfxbl, 0);
+      bl=0;
    }
    if (!strcmp (suffix, "message"))
    {
@@ -754,6 +759,58 @@ scd41_write (uint16_t c, uint16_t v)
    if (err)
       ESP_LOGE (TAG, "SCD41 write %02X %04X %04X fail %s", scd41i2c & 0x7F, c, v, esp_err_to_name (err));
    return err;
+}
+
+void
+bl_task (void *x)
+{
+   mcpwm_cmpr_handle_t comparator = NULL;
+   mcpwm_timer_handle_t bltimer = NULL;
+   mcpwm_timer_config_t timer_config = {
+      .group_id = 0,
+      .clk_src = MCPWM_TIMER_CLK_SRC_DEFAULT,
+      .resolution_hz = BL_TIMEBASE_RESOLUTION_HZ,
+      .period_ticks = BL_TIMEBASE_PERIOD,
+      .count_mode = MCPWM_TIMER_COUNT_MODE_UP,
+   };
+   mcpwm_new_timer (&timer_config, &bltimer);
+   mcpwm_oper_handle_t oper = NULL;
+   mcpwm_operator_config_t operator_config = {
+      .group_id = 0,            // operator must be in the same group to the timer
+   };
+   mcpwm_new_operator (&operator_config, &oper);
+   mcpwm_operator_connect_timer (oper, bltimer);
+   mcpwm_comparator_config_t comparator_config = {
+      .flags.update_cmp_on_tez = true,
+   };
+   mcpwm_new_comparator (oper, &comparator_config, &comparator);
+   mcpwm_gen_handle_t generator = NULL;
+   mcpwm_generator_config_t generator_config = {
+      .gen_gpio_num = gfxbl.num,
+      .flags.invert_pwm = gfxbl.invert,
+   };
+   mcpwm_new_generator (oper, &generator_config, &generator);
+   mcpwm_comparator_set_compare_value (comparator, 0);
+   mcpwm_generator_set_action_on_timer_event (generator,
+                                              MCPWM_GEN_TIMER_EVENT_ACTION (MCPWM_TIMER_DIRECTION_UP,
+                                                                            MCPWM_TIMER_EVENT_EMPTY, MCPWM_GEN_ACTION_HIGH));
+   mcpwm_generator_set_action_on_compare_event
+      (generator, MCPWM_GEN_COMPARE_EVENT_ACTION (MCPWM_TIMER_DIRECTION_UP, comparator, MCPWM_GEN_ACTION_LOW));
+   mcpwm_timer_enable (bltimer);
+   mcpwm_timer_start_stop (bltimer, MCPWM_TIMER_START_NO_STOP);
+   int b = 0;
+   while (1)
+   {
+      if (b != bl)
+      {
+         if (bl > b && (b += 10) > bl)
+            b = bl;
+         else if (bl < b && (b -= 10) < bl)
+            b = bl;
+         mcpwm_comparator_set_compare_value (comparator, b * BL_TIMEBASE_PERIOD / 100);
+      }
+      usleep (100000);
+   }
 }
 
 void
@@ -1726,10 +1783,11 @@ app_main ()
    if (ds18b20.set)
       revk_task ("18b20", ds18b20_task, NULL, 10);
    bleenv_run ();
+   if(gfxbl.set)revk_task("BL",bl_task,NULL,10);
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)
    {
-    const char *e = gfx_init (cs: gfxcs.num, sck: gfxsck.num, mosi: gfxmosi.num, dc: gfxdc.num, rst: gfxrst.num, bl: gfxbl.num, flip:gfxflip);
+    const char *e = gfx_init (cs: gfxcs.num, sck: gfxsck.num, mosi: gfxmosi.num, dc: gfxdc.num, rst: gfxrst.num, flip:gfxflip);
       if (e)
       {
          jo_t j = jo_object_alloc ();
@@ -2220,7 +2278,7 @@ app_main ()
          epd_unlock ();
       }
 #endif
-      revk_gpio_set (gfxbl, wake || hold || !b.night ? 1 : 0);
+      bl= ( wake || hold || !b.night ? 100 : 0);
       usleep (10000);
       lastsec = tm.tm_sec;
       lastmin = tm.tm_min;
@@ -2229,6 +2287,7 @@ app_main ()
    }
 
    b.die = 1;
+   bl=255;
    while (1)
    {
       epd_lock ();
