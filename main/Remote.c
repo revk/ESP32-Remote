@@ -2016,9 +2016,9 @@ app_main ()
                      t += (float) temprevstep / temprevstep_scale;
                   else if (actarget < acrevert)
                      t -= (float) temprevstep / temprevstep_scale;
-                  jo_litf (j, "acrevert", "%.2f", t);
+                  jo_litf (j, "acrevert", "%.1f", t);
                }
-               jo_litf (j, "actarget", "%.2f", t);
+               jo_litf (j, "actarget", "%.1f", t);
                revk_setting (j);
                jo_free (&j);
             }
