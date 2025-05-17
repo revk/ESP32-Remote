@@ -15,7 +15,7 @@
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
      id="namedview1"
-     pagecolor="#808080"
+     pagecolor="#000000"
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:showpageshadow="2"
@@ -23,13 +23,13 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="13.02"
-     inkscape:cx="29.99232"
-     inkscape:cy="29.99232"
+     inkscape:zoom="12.9"
+     inkscape:cx="30"
+     inkscape:cy="30.03876"
      inkscape:window-width="1664"
      inkscape:window-height="1248"
      inkscape:window-x="2676"
-     inkscape:window-y="72"
+     inkscape:window-y="44"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      showgrid="true">
@@ -66,27 +66,27 @@
        style="fill:#ffffff;fill-opacity:1;stroke:#808080;stroke-width:0.529166;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        id="rect1"
        width="3.968751"
-       height="2.1166673"
+       height="3.7041674"
        x="1.058333"
-       y="293.82498"
+       y="292.23749"
        rx="0.66145843"
        ry="0.66145843" />
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:#808080;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        id="rect1-7"
        width="3.9687498"
-       height="4.7624998"
+       height="7.9375"
        x="5.8208337"
-       y="291.17917"
+       y="288.00418"
        rx="0.66145837"
        ry="0.66145843" />
     <rect
-       style="fill:#ffffff;fill-opacity:1;stroke:#808080;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#ffffff;fill-opacity:1;stroke:#808080;stroke-width:0.529168;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        id="rect1-7-1"
        width="3.9687498"
-       height="7.4083328"
+       height="12.170833"
        x="10.583334"
-       y="288.53333"
+       y="283.77081"
        rx="0.66145837"
        ry="0.66145837" />
   </g>
