@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-05-14 09:22:48
+// Generated 2025-05-20 14:54:38
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -61,13 +61,28 @@ module part_C3(part=true,hole=false,block=false)
 {
 translate([-1.250000,11.250000,1.200000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 };
+module part_TP18(part=true,hole=false,block=false)
+{
+};
 module part_C9(part=true,hole=false,block=false)
 {
 translate([-20.500000,11.700000,1.200000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 };
+module part_TP10(part=true,hole=false,block=false)
+{
+};
+module part_TP20(part=true,hole=false,block=false)
+{
+};
 module part_C1(part=true,hole=false,block=false)
 {
 translate([-18.500000,9.250000,1.200000])rotate([0,0,90.000000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+};
+module part_TP9(part=true,hole=false,block=false)
+{
+};
+module part_TP8(part=true,hole=false,block=false)
+{
 };
 module part_R5(part=true,hole=false,block=false)
 {
@@ -77,6 +92,12 @@ module part_R7(part=true,hole=false,block=false)
 {
 translate([-21.800000,9.300000,1.200000])rotate([0,0,90.000000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
 };
+module part_TP16(part=true,hole=false,block=false)
+{
+};
+module part_TP19(part=true,hole=false,block=false)
+{
+};
 module part_C22(part=true,hole=false,block=false)
 {
 translate([0.500000,7.800000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
@@ -84,6 +105,9 @@ translate([0.500000,7.800000,1.200000])rotate([0,0,-90.000000])m3(part,hole,bloc
 module part_C10(part=true,hole=false,block=false)
 {
 translate([19.300000,-14.000000,1.200000])rotate([0,0,90.000000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+};
+module part_TP15(part=true,hole=false,block=false)
+{
 };
 module part_C11(part=true,hole=false,block=false)
 {
@@ -113,9 +137,18 @@ module part_C23(part=true,hole=false,block=false)
 {
 translate([3.000000,8.500000,1.200000])rotate([0,0,180.000000])m3(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
 };
+module part_TP7(part=true,hole=false,block=false)
+{
+};
 module part_C5(part=true,hole=false,block=false)
 {
-translate([21.500000,-18.500000,1.200000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([21.800000,-18.500000,1.200000])rotate([0,0,180.000000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+};
+module part_TP11(part=true,hole=false,block=false)
+{
+};
+module part_TP5(part=true,hole=false,block=false)
+{
 };
 module part_U2(part=true,hole=false,block=false)
 {
@@ -133,9 +166,21 @@ module part_C4(part=true,hole=false,block=false)
 {
 translate([-20.762500,5.837500,1.200000])rotate([0,0,90.000000])m14(part,hole,block,casetop); // C4 (back)
 };
+module part_TP13(part=true,hole=false,block=false)
+{
+};
 module part_C12(part=true,hole=false,block=false)
 {
 translate([-24.000000,10.500000,1.200000])rotate([0,0,-90.000000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+};
+module part_TP17(part=true,hole=false,block=false)
+{
+};
+module part_TP12(part=true,hole=false,block=false)
+{
+};
+module part_TP1(part=true,hole=false,block=false)
+{
 };
 module part_J2(part=true,hole=false,block=false)
 {
@@ -178,9 +223,18 @@ module part_U1(part=true,hole=false,block=false)
 {
 translate([-10.000000,4.500000,1.200000])m20(part,hole,block,casetop); // U1 (back)
 };
+module part_TP2(part=true,hole=false,block=false)
+{
+};
+module part_TP14(part=true,hole=false,block=false)
+{
+};
 module part_D19(part=true,hole=false,block=false)
 {
 translate([-6.700000,-5.100000,1.200000])rotate([0,0,180.000000])m10(part,hole,block,casetop); // D20 (back)
+};
+module part_TP6(part=true,hole=false,block=false)
+{
 };
 module part_PCB1(part=true,hole=false,block=false)
 {
@@ -188,6 +242,9 @@ module part_PCB1(part=true,hole=false,block=false)
 module part_R17(part=true,hole=false,block=false)
 {
 translate([3.000000,4.600000,1.200000])rotate([0,0,180.000000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
+};
+module part_TP3(part=true,hole=false,block=false)
+{
 };
 module part_V3(part=true,hole=false,block=false)
 {
@@ -208,6 +265,9 @@ module part_R6(part=true,hole=false,block=false)
 {
 translate([-20.500000,10.800000,1.200000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
 };
+module part_TP4(part=true,hole=false,block=false)
+{
+};
 module part_T1(part=true,hole=false,block=false)
 {
 translate([-23.000000,13.250000,1.200000])rotate([0,0,180.000000])m21(part,hole,block,casetop); // T1 (back)
@@ -222,12 +282,20 @@ part_SW1(part,hole,block);
 part_C21(part,hole,block);
 part_U8(part,hole,block);
 part_C3(part,hole,block);
+part_TP18(part,hole,block);
 part_C9(part,hole,block);
+part_TP10(part,hole,block);
+part_TP20(part,hole,block);
 part_C1(part,hole,block);
+part_TP9(part,hole,block);
+part_TP8(part,hole,block);
 part_R5(part,hole,block);
 part_R7(part,hole,block);
+part_TP16(part,hole,block);
+part_TP19(part,hole,block);
 part_C22(part,hole,block);
 part_C10(part,hole,block);
+part_TP15(part,hole,block);
 part_C11(part,hole,block);
 part_J1(part,hole,block);
 part_D5(part,hole,block);
@@ -235,12 +303,19 @@ part_C2(part,hole,block);
 part_D20(part,hole,block);
 part_D6(part,hole,block);
 part_C23(part,hole,block);
+part_TP7(part,hole,block);
 part_C5(part,hole,block);
+part_TP11(part,hole,block);
+part_TP5(part,hole,block);
 part_U2(part,hole,block);
 part_J3(part,hole,block);
 part_J6(part,hole,block);
 part_C4(part,hole,block);
+part_TP13(part,hole,block);
 part_C12(part,hole,block);
+part_TP17(part,hole,block);
+part_TP12(part,hole,block);
+part_TP1(part,hole,block);
 part_J2(part,hole,block);
 part_V4(part,hole,block);
 part_U3(part,hole,block);
@@ -252,14 +327,19 @@ part_L4(part,hole,block);
 part_U7(part,hole,block);
 part_D4(part,hole,block);
 part_U1(part,hole,block);
+part_TP2(part,hole,block);
+part_TP14(part,hole,block);
 part_D19(part,hole,block);
+part_TP6(part,hole,block);
 part_PCB1(part,hole,block);
 part_R17(part,hole,block);
+part_TP3(part,hole,block);
 part_V3(part,hole,block);
 part_R4(part,hole,block);
 part_C6(part,hole,block);
 part_C7(part,hole,block);
 part_R6(part,hole,block);
+part_TP4(part,hole,block);
 part_T1(part,hole,block);
 }
 
