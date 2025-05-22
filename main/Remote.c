@@ -1736,12 +1736,14 @@ show_clock (struct tm *t)
 void
 ha_config (void)
 {
- ha_config_sensor ("co2", name: "CO₂", type: "carbon_dioxide", unit: "ppm", field: "co2", delete:!scd41.found && !t6793.
-                     found);
- ha_config_sensor ("temp", name: "Temp", type: "temperature", unit: "C", field:"temp");
- ha_config_sensor ("hum", name: "Humidity", type: "humidity", unit: "%", field: "rh", delete:!scd41.found);
- ha_config_sensor ("lux", name: "Lux", type: "illuminance", unit: "lx", field: "lux", delete:!veml6040.found);
- ha_config_sensor ("pressure", name: "Pressure", type: "pressure", unit: "mbar", field: "pressure", delete:!gzp6816d.found);
+   ha_config_sensor ("ram",.name = "RAM",.field = "mem",.unit = "B");
+   ha_config_sensor ("spi",.name = "PSRAM",.field = "spi",.unit = "B");
+   ha_config_sensor ("co2",.name = "CO₂",.type = "carbon_dioxide",.unit = "ppm",.field = "co2",.delete = !scd41.found
+                     && !t6793.found);
+   ha_config_sensor ("temp",.name = "Temp",.type = "temperature",.unit = "C",.field = "temp");
+   ha_config_sensor ("hum",.name = "Humidity",.type = "humidity",.unit = "%",.field = "rh",.delete = !scd41.found);
+   ha_config_sensor ("lux",.name = "Lux",.type = "illuminance",.unit = "lx",.field = "lux",.delete = !veml6040.found);
+   ha_config_sensor ("pressure",.name = "Pressure",.type = "pressure",.unit = "mbar",.field = "pressure",.delete = !gzp6816d.found);
 }
 
 void
@@ -1866,9 +1868,12 @@ app_main ()
                b.nighttime = b.night = darkness;
          }
          bleenv_expire (120);
-         if (!bleidtemp || (strcmp (bleidtemp->name, bletemp) && strcmp (bleidtemp->mac, bletemp)))
-         {
+         if ((*bletemp && (!bleidtemp || (strcmp (bleidtemp->name, bletemp) && strcmp (bleidtemp->mac, bletemp)))) || (!*bletemp && bleidtemp)  //
+             || (*blefaikin && (!bleidfaikin || (strcmp (bleidfaikin->name, blefaikin) && strcmp (bleidfaikin->mac, blefaikin))))
+             || (!*blefaikin && bleidfaikin))
+         {                      // Update BLE pointers
             bleidtemp = NULL;
+            bleidfaikin = NULL;
             bleenv_clean ();
             for (bleenv_t * e = bleenv; e; e = e->next)
                if (!strcmp (e->name, bletemp) || !strcmp (e->mac, bletemp))
@@ -1876,11 +1881,6 @@ app_main ()
                   bleidtemp = e;
                   break;
                }
-         }
-         if (!bleidfaikin || (strcmp (bleidfaikin->name, blefaikin) && strcmp (bleidfaikin->mac, blefaikin)))
-         {
-            bleidfaikin = NULL;
-            bleenv_clean ();
             for (bleenv_t * e = bleenv; e; e = e->next)
                if (!strcmp (e->name, blefaikin) || !strcmp (e->mac, blefaikin))
                {
@@ -2107,7 +2107,7 @@ app_main ()
          if (change)
             change--;
          if (!change)
-         {                      // Update
+         {                      // Update - this only updates if there is a change
             jo_t j = jo_object_alloc ();
             if (acmode != REVK_SETTINGS_ACMODE_FAIKIN && bleidfaikin->power != b.poweron)
             {
@@ -2115,14 +2115,24 @@ app_main ()
                b.manual = 1;
             }
             if (bleidfaikin->fan != acfan)
+            {
                jo_int (j, "acfan", bleidfaikin->fan);
+               change = 1;
+            }
             if (bleidfaikin->mode != acmode && acmode != REVK_SETTINGS_ACMODE_FAIKIN)
+            {
                jo_int (j, "acmode", bleidfaikin->mode);
+               change = 1;
+            }
             b.faikinbad = bleidfaikin->rad;
             float target = T ((float) (bleidfaikin->targetmin + bleidfaikin->targetmax) / 200);
             if (acmode != REVK_SETTINGS_ACMODE_FAIKIN && actarget != target)
+            {
                jo_litf (j, "actarget", "%.1f", target);
-            revk_setting (j);
+               change = 1;
+            }
+            if (change)
+               revk_setting (j);
             jo_free (&j);
          }
       }
@@ -2295,16 +2305,21 @@ app_main ()
    {
       epd_lock ();
       gfx_clear (0);
-      gfx_text (0, 5, "Reboot");
-      gfx_pos (gfx_width () / 2, gfx_height () / 2, GFX_C | GFX_M);
       const char *reason;
-      revk_shutting_down (&reason);
-      gfx_text (1, 2, "%s", reason);
-      int i = revk_ota_progress ();
-      if (i >= 0 && i <= 100)
+      int t = revk_shutting_down (&reason);
+      if (t < 3)
+         bl = 0;
+      if (t > 1)
       {
-         gfx_pos (gfx_width () / 2, gfx_height () - 1, GFX_C | GFX_B);
-         gfx_text (0, 5, "%d%%", i);
+         gfx_text (0, 5, "Reboot");
+         gfx_pos (gfx_width () / 2, gfx_height () / 2, GFX_C | GFX_M);
+         gfx_text (1, 2, "%s", reason);
+         int i = revk_ota_progress ();
+         if (i >= 0 && i <= 100)
+         {
+            gfx_pos (gfx_width () / 2, gfx_height () - 1, GFX_C | GFX_B);
+            gfx_text (0, 5, "%d%%", i);
+         }
       }
       epd_unlock ();
       usleep (100000);
