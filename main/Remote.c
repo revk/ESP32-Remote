@@ -1787,8 +1787,6 @@ app_main ()
    if (ds18b20.set)
       revk_task ("18b20", ds18b20_task, NULL, 4);
    bleenv_run ();
-   if (gfxbl.set)
-      revk_task ("BL", bl_task, NULL, 4);
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)
    {
@@ -1799,8 +1797,10 @@ app_main ()
          jo_string (j, "error", "Failed to start");
          jo_string (j, "description", e);
          revk_error ("GFX", &j);
-      }
+      } else if (gfxbl.set)
+         revk_task ("BL", bl_task, NULL, 4);
    }
+   bl = gfxhigh;
    xSemaphoreTake (lcd_mutex, portMAX_DELAY);
    revk_gfx_init (5);
    xSemaphoreGive (lcd_mutex);
@@ -2317,8 +2317,9 @@ app_main ()
          int i = revk_ota_progress ();
          if (i >= 0 && i <= 100)
          {
-            gfx_pos (gfx_width () / 2, gfx_height () - 1, GFX_C | GFX_B);
-            gfx_text (0, 5, "%d%%", i);
+            gfx_pos (gfx_width () / 2 - 50, gfx_height () - 1, GFX_L | GFX_B | GFX_H);
+            gfx_7seg (0, 5, "%3d", i);
+            gfx_text (0, 5, "%%");
          }
       }
       epd_unlock ();
