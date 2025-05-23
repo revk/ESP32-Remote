@@ -29,7 +29,7 @@
      inkscape:window-width="1664"
      inkscape:window-height="1248"
      inkscape:window-x="3069"
-     inkscape:window-y="40"
+     inkscape:window-y="25"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      showgrid="false" />
@@ -41,7 +41,7 @@
      id="layer1"
      transform="translate(0,-281.12499)">
     <ellipse
-       style="fill:#ff00fe;fill-opacity:1;stroke:#ff00ff;stroke-width:1.05833;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:#008000;fill-opacity:1;stroke:#ff00ff;stroke-width:1.05833;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path1"
        cx="7.9375"
        cy="289.0625"
