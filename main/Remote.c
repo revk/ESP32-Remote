@@ -32,7 +32,7 @@ struct
    uint8_t faikinheat:1;        // Faikin auto is heating
    uint8_t faikincool:1;        // Faikin auto is cooling
    uint8_t faikinbad:1;         // Faikin antifreeze ot slave
-   uint8_t cal:1;               // Auto cal manuall
+   uint8_t cal:1;               // Auto cal manual
    // Power
    uint8_t manual:1;            // Manual override (cleared when matches non override)
    uint8_t away:1;              // Away mode (disabled timer functions)
@@ -1827,6 +1827,7 @@ app_main ()
       localtime_r (&now, &tm);
       if (!b.display && tm.tm_sec == lastsec)
          continue;
+      uint32_t up = uptime ();
       b.display = 0;
       if (tm.tm_sec != lastsec)
       {                         // Once per second
@@ -2107,7 +2108,7 @@ app_main ()
          if (change)
             change--;
          if (!change)
-         {                      // Update - this only updates if there is a change
+         {                      // Update - this only updates if there is no change from us pending
             jo_t j = jo_object_alloc ();
             if (acmode != REVK_SETTINGS_ACMODE_FAIKIN && bleidfaikin->power != b.poweron)
             {
@@ -2154,7 +2155,7 @@ app_main ()
       data.lux = (veml6040.ok ? veml6040.w : NAN);
       data.pressure = (gzp6816d.ok ? gzp6816d.hpa : NAN);
       xSemaphoreGive (data_mutex);
-      if (!isnan (t) && (b.cal || (tm.tm_hour != lasthour && uptime () > 15 * 60 && autocal)))
+      if (!isnan (t) && (b.cal || (tm.tm_hour != lasthour && up > 15 * 60 && autocal)))
       {                         // Autocal
          uint8_t found = 0;
          jo_t j = jo_object_alloc ();
