@@ -2204,11 +2204,11 @@ app_main ()
          break;
       }
 #ifndef CONFIG_GFX_BUILD_SUFFIX_GFXNONE
-      if (override)
+      if (override && gfxmessage)
       {
          char *m = override;
          override = NULL;
-         hold = 10;
+         hold = 1 + gfxmessage;
          gfx_message (m);
          free (m);
       }
@@ -2292,7 +2292,7 @@ app_main ()
          epd_unlock ();
       }
 #endif
-      bl = (wake || hold || !b.night ? gfxhigh : gfxlow);
+      bl = (wake || hold > 1 || !b.night ? gfxhigh : gfxlow);
       usleep (10000);
       lastsec = tm.tm_sec;
       lastmin = tm.tm_min;
