@@ -1119,7 +1119,8 @@ ds18b20_task (void *x)
          float c;
          REVK_ERR_CHECK (ds18b20_trigger_temperature_conversion (ds18b20s[i].handle));
          REVK_ERR_CHECK (ds18b20_get_temperature (ds18b20s[i].handle, &c));
-         ds18b20s[i].t = T (c);
+         if (!isnan (c) && c < 1000)
+            ds18b20s[i].t = T (c);
       }
       {                         // Next second
          struct timeval tv;
