@@ -909,7 +909,7 @@ i2c_task (void *x)
          sleep (1);
       }
       uint8_t buf[9];
-      scd41.to = (uint32_t) DC (scd41dt < 0 ? -scd41dt : 0) * 65536 / scd41dt_scale / 175;      // Temp offset
+      scd41.to = ((uint32_t) DC (scd41dt < 0 ? -scd41dt : 0)) * 65536 / scd41dt_scale / 175;    // Temp offset
       if (!err)
          err = scd41_read (0x2318, 3, buf);     // get offset
       if (!err && scd41.to != (buf[0] << 8) + buf[1])
@@ -917,7 +917,8 @@ i2c_task (void *x)
          err = scd41_write (0x241D, scd41.to);  // set offset
          if (!err)
             err = scd41_command (0x3615);       // persist
-         usleep (800000);
+         if (!err)
+            usleep (800000);
       }
       if (!err)
          err = scd41_read (0x3682, 9, buf);     // Get serial
