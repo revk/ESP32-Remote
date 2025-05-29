@@ -932,6 +932,7 @@ i2c_task (void *x)
    }
    if (i2cport < 0)
       vTaskDelete (NULL);
+   usleep (100000);
    // Init
    if (veml6040i2c)
    {
@@ -2094,7 +2095,6 @@ app_main ()
          case REVK_SETTINGS_RHREF_SHT40:
             rh = sht40.rh;
             break;
-
          }
          if (isnan (rh) && scd41.ok && isnan (rh = scd41.rh))
             rhfrom = REVK_SETTINGS_RHREF_SCD41;
