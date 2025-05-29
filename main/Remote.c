@@ -50,6 +50,7 @@ struct
 {                               //  Snapshot for HA
    uint16_t co2;
    uint8_t tempfrom;
+   uint8_t rhfrom;
    float temp;
    float target;
    float tmin;
@@ -298,7 +299,11 @@ revk_state_extra (jo_t j)
    if (data.co2)
       jo_int (j, "co2", data.co2);
    if (!isnan (data.rh))
+   {
       jo_litf (j, "rh", "%.2f", data.rh);
+      if (data.rhfrom)
+         add_enum ("rh-source", data.rhfrom, REVK_SETTINGS_RHREF_ENUMS);
+   }
    if (!isnan (data.lux))
       jo_litf (j, "lux", "%.4f", data.lux);
    if (!isnan (data.pressure))
@@ -307,7 +312,7 @@ revk_state_extra (jo_t j)
    {
       jo_litf (j, "temp", "%.2f", data.temp);
       if (data.tempfrom)
-         add_enum ("source", data.tempfrom, REVK_SETTINGS_TEMPREF_ENUMS);
+         add_enum ("temp-source", data.tempfrom, REVK_SETTINGS_TEMPREF_ENUMS);
    }
    if (!notarget)
    {
@@ -1917,6 +1922,7 @@ app_main ()
    uint8_t blebat = 0;
    uint8_t change = 0;
    uint8_t tempfrom = tempref;
+   uint8_t rhfrom = rhref;
    float t = NAN;
    uint16_t co2 = 0;
    float rh = NAN;
@@ -2076,18 +2082,32 @@ app_main ()
             lastt = t;
             t = n;
          }
+         // Pick RH
+         switch (rhref)
+         {
+         case REVK_SETTINGS_RHREF_BLE:
+            rh = blerh;
+            break;
+         case REVK_SETTINGS_RHREF_SCD41:
+            rh = scd41.rh;
+            break;
+         case REVK_SETTINGS_RHREF_SHT40:
+            rh = sht40.rh;
+            break;
+
+         }
+         if (isnan (rh) && scd41.ok && isnan (rh = scd41.rh))
+            rhfrom = REVK_SETTINGS_RHREF_SCD41;
+         rh = scd41.rh;
+         if (isnan (rh) && sht40.ok && isnan (rh = sht40.rh))
+            rhfrom = REVK_SETTINGS_RHREF_SHT40;
+         if (isnan (rh) && sht40.ok && isnan (rh = blerh))
+            rhfrom = REVK_SETTINGS_RHREF_BLE;
          // Pick CO2
          if (scd41.ok)
             co2 = scd41.ppm;
          else if (t6793.ok)
             co2 = t6793.ppm;
-         // Pick RH - TODO Choice of RH source and showing which RH source
-         if (scd41.ok && isnan (rh))
-            rh = scd41.rh;
-         else if (sht40.ok && !isnan (sht40.rh))
-            rh = sht40.rh;
-         else if (!isnan (blerh))
-            rh = blerh;
          if (!message && blebat && blebat < 10)
             message = "*Low BLE bat";
       }
@@ -2258,6 +2278,7 @@ app_main ()
       data.co2 = co2;
       data.rh = rh;
       data.tempfrom = tempfrom;
+      data.rhfrom = rhfrom;
       data.temp = t;
       data.tmin = targetmin;
       data.tmax = targetmax;
@@ -2353,7 +2374,7 @@ app_main ()
                show_stop ();
             } else
             {
-               if (!isnan (blerh))
+               if (rhfrom == REVK_SETTINGS_RHREF_BLE)
                   icon_plot (icon_bt, 0);
                show_rh (rh);
                gfx_pos (gfx_width () - 1, gfx_y (), GFX_R | GFX_T | GFX_H);
