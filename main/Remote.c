@@ -9,6 +9,8 @@ const char TAG[] = "Remote";
 #include <esp_sntp.h>
 #include "esp_http_server.h"
 #include <driver/mcpwm_prelude.h>
+#include <driver/i2s_pdm.h>
+#include <driver/rmt_rx.h>
 #include <onewire_bus.h>
 #include <ds18b20.h>
 #include "gfx.h"
@@ -1452,6 +1454,12 @@ btnL (void)
 }
 
 void
+btnp (void)
+{
+   edit = 0;
+}
+
+void
 btnR (void)
 {
    if (edit < EDIT_MODE)
@@ -1494,6 +1502,9 @@ btn (char c)
       break;
    case 'r':
       btnlr (1);
+      break;
+   case 'p':
+      btnp ();
       break;
    case 'L':
       btnL ();
@@ -1555,6 +1566,57 @@ btn_task (void *x)
    }
 }
 
+#define IR_GPIO         irgpio
+#define IR_LOG          irlog
+#define IR_DEBUG        irdebug
+#include "irtask.c"
+
+static void
+ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_t * data)
+{                               // Handle generic IR https://www.amazon.co.uk/dp/B07DJ58XGC
+   static char key = 0;
+   static uint8_t count = 0;
+   //ESP_LOGE (TAG, "IR CB %d %d %d %d", coding, lead0, lead1, len);
+   if (coding == IR_PDC && len == 32 && lead0 > 8500 && lead0 < 9500 && lead1 > 4000 && lead1 < 5000 && (data[0] ^ data[1]) == 0xFF
+       && (data[2] ^ data[3]) == 0xFF)
+   {                            // Key (generic or TV remote)
+      uint16_t code = ((data[0] << 8) | data[2]);
+      key = 0;
+      if (code == 0x20E0 || code == 0x0010)
+         key = 'l';
+      else if (code == 0x2060 || code == 0x005A)
+         key = 'r';
+      else if (code == 0x2002 || code == 0x0018)
+         key = 'u';
+      else if (code == 0x200D || code == 0x004A)
+         key = 'd';
+      else if (code == 0x2022 || code == 0x0038)
+         key = 'p';
+      if (key)
+         count = 1;
+      //ESP_LOGE (TAG, "Code %04X", code);
+   }
+   if (key && coding == IR_ZERO && len == 1 && lead0 > 8500 && lead0 < 9500 && lead1 > 1500 && lead1 < 2500 && key)
+   {                            // Continue - ignore for now
+      if (count < 255)
+         count++;
+      if (count == 10)
+         btn (toupper ((int) (uint8_t) key));
+   }
+   if (key && coding == IR_IDLE)
+   {
+      if (count < 10)
+         btn (key);
+      key = 0;
+   }
+   if (coding == IR_PDC && lead0 > 3000 && lead0 < 4000 && lead1 > 1000 && lead1 < 2000 && (len == 64 || len == 152)
+       && data[0] == 0x88 && data[1] == 0x5B && data[2] == 0xE4 && data[3] == 0x00)
+   {                            // Looks like Daikin
+      ESP_LOGE (TAG, "IR Daikin");
+      // Checksum
+      // Decode
+   }
+}
 
 static esp_err_t
 web_btn (httpd_req_t * req)
@@ -1894,6 +1956,8 @@ app_main ()
       revk_task ("btn", btn_task, NULL, 4);
    if (ds18b20.set)
       revk_task ("18b20", ds18b20_task, NULL, 4);
+   if (irgpio.set)
+      revk_task ("ir", ir_task, ir_callback, 4);
    bleenv_run ();
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)

@@ -21,6 +21,10 @@ gpio	btn.d		-37				// Button down
 gpio	btn.l		-39				// Button left
 gpio	btn.r		-40				// Button right
 
+bit	ir.log			.live			// MQTT log IR
+bit	ir.debug		.live			// MQTT log debug (timings)
+gpio	ir.gpio						// IR receiver
+
 gpio	scl		1				// I2C SCL
 gpio	sda		2				// I2C SDA
 
