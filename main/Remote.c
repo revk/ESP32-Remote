@@ -1600,8 +1600,15 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
    {                            // Continue - ignore for now
       if (count < 255)
          count++;
-      if (count == 10)
-         btn (toupper ((int) (uint8_t) key));
+      if (key == 'u' || key == 'd')
+      {                         // non hold
+         if (count == 10 || count == 20)
+         {
+            btn (key);
+            count = 15;
+         }
+      } else if (count == 10)
+         btn (toupper ((int) (uint8_t) key));   // Hold
    }
    if (key && coding == IR_IDLE)
    {
