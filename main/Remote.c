@@ -1640,6 +1640,7 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
          {
             if (!nomode && (data[5] >> 4) < 7)
                jo_int (j, "acmode", "1034502"[(data[5] >> 4)] - '0');   // mode
+	    // TODO if we are not using AC temp reference, for Auto set Faikin Auto...
             if (!nofan)
                jo_int (j, "acfan", "0002345600170000"[(data[8] >> 4)] - '0');   // fan
             if (!notarget && data[6] > 20 && data[6] < 100)
