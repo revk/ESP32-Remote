@@ -1631,7 +1631,7 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
          // Decode
          if (len == 64 && data[3] == 0 && data[4] == 0xC5)
          {
-            jo_int (j, "gfxhigh", (data[5] >> 4) * 85); // brightness
+            jo_int (j, "gfxhigh", (data[5] >> 4) * 33 + 1);     // brightness (%)
          }
          if (len == 64 && data[3] == 0 && data[4] == 0x42)
          {                      // Time related
