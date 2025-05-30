@@ -1631,17 +1631,19 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
          // Decode
          if (len == 64 && data[3] == 0 && data[4] == 0xC5)
          {
-            jo_int (j, "gfxhigh", (data[5] >> 4) * 85);     // brightness
+            jo_int (j, "gfxhigh", (data[5] >> 4) * 85); // brightness
          }
          if (len == 64 && data[3] == 0 && data[4] == 0x42)
-         {
+         {                      // Time related
          }
          if (len == 152 && data[3] == 0 && data[4] == 0)
          {
-            if ((data[5] >> 4) < 7)
+            if (!nomode && (data[5] >> 4) < 7)
                jo_int (j, "acmode", "1034502"[(data[5] >> 4)] - '0');   // mode
-            jo_int (j, "acfan", "0002345600170000"[(data[8] >> 4)] - '0');      // fan
-            jo_litf (j, "actarget", "%.1f", (float) data[6] / 2);       // target
+            if (!nofan)
+               jo_int (j, "acfan", "0002345600170000"[(data[8] >> 4)] - '0');   // fan
+            if (!notarget && data[6] > 20 && data[6] < 100)
+               jo_litf (j, "actarget", "%.1f", (float) data[6] / 2);    // target (not relevant for dry more, for example)
             b.manualon = (data[5] & 1); // power
             b.manual = 1;
             // Not yet doing other settings
