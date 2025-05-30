@@ -125,11 +125,11 @@ ir_task (void *arg)
             }
 #endif
 #endif
-            raw[bit / 8] = (raw[bit / 8] << 1) | (ir_rx_symbols[i].duration0 >= 800 ? 1 : 0);
+            raw[bit / 8] = (raw[bit / 8] >> 1) | (ir_rx_symbols[i].duration0 >= 800 ? 0x80 : 0);
             bit++;
             if (ir_rx_symbols[i].duration1 || i + 1 < ir_rx_data.num_symbols)
             {
-               raw[bit / 8] = (raw[bit / 8] << 1) | (ir_rx_symbols[i].duration1 >= 800 ? 1 : 0);
+               raw[bit / 8] = (raw[bit / 8] >> 1) | (ir_rx_symbols[i].duration1 >= 800 ? 0x80 : 0);
                bit++;
             }
             i++;
@@ -145,7 +145,7 @@ ir_task (void *arg)
 #endif
 #endif
             if (bit & 7)
-               raw[bit / 8] <<= (8 - (bit & 7));
+               raw[bit / 8] >>= (8 - (bit & 7));
             uint8_t byte = (bit + 7) / 8;
             // Work out coding
             uint8_t coding = 0;
@@ -161,14 +161,14 @@ ir_task (void *arg)
                for (b = 0; b < byte && !(raw[b] & 0xAA); b++);
                if (b == byte)
                {                // all 0 are short, so data in 1
-                  coding = IR_PDC;
+                  coding = IR_PLC;
                   b = 0;
                   while (b < bit / 2)
                   {
-                     if (raw[b / 4] & 0x40 >> ((b & 3) * 2))
-                        raw[b / 8] |= (0x80 >> (b & 7));
+                     if (raw[b / 4] & (1 << ((b & 3) * 2)))
+                        raw[b / 8] |= (1 << (b & 7));
                      else
-                        raw[b / 8] &= ~(0x80 >> (b & 7));
+                        raw[b / 8] &= ~(1 << (b & 7));
                      b++;
                   }
                   bit = b;
@@ -179,14 +179,14 @@ ir_task (void *arg)
                for (b = 0; b < byte && !(raw[b] & 0x55); b++);
                if (b == byte)
                {                // all 1 are short so data in 0
-                  coding = IR_PLC;
+                  coding = IR_PDC;
                   b = 0;
                   while (b < bit / 2)
                   {
-                     if (raw[b / 4] & 0x80 >> ((b & 3) * 2))
-                        raw[b / 8] |= (0x80 >> (b & 7));
+                     if (raw[b / 4] & (2 << ((b & 3) * 2)))
+                        raw[b / 8] |= (1 << (b & 7));
                      else
-                        raw[b / 8] &= ~(0x80 >> (b & 7));
+                        raw[b / 8] &= ~(1 << (b & 7));
                      b++;
                   }
                   bit = b;
@@ -201,17 +201,17 @@ ir_task (void *arg)
                   b = 0;
                   while (b < bit / 2)
                   {
-                     if (raw[b / 4] & 0x40 >> ((b & 3) * 2))
-                        raw[b / 8] |= (0x80 >> (b & 7));
+                     if (raw[b / 4] & (2 << ((b & 3) * 2)))
+                        raw[b / 8] |= (1 << (b & 7));
                      else
-                        raw[b / 8] &= ~(0x80 >> (b & 7));
+                        raw[b / 8] &= ~(1 << (b & 7));
                      b++;
                   }
                   bit = b;
                }
             }
             if (bit & 7)
-               raw[bit / 8] <<= (8 - (bit & 7));
+               raw[bit / 8] >>= (8 - (bit & 7));
             byte = (bit + 7) / 8;
             if (cb)
                cb (coding, lead0, lead1, bit, raw);

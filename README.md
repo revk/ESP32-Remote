@@ -117,3 +117,10 @@ The internal sensors (TMP1075 or MCP9808 or SHT40) pick up heat from the PCB and
 The SCD41 provides CO₂, temperature, and humidity. Whilst the CO₂ is not affected by temperature, it does have atmospheric pressure adjustment applied automatically from the on board pressure sensor. However the humidity accuracy is impacted by the temperature. As such the temperature offset is initially set in the SCD41 at boot. Any changes to `scd41dt` will apply in real time, but it is recommended that you reboot once you are happy with it to ensure humidity is calculated correctly.
 
 Note that `autocal` adjusts temp offsets to get closer selected/best temp every hour (once on for at least half an hour).
+
+## IR Remote
+
+On boards with a 38kHz IR receiver, this allows IR remote.
+
+- Generic of TV remote up/down/left/right same as joystick control
+- Daikin ARC466A0 remote to set mode, fan, temp, power and brightness

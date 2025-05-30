@@ -1582,15 +1582,15 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
    {                            // Key (generic or TV remote)
       uint16_t code = ((data[0] << 8) | data[2]);
       key = 0;
-      if (code == 0x20E0 || code == 0x0010)
+      if (code == 0x0407 || code == 0x0008)
          key = 'l';
-      else if (code == 0x2060 || code == 0x005A)
+      else if (code == 0x0406 || code == 0x005A)
          key = 'r';
-      else if (code == 0x2002 || code == 0x0018)
+      else if (code == 0x0440 || code == 0x0018)
          key = 'u';
-      else if (code == 0x2082 || code == 0x004A)
+      else if (code == 0x0441 || code == 0x004A)
          key = 'd';
-      else if (code == 0x2022 || code == 0x0038)
+      else if (code == 0x0444 || code == 0x0052)
          key = 'p';
       if (key)
          count = 1;
@@ -1617,11 +1617,45 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
       key = 0;
    }
    if (coding == IR_PDC && lead0 > 3000 && lead0 < 4000 && lead1 > 1000 && lead1 < 2000 && (len == 64 || len == 152)
-       && data[0] == 0x88 && data[1] == 0x5B && data[2] == 0xE4 && data[3] == 0x00)
+       && data[0] == 0x11 && data[1] == 0xDA && data[2] == 0x27)
    {                            // Looks like Daikin
-      ESP_LOGE (TAG, "IR Daikin");
-      // Checksum
-      // Decode
+      // Checksum - unknown
+      uint8_t c = 0;
+      for (int i = 0; i < len / 8 - 1; i++)
+         c += data[i];
+      if (c != data[len / 8 - 1])
+         ESP_LOGE (TAG, "IT Daikin bad checksum");
+      else
+      {
+         jo_t j = jo_object_alloc ();
+         // Decode
+         if (len == 64 && data[3] == 0 && data[4] == 0xC5)
+         {
+            jo_int (j, "gfxhigh", (data[5] >> 4) * 85);     // brightness
+         }
+         if (len == 64 && data[3] == 0 && data[4] == 0x42)
+         {
+         }
+         if (len == 152 && data[3] == 0 && data[4] == 0)
+         {
+            if ((data[5] >> 4) < 7)
+               jo_int (j, "acmode", "1034502"[(data[5] >> 4)] - '0');   // mode
+            jo_int (j, "acfan", "0002345600170000"[(data[8] >> 4)] - '0');      // fan
+            jo_litf (j, "actarget", "%.1f", (float) data[6] / 2);       // target
+            b.manualon = (data[5] & 1); // power
+            b.manual = 1;
+            // Not yet doing other settings
+            // 13 01 is powerful
+            // 13 20 is quiet outside
+            // 16 04 is econo
+            //  8 0F is swing-v
+            //  9 0F is swing-h
+            // 16 02 sensor
+            //  8 top bits comfort (A0 on 70 off)
+         }
+         revk_setting (j);
+         jo_free (&j);
+      }
    }
 }
 
