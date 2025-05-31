@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-05-31 10:32:26
+// Generated 2025-05-31 14:28:50
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -47,7 +47,7 @@ translate([1.199999,4.600000,1.200000])rotate([0,0,180.000000])m1(part,hole,bloc
 };
 module part_SW1(part=true,hole=false,block=false)
 {
-translate([-23.500000,-24.500000,1.200000])rotate([0,0,45.000000])m2(part,hole,block,casetop); // SW1 (back)
+translate([-23.500000,-25.000000,1.200000])rotate([0,0,45.000000])m2(part,hole,block,casetop); // SW1 (back)
 };
 module part_C21(part=true,hole=false,block=false)
 {
@@ -77,7 +77,7 @@ module part_TP24(part=true,hole=false,block=false)
 };
 module part_R9(part=true,hole=false,block=false)
 {
-translate([-12.150000,-22.200000,1.200000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
+translate([-12.250000,-20.500000,1.200000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
 };
 module part_C9(part=true,hole=false,block=false)
 {
@@ -192,7 +192,7 @@ translate([23.500000,-25.000000,1.200000])rotate([0,0,-90.000000])m12(part,hole,
 };
 module part_C13(part=true,hole=false,block=false)
 {
-translate([-14.150000,-22.200000,1.200000])rotate([0,0,180.000000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([-14.250000,-20.500000,1.200000])rotate([0,0,180.000000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 };
 module part_D12(part=true,hole=false,block=false)
 {
@@ -325,7 +325,7 @@ translate([-23.500000,8.250000,1.200000])rotate([0,0,-90.000000])m0(part,hole,bl
 };
 module part_U6(part=true,hole=false,block=false)
 {
-translate([-13.250000,-25.400000,1.200000])m22(part,hole,block,casetop); // U6 (back)
+translate([-13.250000,-25.000000,1.200000])rotate([0,0,-90.000000])m22(part,hole,block,casetop); // U6 (back)
 };
 module part_R6(part=true,hole=false,block=false)
 {
@@ -651,6 +651,10 @@ if(part)
 if(hole)
 {
 		for(x=[-2,2])for(y=[-2,2])translate([x,y,1])cylinder(d=2,h=height,$fn=8);
+}
+if(block)
+{
+	b(0,0,0,12,12,height+1);
 }
 }
 
