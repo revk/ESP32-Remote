@@ -319,22 +319,22 @@ revk_state_extra (jo_t j)
    if (!isnan (data.pressure))
       jo_litf (j, "pressure", "%.2f", data.pressure);
    if (!isnan (i2s.peak60))
-      jo_litf (j, "noise-peak60", "%.2f", i2s.peak60);
+      jo_litf (j, "noise_peak60", "%.2f", i2s.peak60);
    if (!isnan (i2s.mean60))
-      jo_litf (j, "noise-mean60", "%.2f", i2s.mean60);
+      jo_litf (j, "noise_mean60", "%.2f", i2s.mean60);
    if (!isnan (data.temp))
    {
       jo_litf (j, "temp", "%.2f", data.temp);
       if (data.tempfrom)
-         add_enum ("temp-source", data.tempfrom, REVK_SETTINGS_TEMPREF_ENUMS);
+         add_enum ("temp_source", data.tempfrom, REVK_SETTINGS_TEMPREF_ENUMS);
    }
    if (!notarget)
    {
       if (!isnan (data.tmin) && !isnan (data.tmax) && data.tmin == data.tmax)
-         jo_litf (j, "temp-target", "%.2f", data.tmin);
+         jo_litf (j, "temp_target", "%.2f", data.tmin);
       else
       {
-         jo_array (j, "temp-target");
+         jo_array (j, "temp_target");
          if (!isnan (data.tmin))
             jo_litf (j, NULL, "%.2f", data.tmin);
          if (!isnan (data.tmax))
@@ -2086,9 +2086,9 @@ ha_config (void)
    ha_config_sensor ("lux",.name = "Lux",.type = "illuminance",.unit = "lx",.field = "lux",.delete = !veml6040.found);
    ha_config_sensor ("pressure",.name = "Pressure",.type = "pressure",.unit = "mbar",.field = "pressure",.delete = !gzp6816d.found);
    ha_config_sensor ("noiseM60",.name = "NOISE-MEAN60",.type = "sound_pressure",.unit = "dB",.field =
-                     "noise-mean60",.delete = !i2s.found);
+                     "noise_mean60",.delete = !i2s.found);
    ha_config_sensor ("noiseP60",.name = "NOISE-PEAK60",.type = "sound_pressure",.unit = "dB",.field =
-                     "noise-peak60",.delete = !i2s.found);
+                     "noise_peak60",.delete = !i2s.found);
 }
 
 void
