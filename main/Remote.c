@@ -1585,9 +1585,9 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
             key = 'r';
          else if (code == 0x0440 || code == 0x0018)
             key = 'u';
-         else if (code == 0x0441 || code == 0x004A)
+         else if (code == 0x0441 || code == 0x0052)
             key = 'd';
-         else if (code == 0x0444 || code == 0x0052)
+         else if (code == 0x0444 || code == 0x001C)
             key = 'p';
          if (key)
             count = 1;
