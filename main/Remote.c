@@ -192,6 +192,14 @@ struct
 
 struct
 {
+   uint8_t found:1;
+   uint8_t ok:1;
+   float peak60;
+   float mean60;
+} i2s = { 0 };
+
+struct
+{
    uint8_t ok:1;
    ds18b20_device_handle_t handle;
    uint64_t serial;
@@ -310,6 +318,10 @@ revk_state_extra (jo_t j)
       jo_litf (j, "lux", "%.4f", data.lux);
    if (!isnan (data.pressure))
       jo_litf (j, "pressure", "%.2f", data.pressure);
+   if (!isnan (i2s.peak60))
+      jo_litf (j, "noise-peak60", "%.2f", i2s.peak60);
+   if (!isnan (i2s.mean60))
+      jo_litf (j, "noise-mean60", "%.2f", i2s.mean60);
    if (!isnan (data.temp))
    {
       jo_litf (j, "temp", "%.2f", data.temp);
@@ -890,6 +902,120 @@ bl_task (void *x)
 }
 
 void
+i2s_task (void *x)
+{
+   const int rate = 25;
+   const int samples = 320;
+   i2s_chan_handle_t mic_handle = { 0 };
+   esp_err_t err;
+   i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG (I2S_NUM_AUTO, I2S_ROLE_MASTER);
+   err = i2s_new_channel (&chan_cfg, NULL, &mic_handle);
+   i2s_pdm_rx_config_t cfg = {
+      .clk_cfg = I2S_PDM_RX_CLK_DEFAULT_CONFIG ((samples * rate)),
+      .slot_cfg = I2S_PDM_RX_SLOT_DEFAULT_CONFIG (I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO),
+      .gpio_cfg = {
+                   .clk = i2sclock.num,
+                   .din = i2sdata.num,
+                   .invert_flags = {
+                                    .clk_inv = i2sclock.invert,
+                                    }
+                   }
+   };
+   cfg.slot_cfg.slot_mask = (i2sright ? I2S_PDM_SLOT_RIGHT : I2S_PDM_SLOT_LEFT);
+   if (!err)
+      err = i2s_channel_init_pdm_rx_mode (mic_handle, &cfg);
+   gpio_pulldown_en (i2sdata.num);
+   if (!err)
+      err = i2s_channel_enable (mic_handle);
+   if (err)
+   {
+      ESP_LOGE (TAG, "Mic I2S failed");
+      jo_t j = jo_object_alloc ();
+      jo_int (j, "code", err);
+      jo_string (j, "error", esp_err_to_name (err));
+      jo_int (j, "data", i2sdata.num);
+      jo_int (j, "clock", i2sclock.num);
+      revk_error ("i2s", &j);
+      vTaskDelete (NULL);
+      return;
+   }
+   ESP_LOGE (TAG, "Mic init PDM CLK %d DAT %d %s", i2sclock.num, i2sdata.num, i2sright ? "R" : "L");
+   double means[60] = { 0 };
+   double peaks[60] = { 0 };
+   uint8_t sec = 0;
+   int16_t sample[samples];
+   uint8_t tick = 0;
+   double peak = -INFINITY;
+   double sum = 0;
+   while (!b.die)
+   {
+      size_t n = 0;
+      err = i2s_channel_read (mic_handle, sample, sizeof (sample), &n, 100);
+      if (err || n != sizeof (sample))
+      {
+         ESP_LOGE (TAG, "Bad read %d %s", n, esp_err_to_name (err));
+         sleep (1);
+         continue;
+      }
+      uint64_t t = 0;
+      {
+         int32_t bias = 0;
+         for (int i = 0; i < samples; i++)
+            bias += sample[i];  // DC
+         bias /= samples;
+         for (int i = 0; i < samples; i++)
+         {
+            int32_t v = (int32_t) sample[i] - bias;
+            t += v * v;
+         }
+      }
+      if (t && !i2s.found)
+      {
+         i2s.found = 1;
+         b.ha = 1;
+      }
+      double db = log10 ((double) t / samples) * 10 + (double) i2sdb / i2sdb_scale;     // RMS
+      if (db > peak)
+         peak = db;
+      sum += db;
+      if (++tick == rate)
+      {
+         sum /= rate;
+         means[sec] = sum;
+         peaks[sec] = peak;
+         if (++sec == 60)
+            sec = 0;
+         //ESP_LOGE (TAG, "Peak %.2lf Mean %.2lf", peak, sum);
+         double p = -INFINITY,
+            m = 0;
+         for (int s = 0; s < 60; s++)
+         {
+            if (peaks[(s + sec) % 60] > p)
+               p = peaks[(s + sec) % 60];
+            m += means[(s + sec) % 60];
+         }
+         if (!isnan (p) && !isnan (m))
+         {
+            i2s.peak60 = p;
+            i2s.mean60 = m / 60;
+            i2s.ok = 1;
+         } else
+         {
+            i2s.ok = 0;
+            i2s.peak60 = NAN;
+            i2s.mean60 = NAN;
+         }
+         tick = 0;
+         peak = -INFINITY;
+         sum = 0;
+      }
+   }
+   i2s_channel_disable (mic_handle);
+   i2s_del_channel (mic_handle);
+   vTaskDelete (NULL);
+}
+
+void
 i2c_task (void *x)
 {
    scd41.t = NAN;
@@ -899,6 +1025,8 @@ i2c_task (void *x)
    sht40.rh = NAN;
    mcp9808.t = NAN;
    gzp6816d.t = NAN;
+   i2s.peak60 = NAN;
+   i2s.mean60 = NAN;
    void fail (uint8_t addr, const char *e)
    {
       ESP_LOGE (TAG, "I2C fail %02X: %s", addr & 0x7F, e);
@@ -1957,6 +2085,10 @@ ha_config (void)
    ha_config_sensor ("hum",.name = "Humidity",.type = "humidity",.unit = "%",.field = "rh",.delete = !scd41.found);
    ha_config_sensor ("lux",.name = "Lux",.type = "illuminance",.unit = "lx",.field = "lux",.delete = !veml6040.found);
    ha_config_sensor ("pressure",.name = "Pressure",.type = "pressure",.unit = "mbar",.field = "pressure",.delete = !gzp6816d.found);
+   ha_config_sensor ("noiseM60",.name = "NOISE-MEAN60",.type = "sound_pressure",.unit = "dB",.field =
+                     "noise-mean60",.delete = !i2s.found);
+   ha_config_sensor ("noiseP60",.name = "NOISE-PEAK60",.type = "sound_pressure",.unit = "dB",.field =
+                     "noise-peak60",.delete = !i2s.found);
 }
 
 void
@@ -2001,6 +2133,8 @@ app_main ()
       revk_task ("18b20", ds18b20_task, NULL, 4);
    if (irgpio.set)
       ir_start (irgpio, ir_callback);
+   if (i2sdata.set && i2sclock.set)
+      revk_task ("i2s", i2s_task, NULL, 10);
    bleenv_run ();
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)

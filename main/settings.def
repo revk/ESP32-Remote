@@ -30,6 +30,11 @@ gpio	sda		2				// I2C SDA
 
 gpio	ds18b20		35				// DS18B20 Temp sensors
 
+gpio	i2s.clock					// I2S PDM clock
+gpio	i2s.data					// I2S PDM data
+bit	i2s.right	1				// I2S is right channel
+s16	i2s.db		28 .live .decimal=2 .unit="dB"	// I2S offset
+
 u8	mcp9808.i2c	""	.set .hex .fix		// MCP9808 Temp sensor
 s16	mcp9808.dt		.live .unit="°" .decimal=2	// MCP9808 Temp offset
 
