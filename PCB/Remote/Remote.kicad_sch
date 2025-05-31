@@ -7525,7 +7525,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "I2C addresses (hex)\n10 VEML6040\n18 MCP9808\n78 GZP6816D\n62 SCD41\n15 T6793\n48 TMP1075\n44 SHT40"
+	(text "I2C addresses (hex)\n10 VEML6040\n18 MCP9808\n78 GZP6816D\n62 SCD41\n15 T6793\n48 TMP1075\n44 SHT40\n76 BME488"
 		(exclude_from_sim no)
 		(at 22.098 80.772 0)
 		(effects
