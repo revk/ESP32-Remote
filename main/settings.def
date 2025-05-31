@@ -35,28 +35,28 @@ gpio	i2s.data					// I2S PDM data
 bit	i2s.right	1				// I2S is right channel
 s16	i2s.db		28 .live .decimal=2 .unit="dB"	// I2S offset
 
-u8	mcp9808.i2c	""	.set .hex .fix		// MCP9808 Temp sensor
+u8	mcp9808.i2c	""	.set .hex .fix		// MCP9808 Temp sensor (18)
 s16	mcp9808.dt		.live .unit="°" .decimal=2	// MCP9808 Temp offset
 
-u8	tmp1075.i2c	"48"	.set .hex .fix		// TMP1075 Temp sensor
+u8	tmp1075.i2c	"48"	.set .hex .fix		// TMP1075 Temp sensor (48)
 s16	tmp1075.dt	-4	.live .unit="°" .decimal=2	// TMP1075 Temp offset
 
-u8	sht40.i2c		.set .hex .fix		// SHT40 Temp sensor
+u8	sht40.i2c		.set .hex .fix		// SHT40 Temp sensor (44)
 s16	sht40.dt		.live .decimal=2 .unit="°C"	// SHT40 Temp offset
 
-u8	scd41.i2c	"62"	.set .hex .fix		// SCD41 CO2 sensor
+u8	scd41.i2c	"62"	.set .hex .fix		// SCD41 CO2 sensor (62)
 s16	scd41.dt	-8	.live .unit="°" .decimal=2	// SCD41 Temp offset
 u16	scd41.startup	300	.unit="s"		// SCD41 startup delay
 
-u8	gzp6816d.i2c	"78"	.set .hex .fix		// GZP6816D Pressure sensor
+u8	gzp6816d.i2c	"78"	.set .hex .fix		// GZP6816D Pressure sensor (78)
 s16	gzp6816d.dt	-4	.live .unit="°" .decimal=2	// GZP6816D Temp offset
 
-u8	veml6040.i2c	"10"	.set .hex .fix		// VEML6040 Light sensor
+u8	veml6040.i2c	"10"	.set .hex .fix		// VEML6040 Light sensor (10)
 u16	veml6040.dark		.live .decimal=1 .unit="lux"	// Night based on light
 u16	veml6040.start		.live .digits=4 .unit="HHMM"		// Night start time
 u16	veml6040.stop		.live .digits=4 .unit="HHMM"		// Night stop time
 
-u8	t6793.i2c	""	.set .hex .fix		// T6793 CO2 sensor
+u8	t6793.i2c	""	.set .hex .fix		// T6793 CO2 sensor (15)
 
 u16	ac.start		.hide .live .digits=4 .unit="HHMM"		// Start time
 u16	ac.stop			.hide .live .digits=4 .unit="HHMM"		// Stop time
