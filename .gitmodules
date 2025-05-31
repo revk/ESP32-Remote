@@ -13,3 +13,6 @@
 [submodule "components/ESP32-LWPNG"]
 	path = components/ESP32-LWPNG
 	url = https://github.com/revk/ESP32-LWPNG
+[submodule "components/ESP32-IR"]
+	path = components/ESP32-IR
+	url = https://github.com/revk/ESP32-IR

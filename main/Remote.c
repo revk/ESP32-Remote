@@ -10,7 +10,6 @@ const char TAG[] = "Remote";
 #include "esp_http_server.h"
 #include <driver/mcpwm_prelude.h>
 #include <driver/i2s_pdm.h>
-#include <driver/rmt_rx.h>
 #include <onewire_bus.h>
 #include <ds18b20.h>
 #include "gfx.h"
@@ -18,6 +17,7 @@ const char TAG[] = "Remote";
 #include "bleenv.h"
 #include "halib.h"
 #include <lwpng.h>
+#include <ir.h>
 #include "icons.c"
 
 struct
@@ -1566,11 +1566,6 @@ btn_task (void *x)
    }
 }
 
-#define IR_GPIO         irgpio
-#define IR_LOG          irlog
-#define IR_DEBUG        irdebug
-#include "irtask.c"
-
 static void
 ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_t * data)
 {                               // Handle generic IR https://www.amazon.co.uk/dp/B07DJ58XGC
@@ -1580,23 +1575,26 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
    if (coding == IR_PDC && len == 32 && lead0 > 8500 && lead0 < 9500 && lead1 > 4000 && lead1 < 5000 && (data[0] ^ data[1]) == 0xFF
        && (data[2] ^ data[3]) == 0xFF)
    {                            // Key (generic or TV remote)
-      uint16_t code = ((data[0] << 8) | data[2]);
       key = 0;
-      if (code == 0x0407 || code == 0x0008)
-         key = 'l';
-      else if (code == 0x0406 || code == 0x005A)
-         key = 'r';
-      else if (code == 0x0440 || code == 0x0018)
-         key = 'u';
-      else if (code == 0x0441 || code == 0x004A)
-         key = 'd';
-      else if (code == 0x0444 || code == 0x0052)
-         key = 'p';
-      if (key)
-         count = 1;
+      uint16_t code = ((data[0] << 8) | data[2]);
+      if ((irtv && (code >> 8) == 4) || (irgeneric && (!(code >> 8))))
+      {
+         if (code == 0x0407 || code == 0x0008)
+            key = 'l';
+         else if (code == 0x0406 || code == 0x005A)
+            key = 'r';
+         else if (code == 0x0440 || code == 0x0018)
+            key = 'u';
+         else if (code == 0x0441 || code == 0x004A)
+            key = 'd';
+         else if (code == 0x0444 || code == 0x0052)
+            key = 'p';
+         if (key)
+            count = 1;
+      }
       //ESP_LOGE (TAG, "Code %04X", code);
    }
-   if (key && coding == IR_ZERO && len == 1 && lead0 > 8500 && lead0 < 9500 && lead1 > 1500 && lead1 < 2500 && key)
+   if (count && coding == IR_ZERO && len == 1 && lead0 > 8500 && lead0 < 9500 && lead1 > 1500 && lead1 < 2500 && key)
    {                            // Continue - ignore for now
       if (count < 255)
          count++;
@@ -1610,11 +1608,12 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
       } else if (count == 10)
          btn (toupper ((int) (uint8_t) key));   // Hold
    }
-   if (key && coding == IR_IDLE)
+   if (count && coding == IR_IDLE)
    {
       if (count < 10)
          btn (key);
       key = 0;
+      count = 0;
    }
    if (coding == IR_PDC && lead0 > 3000 && lead0 < 4000 && lead1 > 1000 && lead1 < 2000 && (len == 64 || len == 152)
        && data[0] == 0x11 && data[1] == 0xDA && data[2] == 0x27)
@@ -1640,7 +1639,7 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
          {
             if (!nomode && (data[5] >> 4) < 7)
                jo_int (j, "acmode", "1034502"[(data[5] >> 4)] - '0');   // mode
-	    // TODO if we are not using AC temp reference, for Auto set Faikin Auto...
+            // TODO if we are not using AC temp reference, for Auto set Faikin Auto...
             if (!nofan)
                jo_int (j, "acfan", "0002345600170000"[(data[8] >> 4)] - '0');   // fan
             if (!notarget && data[6] > 20 && data[6] < 100)
@@ -2001,7 +2000,7 @@ app_main ()
    if (ds18b20.set)
       revk_task ("18b20", ds18b20_task, NULL, 4);
    if (irgpio.set)
-      revk_task ("ir", ir_task, ir_callback, 4);
+      ir_start (irgpio, ir_callback);
    bleenv_run ();
 #ifndef	CONFIG_GFX_BUILD_SUFFIX_GFXNONE
    if (gfxmosi.set)
