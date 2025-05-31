@@ -21819,7 +21819,7 @@
 	)
 	(gr_line
 		(start 101 73)
-		(end 79 73)
+		(end 73.5 73)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -22384,16 +22384,6 @@
 		)
 		(layer "Edge.Cuts")
 		(uuid "ca39bb90-1ebe-4d49-93a7-9388ecea538a")
-	)
-	(gr_line
-		(start 73.5 73)
-		(end 79 73)
-		(stroke
-			(width 0.05)
-			(type default)
-		)
-		(layer "Edge.Cuts")
-		(uuid "ce4e0ad3-e1df-4cda-910d-232f25e86c49")
 	)
 	(gr_circle
 		(center 71 102.5)
