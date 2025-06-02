@@ -20102,7 +20102,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:Sensirion_DFN-4_1.5x1.5mm_P0.5mm_SHT4x"
+		(property "Footprint" "RevK:Sensirion_DFN-4_1.5x1.5mm_P0.5mm_SHT4x-Side"
 			(at 254.635 145.415 0)
 			(effects
 				(font

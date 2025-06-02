@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-06-02 13:43:09
+// Generated 2025-06-02 13:51:44
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -263,7 +263,7 @@ translate([3.000000,11.100000,1.200000])rotate([0,0,180.000000])scale([1.000000,
 };
 module part_U7(part=true,hole=false,block=false)
 {
-translate([16.000000,16.000000,1.200000])rotate([0,0,-90.000000])m21(part,hole,block,casetop); // U7 (back)
+// Missing model U7.1 LX5563LL-TR
 };
 module part_D4(part=true,hole=false,block=false)
 {
@@ -271,7 +271,7 @@ translate([5.675000,16.075000,1.200000])m12(part,hole,block,casetop); // D6 (bac
 };
 module part_U1(part=true,hole=false,block=false)
 {
-translate([-10.000000,4.500000,1.200000])m22(part,hole,block,casetop); // U1 (back)
+translate([-10.000000,4.500000,1.200000])m21(part,hole,block,casetop); // U1 (back)
 };
 module part_TP2(part=true,hole=false,block=false)
 {
@@ -313,7 +313,7 @@ translate([-23.500000,8.250000,1.200000])rotate([0,0,-90.000000])m0(part,hole,bl
 };
 module part_U6(part=true,hole=false,block=false)
 {
-translate([15.500000,-27.500000,1.200000])rotate([0,0,180.000000])m23(part,hole,block,casetop); // RevK:IR-SMD-4P,3.35x3.9mm IR-3.35x3.9 (back)
+translate([15.500000,-27.500000,1.200000])rotate([0,0,180.000000])m22(part,hole,block,casetop); // RevK:IR-SMD-4P,3.35x3.9mm IR-3.35x3.9 (back)
 };
 module part_R6(part=true,hole=false,block=false)
 {
@@ -324,7 +324,7 @@ module part_TP4(part=true,hole=false,block=false)
 };
 module part_T1(part=true,hole=false,block=false)
 {
-translate([-23.000000,13.250000,1.200000])rotate([0,0,180.000000])m24(part,hole,block,casetop); // T1 (back)
+translate([-23.000000,13.250000,1.200000])rotate([0,0,180.000000])m23(part,hole,block,casetop); // T1 (back)
 };
 // Parts to go on PCB (top)
 module parts_top(part=false,hole=false,block=false){
@@ -411,7 +411,7 @@ part_TP4(part,hole,block);
 part_T1(part,hole,block);
 }
 
-parts_top=24;
+parts_top=23;
 module part_J7(part=true,hole=false,block=false)
 {
 };
@@ -805,26 +805,6 @@ if(part)
 }
 
 module m21(part=false,hole=false,block=false,height)
-{ // U7
-if(part)
-{
-	b(0,0,0,1.5,1.5,0.5);
-}
-if(hole)
-{
-	hull()
-	{
-                b(0,0,-2,6,6,4);
-        	rotate([-60,0,-90]) translate([0,0,8]) b(0,0,0,8,5,1);
-	}
-}
-if(block)
-{
-    translate([0,0,height-6])b(0,0,-2,7,8,6);
-}
-}
-
-module m22(part=false,hole=false,block=false,height)
 { // U1
 // ESP32-S3-MINI-1
 translate([-15.4/2,-15.45/2,0])
@@ -841,7 +821,7 @@ translate([-15.4/2,-15.45/2,0])
 }
 }
 
-module m23(part=false,hole=false,block=false,height)
+module m22(part=false,hole=false,block=false,height)
 { // RevK:IR-SMD-4P,3.35x3.9mm IR-3.35x3.9
 if(part)
 {
@@ -857,7 +837,7 @@ if(block)
 }
 }
 
-module m24(part=false,hole=false,block=false,height)
+module m23(part=false,hole=false,block=false,height)
 { // T1
 if(part)
 {
@@ -940,7 +920,7 @@ module top_side_hole()
 			parts_top(hole=true);
 			case_wall();
 		}
-		translate([0,0,-casebottom])pcb(height,casewall-edge);
+		translate([0,0,-casebottom])pcb_hulled(height,casewall-edge);
 	}
 }
 
@@ -953,7 +933,7 @@ module bottom_side_hole()
 			parts_bottom(hole=true);
 			case_wall();
 		}
-		translate([0,0,edge-casebottom])pcb(height-edge*2,casewall);
+		translate([0,0,edge-casebottom])pcb_hulled(height-edge*2,casewall);
 	}
 }
 
@@ -1122,4 +1102,4 @@ module bottom()
 		pcb(height,r=margin);
 	}
 }
-bottom(); translate([spacing,0,0])top();
+translate([spacing*2,0,0])preview();
