@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-06-02 13:36:58
+// Generated 2025-06-02 13:38:54
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -665,7 +665,7 @@ if(block)
 
 module m14(part=false,hole=false,block=false,height)
 { // J3
-// WAGO-2060-453-998-404
+// WAGO-2060-45x-998-404
 N=3;
 if(part)
 {
@@ -677,20 +677,20 @@ if(part)
 	for(p=[0:N-1])hull()
     {
         translate([-6,-4*(N-1)/2+p*4,2])sphere(d=3,$fn=12);
-        translate([-10,0,2])sphere(d=4,$fn=12);
-    }
-    hull()
-    {
-        translate([-10,0,2])sphere(d=4,$fn=12);
-        translate([-50,0,2])sphere(d=4,$fn=12);
+        translate([-11.510,0,2])sphere(d=4,$fn=12);
     }
 }
 if(hole)
 {
     hull()
     {
-        translate([-10,0,2])sphere(d=4,$fn=12);
-        translate([-10,0,-height])sphere(d=4,$fn=12);
+        translate([-11.510,0,2])sphere(d=4,$fn=12);
+        translate([-11.510,0,-height])sphere(d=4,$fn=12);
+    }
+    hull()
+    {
+        translate([-11.510,0,2])sphere(d=4,$fn=12);
+        translate([-50,0,2])sphere(d=4,$fn=12);
     }
 }
 }
@@ -747,7 +747,7 @@ if(part)
 
 module m17(part=false,hole=false,block=false,height)
 { // J2
-// WAGO-2060-453-998-404
+// WAGO-2060-45x-998-404
 N=2;
 if(part)
 {
@@ -759,20 +759,20 @@ if(part)
 	for(p=[0:N-1])hull()
     {
         translate([-6,-4*(N-1)/2+p*4,2])sphere(d=3,$fn=12);
-        translate([-10,0,2])sphere(d=4,$fn=12);
-    }
-    hull()
-    {
-        translate([-10,0,2])sphere(d=4,$fn=12);
-        translate([-50,0,2])sphere(d=4,$fn=12);
+        translate([-11.510,0,2])sphere(d=4,$fn=12);
     }
 }
 if(hole)
 {
     hull()
     {
-        translate([-10,0,2])sphere(d=4,$fn=12);
-        translate([-10,0,-height])sphere(d=4,$fn=12);
+        translate([-11.510,0,2])sphere(d=4,$fn=12);
+        translate([-11.510,0,-height])sphere(d=4,$fn=12);
+    }
+    hull()
+    {
+        translate([-11.510,0,2])sphere(d=4,$fn=12);
+        translate([-50,0,2])sphere(d=4,$fn=12);
     }
 }
 }
