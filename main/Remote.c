@@ -312,7 +312,7 @@ revk_state_extra (jo_t j)
    {
       jo_litf (j, "rh", "%.2f", data.rh);
       if (data.rhfrom)
-         add_enum ("rh-source", data.rhfrom, REVK_SETTINGS_RHREF_ENUMS);
+         add_enum ("rh_source", data.rhfrom, REVK_SETTINGS_RHREF_ENUMS);
    }
    if (!isnan (data.lux))
       jo_litf (j, "lux", "%.4f", data.lux);
