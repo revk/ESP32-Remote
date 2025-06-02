@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-06-02 13:38:54
+// Generated 2025-06-02 13:43:09
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -809,6 +809,18 @@ module m21(part=false,hole=false,block=false,height)
 if(part)
 {
 	b(0,0,0,1.5,1.5,0.5);
+}
+if(hole)
+{
+	hull()
+	{
+                b(0,0,-2,6,6,4);
+        	rotate([-60,0,-90]) translate([0,0,8]) b(0,0,0,8,5,1);
+	}
+}
+if(block)
+{
+    translate([0,0,height-6])b(0,0,-2,7,8,6);
 }
 }
 
