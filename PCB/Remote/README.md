@@ -11,4 +11,4 @@ This is an open source project, but bear in mind you cannot sell boards bearing 
 <img src='Remote.png' width=32%><img src='Remote-90.png' width=32%><img src='Remote-bottom.png' width=32%>
 <img src='Remote-panel.png' width=49%><img src='Remote-panel-bottom.png' width=49%>
 
-*Auto generated 2025-06-02T13:28:10*
+*Auto generated 2025-06-03T08:53:07*
