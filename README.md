@@ -24,7 +24,7 @@ The display shows current temperature, target temperature, operation mode and fa
 
 ### Display off
 
-If the display is off, or displaying some override message, pushing the button any direction will simply cause the display to turn on for a whiole, in normal (idle) mode. The display can be turned off by MQTT or based on light sensor.
+If the display is off, or displaying some override message, pushing the button any direction will simply cause the display to turn on for a while, in normal (idle) mode. The display can be turned off by MQTT, fixed times, or based on light sensor.
 
 ### Idle mode
 
