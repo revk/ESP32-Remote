@@ -14,6 +14,8 @@ A number of sensors are included, which can be reported to Home Assistant. The h
 
 A key feature is that this can work as the temperature reference for *Faikin auto* mode.
 
+![PCB-Remote](https://github.com/user-attachments/assets/f3661d67-bfdb-42ca-a23c-3ff9fb619435)
+
 ## Basic operation
 
 The display shows current temperature, target temperature, operation mode and fan speed, as well as other details (e.g. CO₂ if fitted). There is a button which can be pushed up, down, left, or right.
@@ -88,7 +90,7 @@ In addition to working with the Faikin this can send MQTT messages to turn on or
 - The board can work without a display if it is simply to be used as a sensor or temperature reference.
 - The board can work with or without the SCD41 CO₂ sensor - as this is an expensive part, and not always required.
 
-Available on [Tindie](https://www.tindie.com/products/revk/faikin-remote-aircon-control-display-dev-board/) now.
+Available on [Tindie](https://www.tindie.com/products/revk/faikin-remote-aircon-control-display-dev-board/) now (may not have IR receiver in current stock).
 
 ## MQTT
 
