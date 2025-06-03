@@ -12057,7 +12057,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010-Side"
+		(property "Footprint" "RevK:SMD1010-Side2"
 			(at 147.32 22.225 0)
 			(effects
 				(font
@@ -12841,7 +12841,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010-Side"
+		(property "Footprint" "RevK:SMD1010-Side2"
 			(at 162.56 22.225 0)
 			(effects
 				(font
@@ -20102,7 +20102,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:Sensirion_DFN-4_1.5x1.5mm_P0.5mm_SHT4x"
+		(property "Footprint" "RevK:Sensirion_DFN-4_1.5x1.5mm_P0.5mm_SHT4x-Side"
 			(at 254.635 145.415 0)
 			(effects
 				(font
