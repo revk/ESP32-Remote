@@ -66,7 +66,7 @@ Current target temp reverts to fixed target temp on end of timed period, or end 
 
 To link to Faikin.
 
-- Ensure you have a sensible hostnmame for Faikin and the remote.
+- Ensure you have a sensible hostname for Faikin and the remote.
 - On Faikin, enable BLE and select `Remote:` and the name for the remote.
 - Once that is done you should be able to select the Faikin by name as the A/C on the Remote settings
 
