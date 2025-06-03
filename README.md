@@ -10,7 +10,7 @@ USB-C powered (or DC 5V-36V), linked via Bluetooth BLE to the Faikin. This provi
 
 It can also work fan and radiator controls via MQTT and so operate in cases without an air-conditioner / Faikin or where these supplement the air conditioner.
 
-A number of sensors are included, which can be reported to Home Assistant. The hardware can also run my [EPD project](https://epd.revk.uk/) code. This is ideas as a general purpose environmental monitor for home and offices, including CO₂ and multiple DS18B20 temperature probes.
+A number of sensors are included, which can be reported to Home Assistant. The hardware can also run my [EPD project](https://epd.revk.uk/) code. This is ideal as a general purpose environmental monitor for home and offices, including CO₂ and multiple DS18B20 temperature probes.
 
 A key feature is that this can work as the temperature reference for *Faikin auto* mode.
 
