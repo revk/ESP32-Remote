@@ -36,7 +36,7 @@ In an idle mode the buttons work as follows :-
 |Left|Turn off|
 |Right|Turn on|
 |Hold left|Holding left will go to *away* mode (and turn off)|
-|Hold right|Holding right will go to settings mode, selecting first adjustable setting (normallt a/c mode)|
+|Hold right|Holding right will go to settings mode, selecting first adjustable setting (normally a/c mode)|
 
 ### Settings
 
