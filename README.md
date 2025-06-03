@@ -14,6 +14,8 @@ A number of sensors are included, which can be reported to Home Assistant. The h
 
 A key feature is that this can work as the temperature reference for *Faikin auto* mode.
 
+This is the PCB design:-
+
 ![PCB-Remote](https://github.com/user-attachments/assets/f3661d67-bfdb-42ca-a23c-3ff9fb619435)
 
 ## Basic operation
@@ -113,7 +115,7 @@ Temperature is tricky stuff. The actual sensors on the board are very accurate a
 
 For this purpose the on board sensors can have a simple offset added/subtracted to the temperature read, after it is read. For convenience this is in degrees (°C or °F as set).
 
-The most reliable connected sensor is a DS18B20 on a lead as this does not pick up heat from the PCB - do no position above the module to avoid heating by convention. We do not apply an offset to this (let us know if you find a case where that is actually useful). The other reliable sensor is an external BLE sensor - these have such low power usage they do not have internal heating and are also very accurate - again no offset is configurable for these.
+The most reliable temperature sensor is a DS18B20 on a lead as this does not pick up heat from the PCB - do no position above the module to avoid heating by convention. We do not apply an offset to this (let us know if you find a case where that is actually useful). The other reliable sensor is an external BLE sensor - these have such low power usage they do not have internal heating and are also very accurate - again no offset is configurable for these.
 
 The internal sensors (TMP1075 or MCP9808 or SHT40) pick up heat from the PCB and often need several degrees of adjustment. As I say, do this after installing, in case, in position, and running for some time. The pressure sensor also does temperature, but this is right next to the processor, so typically needs way more adjustment.
 
