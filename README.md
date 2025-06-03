@@ -4,7 +4,7 @@
 
 A remote control for Daikin air conditioners which use the [Faikin](https://faikin.revk.uk/) controller.
 
-This provides hardware and software for a wall mounted controller with 2" full colour display and 5 way *joystick* control button.
+This provides hardware and software for a wall mounted controller with 2" full colour display and 4 way *joystick* control button.
 
 USB-C powered (or DC 5V-36V), linked via Bluetooth BLE to the Faikin. This provides a display of current mode and simple controls of basic operations. This is ideal for installations that do not have Home Assistant or MQTT.
 
