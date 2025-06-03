@@ -127,5 +127,5 @@ Note that `autocal` adjusts temp offsets to get closer selected/best temp every 
 
 On boards with a 38kHz IR receiver, this allows IR remote.
 
-- Generic of TV remote up/down/left/right same as joystick control
-- Daikin ARC466A0 remote to set mode, fan, temp, power and brightness
+- Generic or common TV remote up/down/left/right same as joystick control
+- Daikin ARC466 remote to set mode, fan, temp, power and brightness
