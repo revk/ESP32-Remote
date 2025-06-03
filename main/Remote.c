@@ -889,15 +889,17 @@ bl_task (void *x)
    int b = 0;
    while (1)
    {
-      if (b != bl)
+      if (b == bl)
       {
-         if (bl > b && (b += 10) > bl)
-            b = bl;
-         else if (bl < b && (b -= 10) < bl)
-            b = bl;
-         mcpwm_comparator_set_compare_value (comparator, b * BL_TIMEBASE_PERIOD / 100);
+         usleep (100000);
+         continue;
       }
-      usleep (100000);
+      if (bl > b)
+         b++;
+      else
+         b--;
+      mcpwm_comparator_set_compare_value (comparator, b * BL_TIMEBASE_PERIOD / 100);
+      usleep (10000);
    }
 }
 
