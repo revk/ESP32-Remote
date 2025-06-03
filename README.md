@@ -40,7 +40,7 @@ In an idle mode the buttons work as follows :-
 
 ### Settings
 
-One in settings mode the buttons operate differently.
+Once in settings mode the buttons operate differently.
 
 |Button|Action|
 |------|------|
