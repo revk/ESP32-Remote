@@ -88,12 +88,13 @@ In addition to working with the Faikin this can send MQTT messages to turn on or
 - On board temperatrure sensor (TMP1075 or SHT40)
 - On board pressure sensor (GZP6816D)
 - On board ambient light sensor with color (VEML6040)
-- IR receiver (not necessarily in current sock on Tindie).
+- IR receiver (not necessarily in current stock on Tindie).
+- PDM microphone for noise level (not necessarily in current stock on Tindie).
 - The PCB is designed to work with a Waveshare 2" colour LCD. Four M2x3mm screws and 8 way 0.1" header pins are required if you get the display separately.
 - The board can work without a display if it is simply to be used as a sensor or temperature reference.
 - The board can work with or without the SCD41 CO₂ sensor - as this is an expensive part, and not always required.
 
-Available on [Tindie](https://www.tindie.com/products/revk/faikin-remote-aircon-control-display-dev-board/) now (may not have IR receiver in current stock).
+Available on [Tindie](https://www.tindie.com/products/revk/faikin-remote-aircon-control-display-dev-board/) now (may not have IR receiver or microphone in current stock).
 
 ## MQTT
 
