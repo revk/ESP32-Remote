@@ -7611,7 +7611,7 @@
 		(uuid "71331d54-2830-483c-877f-3871e5a09c43")
 	)
 	(no_connect
-		(at 205.74 59.055)
+		(at 175.26 66.675)
 		(uuid "8f7ef600-2b87-4af9-8eab-d715897c9ce2")
 	)
 	(no_connect
@@ -7627,7 +7627,7 @@
 		(uuid "c4c92106-2d85-4a4c-8e44-e25aa516f51f")
 	)
 	(no_connect
-		(at 205.74 61.595)
+		(at 175.26 69.215)
 		(uuid "f1707e5a-10a6-4c79-8a2e-1e362fa1b453")
 	)
 	(no_connect
@@ -8096,22 +8096,22 @@
 	)
 	(global_label "MCLK"
 		(shape output)
-		(at 175.26 66.675 180)
+		(at 205.74 61.595 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "34f8c38a-9a42-4117-b290-6f777f620a76")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.9095 66.675 0)
+			(at 213.0905 61.595 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -8778,22 +8778,22 @@
 	)
 	(global_label "MDATA"
 		(shape input)
-		(at 175.26 69.215 180)
+		(at 205.74 59.055 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "77e5ff4d-fe1a-46d5-9951-896f34225061")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.0628 69.215 0)
+			(at 213.9372 59.055 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -15397,7 +15397,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:T3902_MEMS_Mic"
+		(property "Footprint" "RevK:T3902_MEMS_Mic-Open"
 			(at 204.851 120.015 0)
 			(effects
 				(font
