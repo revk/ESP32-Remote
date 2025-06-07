@@ -15397,7 +15397,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:T3902_MEMS_Mic-Open"
+		(property "Footprint" "RevK:T3902_MEMS_Mic_Open"
 			(at 204.851 120.015 0)
 			(effects
 				(font
