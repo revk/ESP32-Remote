@@ -1358,7 +1358,7 @@ ds18b20_task (void *x)
          float c;
          REVK_ERR_CHECK (ds18b20_trigger_temperature_conversion (ds18b20s[i].handle));
          REVK_ERR_CHECK (ds18b20_get_temperature (ds18b20s[i].handle, &c));
-         if (!isnan (c) && c < 1000)
+         if (!isnan (c) && c > -100 && c < 200)
             ds18b20s[i].t = T (c);
       }
       {                         // Next second
