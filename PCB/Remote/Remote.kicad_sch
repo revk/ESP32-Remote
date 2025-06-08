@@ -7611,7 +7611,7 @@
 		(uuid "71331d54-2830-483c-877f-3871e5a09c43")
 	)
 	(no_connect
-		(at 205.74 59.055)
+		(at 175.26 66.675)
 		(uuid "8f7ef600-2b87-4af9-8eab-d715897c9ce2")
 	)
 	(no_connect
@@ -7627,7 +7627,7 @@
 		(uuid "c4c92106-2d85-4a4c-8e44-e25aa516f51f")
 	)
 	(no_connect
-		(at 205.74 61.595)
+		(at 175.26 69.215)
 		(uuid "f1707e5a-10a6-4c79-8a2e-1e362fa1b453")
 	)
 	(no_connect
@@ -8096,22 +8096,22 @@
 	)
 	(global_label "MCLK"
 		(shape output)
-		(at 175.26 66.675 180)
+		(at 205.74 61.595 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "34f8c38a-9a42-4117-b290-6f777f620a76")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.9095 66.675 0)
+			(at 213.0905 61.595 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -8778,22 +8778,22 @@
 	)
 	(global_label "MDATA"
 		(shape input)
-		(at 175.26 69.215 180)
+		(at 205.74 59.055 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "77e5ff4d-fe1a-46d5-9951-896f34225061")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.0628 69.215 0)
+			(at 213.9372 59.055 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -11163,6 +11163,70 @@
 			(project "EnvMon"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
 					(reference "D19")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 220.345 163.83 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "14c429b0-39e9-4685-92b1-3caf228919d0")
+		(property "Reference" "TP26"
+			(at 231.775 163.83 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 211.074 163.83 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "RevK:TestPad"
+			(at 220.345 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 220.345 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 220.345 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "403168fc-2ad6-40b8-a4b4-5ddb473610df")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "TP26")
 					(unit 1)
 				)
 			)
@@ -15333,7 +15397,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:T3902_MEMS_Mic"
+		(property "Footprint" "RevK:T3902_MEMS_Mic_Open"
 			(at 204.851 120.015 0)
 			(effects
 				(font
@@ -16912,6 +16976,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 191.135 163.83 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "844a1e21-4f15-4872-9307-2f636233a265")
+		(property "Reference" "#PWR072"
+			(at 187.325 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 194.183 163.83 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 191.135 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 191.135 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 191.135 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "695dfb42-b46c-468a-9b0b-d1744f9c0fd3")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "#PWR072")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "RevK:Hidden")
 		(at 261.62 28.575 0)
 		(unit 1)
@@ -17000,7 +17130,6 @@
 				(font
 					(size 1 1)
 				)
-				(hide yes)
 			)
 		)
 		(property "Value" "XL-1010RGBC-WS2812B"
@@ -17013,7 +17142,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010-Side"
+		(property "Footprint" "RevK:SMD1010-Side2"
 			(at 154.94 22.225 0)
 			(effects
 				(font
@@ -18567,6 +18696,70 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 220.345 160.655 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "a2bc9e02-6615-4d38-807b-5c14b3848fe6")
+		(property "Reference" "TP25"
+			(at 231.775 160.655 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 211.074 160.655 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "RevK:TestPadSquare"
+			(at 220.345 155.575 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 220.345 155.575 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 220.345 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8cbc2e5e-9b38-487e-bfc8-b2797be03817")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "TP25")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 85.09 103.505 270)
 		(unit 1)
@@ -19058,6 +19251,136 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
+		(at 220.345 163.83 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "aac28de5-738c-4aba-b7ac-740759a93df5")
+		(property "Reference" "#PWR074"
+			(at 216.535 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 223.393 163.83 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 220.345 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 220.345 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 220.345 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d705c4df-5227-47b2-a9ed-f28dee46c8c1")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "#PWR074")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 191.135 160.655 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "ab05e308-58ae-4d90-a855-547c40c3622b")
+		(property "Reference" "TP22"
+			(at 202.565 160.655 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 181.864 160.655 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "RevK:TestPadSquare"
+			(at 191.135 155.575 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 191.135 155.575 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 191.135 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "85a3ec66-28be-4333-b909-8eeec239de7c")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "TP22")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
 		(at 187.325 20.32 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -19129,6 +19452,71 @@
 			(project "Faikin"
 				(path "/46c350bb-7de4-4e81-aafd-4af55e37aab0"
 					(reference "#PWR04")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 191.135 160.655 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ad3fed09-7224-4cf6-9389-4d33e2b89e20")
+		(property "Reference" "#PWR071"
+			(at 197.485 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 196.215 160.528 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 191.135 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 191.135 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 191.135 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5df41175-debc-4214-b620-27058e2b3fc8")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "#PWR071")
 					(unit 1)
 				)
 			)
@@ -19475,6 +19863,71 @@
 			(project "Remote"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
 					(reference "TP5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 220.345 160.655 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b695c5d5-ba20-4491-882c-e6c493427d08")
+		(property "Reference" "#PWR073"
+			(at 226.695 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 225.425 160.528 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 220.345 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 220.345 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 220.345 160.655 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "85b9069f-1a81-4562-954c-ff6888f04b72")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "#PWR073")
 					(unit 1)
 				)
 			)
@@ -21860,6 +22313,70 @@
 			(project "Remote"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
 					(reference "#PWR058")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 191.135 163.83 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "ef7093b3-4a1c-4e99-8ea5-9e141686ed31")
+		(property "Reference" "TP23"
+			(at 202.565 163.83 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 181.864 163.83 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "RevK:TestPad"
+			(at 191.135 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 191.135 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 191.135 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "83366e8f-59a3-43de-b442-1fdfdcf7b972")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "TP23")
 					(unit 1)
 				)
 			)

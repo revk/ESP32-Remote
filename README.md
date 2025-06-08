@@ -4,15 +4,19 @@
 
 A remote control for Daikin air conditioners which use the [Faikin](https://faikin.revk.uk/) controller.
 
-This provides hardware and software for a wall mounted controller with 2" full colour display and 5 way *joystick* control button.
+This provides hardware and software for a wall mounted controller with 2" full colour display and 4 way *joystick* control button.
 
-USB-C powered (or DC 5V-36V), linked via Bluetooth BLE to the Faikin. This provides a display of current mode and simple controls of basic operations. This is ideal for installations that do not have Home Assistant or MQTT.
+USB-C powered (or DC 5V-36V), linked via Bluetooth BLE to the Faikin. This provides a display of current mode and simple controls of basic operations. This is ideal for installations that do not have Home Assistant or MQTT. With HA, it logs environmental data as well.
 
 It can also work fan and radiator controls via MQTT and so operate in cases without an air-conditioner / Faikin or where these supplement the air conditioner.
 
-A number of sensors are included, which can be reported to Home Assistant. The hardware can also run my [EPD project](https://epd.revk.uk/) code. This is ideas as a general purpose environmental monitor for home and offices, including CO₂ and multiple DS18B20 temperature probes.
+A number of sensors are included, which can be reported to Home Assistant. The hardware can also run my [EPD project](https://epd.revk.uk/) code. This is ideal as a general purpose environmental monitor for home and offices, including CO₂ and multiple DS18B20 temperature probes.
 
 A key feature is that this can work as the temperature reference for *Faikin auto* mode.
+
+This is the PCB design:-
+
+![PCB-Remote](https://github.com/user-attachments/assets/f3661d67-bfdb-42ca-a23c-3ff9fb619435)
 
 ## Basic operation
 
@@ -20,7 +24,7 @@ The display shows current temperature, target temperature, operation mode and fa
 
 ### Display off
 
-If the display is off, or displaying some override message, pushing the button any direction will simply cause the display to turn on for a whiole, in normal (idle) mode. The display can be turned off by MQTT or based on light sensor.
+If the display is off, or displaying some override message, pushing the button any direction will simply cause the display to turn on for a while, in normal (idle) mode. The display can be turned off by MQTT, fixed times, or based on light sensor.
 
 ### Idle mode
 
@@ -32,11 +36,11 @@ In an idle mode the buttons work as follows :-
 |Left|Turn off|
 |Right|Turn on|
 |Hold left|Holding left will go to *away* mode (and turn off)|
-|Hold right|Holding right will go to settings mode, selecting first adjustable setting (normallt a/c mode)|
+|Hold right|Holding right will go to settings mode, selecting first adjustable setting (normally a/c mode)|
 
 ### Settings
 
-One in settings mode the buttons operate differently.
+Once in settings mode the buttons operate differently.
 
 |Button|Action|
 |------|------|
@@ -62,7 +66,7 @@ Current target temp reverts to fixed target temp on end of timed period, or end 
 
 To link to Faikin.
 
-- Ensure you have a sensible hostnmame for Faikin and the remote.
+- Ensure you have a sensible hostname for Faikin and the remote.
 - On Faikin, enable BLE and select `Remote:` and the name for the remote.
 - Once that is done you should be able to select the Faikin by name as the A/C on the Remote settings
 
@@ -84,11 +88,13 @@ In addition to working with the Faikin this can send MQTT messages to turn on or
 - On board temperatrure sensor (TMP1075 or SHT40)
 - On board pressure sensor (GZP6816D)
 - On board ambient light sensor with color (VEML6040)
+- IR receiver (not necessarily in current stock on Tindie).
+- T3902 PDM microphone for noise level (not necessarily in current stock on Tindie).
 - The PCB is designed to work with a Waveshare 2" colour LCD. Four M2x3mm screws and 8 way 0.1" header pins are required if you get the display separately.
 - The board can work without a display if it is simply to be used as a sensor or temperature reference.
 - The board can work with or without the SCD41 CO₂ sensor - as this is an expensive part, and not always required.
 
-Available on [Tindie](https://www.tindie.com/products/revk/faikin-remote-aircon-control-display-dev-board/) now.
+Available on [Tindie](https://www.tindie.com/products/revk/faikin-remote-aircon-control-display-dev-board/) now (may not have IR receiver or microphone in current stock).
 
 ## MQTT
 
@@ -110,9 +116,9 @@ Temperature is tricky stuff. The actual sensors on the board are very accurate a
 
 For this purpose the on board sensors can have a simple offset added/subtracted to the temperature read, after it is read. For convenience this is in degrees (°C or °F as set).
 
-The most reliable connected sensor is a DS18B20 on a lead as this does not pick up heat from the PCB - do no position above the module to avoid heating by convention. We do not apply an offset to this (let us know if you find a case where that is actually useful). The other reliable sensor is an external BLE sensor - these have such low power usage they do not have internal heating and are also very accurate - again no offset is configurable for these.
+The most reliable temperature sensor is a DS18B20 on a lead as this does not pick up heat from the PCB - do no position above the module to avoid heating by convention. We do not apply an offset to this (let us know if you find a case where that is actually useful). The other reliable sensor is an external BLE sensor - these have such low power usage they do not have internal heating and are also very accurate - again no offset is configurable for these.
 
-The internal sensors (TMP1075 or MCP9808 or SHT40) pick up heat from the PCB and often need several degrees of adjustment. As I say, do this after installing, in case, in position, and running for some time. The pressure sensor also does temperature, but this is right next to the processor, so typically needs way more adjustment.
+The internal sensors (TMP1075 or MCP9808 or SHT40) pick up heat from the PCB and often need several degrees of adjustment. As I say, do this after installing, in case, in position, and running for some time. The pressure sensor also does temperature, but may also need adjustment. The SCD41 also has a temperature sensor which may also need an adjustment. You can pick which to use, or allow the code to decide which is best.
 
 The SCD41 provides CO₂, temperature, and humidity. Whilst the CO₂ is not affected by temperature, it does have atmospheric pressure adjustment applied automatically from the on board pressure sensor. However the humidity accuracy is impacted by the temperature. As such the temperature offset is initially set in the SCD41 at boot. Any changes to `scd41dt` will apply in real time, but it is recommended that you reboot once you are happy with it to ensure humidity is calculated correctly.
 
@@ -122,5 +128,5 @@ Note that `autocal` adjusts temp offsets to get closer selected/best temp every 
 
 On boards with a 38kHz IR receiver, this allows IR remote.
 
-- Generic of TV remote up/down/left/right same as joystick control
-- Daikin ARC466A0 remote to set mode, fan, temp, power and brightness
+- Generic or common TV remote up/down/left/right same as joystick control
+- Daikin ARC466 remote to set mode, fan, temp, power and brightness
