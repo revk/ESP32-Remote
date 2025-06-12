@@ -17854,15 +17854,13 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "987c79e9-09bf-4333-b49e-88e550b7e84e")
 		(property "Reference" "SW1"
-			(at 114.173 49.784 0)
+			(at 124.46 49.276 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Value" "~"

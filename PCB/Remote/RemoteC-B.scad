@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-06-08 07:00:02
+// Generated 2025-06-12 13:08:18
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -11,7 +11,7 @@
 margin=0.200000;
 lip=2.000000;
 casebottom=2.000000;
-casetop=12.000000;
+casetop=6.000000;
 casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
@@ -147,7 +147,12 @@ translate([14.000000,-0.500000,1.200000])m0(part,hole,block,casetop); // RevK:C_
 };
 module part_J1(part=true,hole=false,block=false)
 {
-translate([0.000000,0.000000,1.200000])translate([0.000000,0.000000,8.300000])rotate([0.000000,180.000000,180.000000])m7(part,hole,block,casetop); // RevK:LCD2 WSLCD2 (back)
+translate([0.000000,0.000000,1.200000])translate([-26.600000,8.890000,0.000000])scale([1.000000,1.000000,0.700000])m6(part,hole,block,casetop,08); // RevK:LCD2 PinSocket_1x08_P2.54mm_Vertical (back)
+translate([0.000000,0.000000,1.200000])translate([-26.500000,15.000000,0.000000])m8(part,hole,block,casetop); // RevK:LCD2 M2x6Pillar (back)
+translate([0.000000,0.000000,1.200000])translate([-26.500000,-15.000000,0.000000])m8(part,hole,block,casetop); // RevK:LCD2 M2x6Pillar (back)
+translate([0.000000,0.000000,1.200000])translate([26.500000,15.000000,0.000000])m8(part,hole,block,casetop); // RevK:LCD2 M2x6Pillar (back)
+translate([0.000000,0.000000,1.200000])translate([26.500000,-15.000000,0.000000])m8(part,hole,block,casetop); // RevK:LCD2 M2x6Pillar (back)
+translate([0.000000,0.000000,1.200000])translate([22.000000,0.000000,0.000000])m9(part,hole,block,casetop); // RevK:LCD2 LCDHeader (back)
 };
 module part_D5(part=true,hole=false,block=false)
 {
@@ -323,10 +328,6 @@ module part_C7(part=true,hole=false,block=false)
 {
 translate([-23.500000,8.250000,1.200000])rotate([0,0,-90.000000])m0(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 };
-module part_U6(part=true,hole=false,block=false)
-{
-translate([-12.000000,-25.000000,1.200000])rotate([0,0,-90.000000])m22(part,hole,block,casetop); // RevK:IR-SMD-4P,3.35x3.9mm IR-3.35x3.9 (back)
-};
 module part_R6(part=true,hole=false,block=false)
 {
 translate([-18.400000,7.400000,1.200000])rotate([0,0,-90.000000])m1(part,hole,block,casetop); // RevK:R_0402_ R_0402_1005Metric (back)
@@ -336,7 +337,7 @@ module part_TP4(part=true,hole=false,block=false)
 };
 module part_T1(part=true,hole=false,block=false)
 {
-translate([26.800000,-11.500000,1.200000])rotate([0,0,90.000000])m23(part,hole,block,casetop); // T1 (back)
+translate([26.800000,-11.500000,1.200000])rotate([0,0,90.000000])m22(part,hole,block,casetop); // T1 (back)
 };
 // Parts to go on PCB (top)
 module parts_top(part=false,hole=false,block=false){
@@ -421,7 +422,6 @@ part_V3(part,hole,block);
 part_R4(part,hole,block);
 part_C6(part,hole,block);
 part_C7(part,hole,block);
-part_U6(part,hole,block);
 part_R6(part,hole,block);
 part_TP4(part,hole,block);
 part_T1(part,hole,block);
@@ -837,22 +837,6 @@ translate([-15.4/2,-15.45/2,0])
 }
 
 module m22(part=false,hole=false,block=false,height)
-{ // RevK:IR-SMD-4P,3.35x3.9mm IR-3.35x3.9
-if(part)
-{
-	b(0,0,0,3.35,3.9,4);
-}
-if(hole)
-{
-	translate([0,0.275,0])cylinder(d1=5,d2=7,h=height+1,$fn=6);
-}
-if(block)
-{
-	translate([0,0.275,0])cylinder(d1=7,d2=9,h=height+1,$fn=6);
-}
-}
-
-module m23(part=false,hole=false,block=false,height)
 { // T1
 if(part)
 {
