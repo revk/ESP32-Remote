@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-06-12 13:08:18
+// Generated 2025-06-12 13:36:13
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -11,7 +11,7 @@
 margin=0.200000;
 lip=2.000000;
 casebottom=2.000000;
-casetop=6.000000;
+casetop=12.000000;
 casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
@@ -147,12 +147,7 @@ translate([14.000000,-0.500000,1.200000])m0(part,hole,block,casetop); // RevK:C_
 };
 module part_J1(part=true,hole=false,block=false)
 {
-translate([0.000000,0.000000,1.200000])translate([-26.600000,8.890000,0.000000])scale([1.000000,1.000000,0.700000])m6(part,hole,block,casetop,08); // RevK:LCD2 PinSocket_1x08_P2.54mm_Vertical (back)
-translate([0.000000,0.000000,1.200000])translate([-26.500000,15.000000,0.000000])m8(part,hole,block,casetop); // RevK:LCD2 M2x6Pillar (back)
-translate([0.000000,0.000000,1.200000])translate([-26.500000,-15.000000,0.000000])m8(part,hole,block,casetop); // RevK:LCD2 M2x6Pillar (back)
-translate([0.000000,0.000000,1.200000])translate([26.500000,15.000000,0.000000])m8(part,hole,block,casetop); // RevK:LCD2 M2x6Pillar (back)
-translate([0.000000,0.000000,1.200000])translate([26.500000,-15.000000,0.000000])m8(part,hole,block,casetop); // RevK:LCD2 M2x6Pillar (back)
-translate([0.000000,0.000000,1.200000])translate([22.000000,0.000000,0.000000])m9(part,hole,block,casetop); // RevK:LCD2 LCDHeader (back)
+translate([0.000000,0.000000,1.200000])translate([0.000000,0.000000,8.300000])rotate([0.000000,180.000000,180.000000])m7(part,hole,block,casetop); // RevK:LCD2 WSLCD2 (back)
 };
 module part_D5(part=true,hole=false,block=false)
 {
