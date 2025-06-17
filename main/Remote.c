@@ -1725,7 +1725,7 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
       //ESP_LOGE (TAG, "Code %04X", code);
    }
    if (count && coding == IR_ZERO && len == 1 && lead0 > 8500 && lead0 < 9500 && lead1 > 1500 && lead1 < 2500 && key)
-   {                            // Continue - ignore for now
+   {                            // Continue
       if (count < 255)
          count++;
       if (key == 'u' || key == 'd')
