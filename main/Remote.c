@@ -102,7 +102,7 @@ const char *const icon_fan3_message[] = { NULL, NULL, "Fan: Low", NULL, "Fan: Mi
 static inline float
 T (float C)
 {                               // Celsius to temp
-   if (fahrenheit && !isnan (C))
+   if (fahrenheit && isfinite (C))
       return (C + 40) * 1.8 - 40;
    return C;
 }
@@ -110,7 +110,7 @@ T (float C)
 static inline float
 C (float T)
 {                               // Temp to Celsuis
-   if (fahrenheit && !isnan (T))
+   if (fahrenheit && isfinite (T))
       return (T + 40) / 1.8 - 40;
    return T;
 }
@@ -118,7 +118,7 @@ C (float T)
 static inline float
 DT (float C)
 {                               // Celsius offset to temp
-   if (fahrenheit && !isnan (C))
+   if (fahrenheit && isfinite (C))
       return 1.8;
    return C;
 }
@@ -126,7 +126,7 @@ DT (float C)
 static inline float
 DC (float T)
 {                               // Temp offset to Celsuis
-   if (fahrenheit && !isnan (T))
+   if (fahrenheit && isfinite (T))
       return 1.8;
    return T;
 }
@@ -308,21 +308,21 @@ revk_state_extra (jo_t j)
    }
    if (data.co2)
       jo_int (j, "co2", data.co2);
-   if (!isnan (data.rh))
+   if (isfinite (data.rh))
    {
       jo_litf (j, "rh", "%.2f", data.rh);
       if (data.rhfrom)
          add_enum ("rh_source", data.rhfrom, REVK_SETTINGS_RHREF_ENUMS);
    }
-   if (!isnan (data.lux))
+   if (isfinite (data.lux))
       jo_litf (j, "lux", "%.4f", data.lux);
-   if (!isnan (data.pressure))
+   if (isfinite (data.pressure))
       jo_litf (j, "pressure", "%.2f", data.pressure);
-   if (!isnan (i2s.peak60))
+   if (isfinite (i2s.peak60))
       jo_litf (j, "noise_peak60", "%.2f", i2s.peak60);
-   if (!isnan (i2s.mean60))
+   if (isfinite (i2s.mean60))
       jo_litf (j, "noise_mean60", "%.2f", i2s.mean60);
-   if (!isnan (data.temp))
+   if (isfinite (data.temp))
    {
       jo_litf (j, "temp", "%.2f", data.temp);
       if (data.tempfrom)
@@ -330,14 +330,14 @@ revk_state_extra (jo_t j)
    }
    if (!notarget)
    {
-      if (!isnan (data.tmin) && !isnan (data.tmax) && data.tmin == data.tmax)
+      if (isfinite (data.tmin) && isfinite (data.tmax) && data.tmin == data.tmax)
          jo_litf (j, "temp_target", "%.2f", data.tmin);
       else
       {
          jo_array (j, "temp_target");
-         if (!isnan (data.tmin))
+         if (isfinite (data.tmin))
             jo_litf (j, NULL, "%.2f", data.tmin);
-         if (!isnan (data.tmax))
+         if (isfinite (data.tmax))
             jo_litf (j, NULL, "%.2f", data.tmax);
          jo_close (j);
       }
@@ -996,7 +996,7 @@ i2s_task (void *x)
                p = peaks[(s + sec) % 60];
             m += means[(s + sec) % 60];
          }
-         if (!isnan (p) && !isnan (m))
+         if (isfinite (p) && isfinite (m))
          {
             i2s.peak60 = p;
             i2s.mean60 = m / 60;
@@ -1358,7 +1358,7 @@ ds18b20_task (void *x)
          float c;
          REVK_ERR_CHECK (ds18b20_trigger_temperature_conversion (ds18b20s[i].handle));
          REVK_ERR_CHECK (ds18b20_get_temperature (ds18b20s[i].handle, &c));
-         if (!isnan (c) && c > -100 && c < 200)
+         if (isfinite (c) && c > -100 && c < 200)
             ds18b20s[i].t = T (c);
       }
       {                         // Next second
@@ -1867,7 +1867,7 @@ void
 temp_colour (float t)
 {
    gfx_colour_t c = 0x888888;
-   if (!isnan (t))
+   if (isfinite (t))
    {
       if (t < tempblue - 0.5)
          c = 0x0000FF;
@@ -1909,7 +1909,7 @@ void
 rh_colour (float rh)
 {
    gfx_colour_t c = 0x888888;
-   if (!isnan (rh))
+   if (isfinite (rh))
    {
       if (rh < rhblue)
          c = 0x0000FF;
@@ -2296,32 +2296,32 @@ app_main ()
                t = ds18b20s[1].t;
             break;
          }
-         if (isnan (t) && !isnan (t = blet))
+         if (isnan (t) && isfinite (t = blet))
             tempfrom = REVK_SETTINGS_TEMPREF_BLE;
-         if (isnan (t) && ds18b20_num >= 1 && !isnan (t = ds18b20s[0].t))
+         if (isnan (t) && ds18b20_num >= 1 && isfinite (t = ds18b20s[0].t))
             tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_0_;
-         if (isnan (t) && ds18b20_num >= 2 && !isnan (t = ds18b20s[1].t))
+         if (isnan (t) && ds18b20_num >= 2 && isfinite (t = ds18b20s[1].t))
             tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_1_;
-         if (isnan (t) && scd41.ok && !isnan (t = scd41.t))
+         if (isnan (t) && scd41.ok && isfinite (t = scd41.t))
             tempfrom = REVK_SETTINGS_TEMPREF_SCD41;
-         if (isnan (t) && tmp1075.ok && !isnan (t = tmp1075.t))
+         if (isnan (t) && tmp1075.ok && isfinite (t = tmp1075.t))
             tempfrom = REVK_SETTINGS_TEMPREF_TMP1075;
-         if (isnan (t) && sht40.ok && !isnan (t = sht40.t))
+         if (isnan (t) && sht40.ok && isfinite (t = sht40.t))
             tempfrom = REVK_SETTINGS_TEMPREF_SHT40;
-         if (isnan (t) && mcp9808.ok && !isnan (t = mcp9808.t))
+         if (isnan (t) && mcp9808.ok && isfinite (t = mcp9808.t))
             tempfrom = REVK_SETTINGS_TEMPREF_MCP9808;
          if (isnan (t) && bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
          {
             t = T ((float) bleidfaikin->temp / 100);
             tempfrom = REVK_SETTINGS_TEMPREF_AC;
          }
-         if (isnan (t) && gzp6816d.ok && !isnan (t = gzp6816d.t))
+         if (isnan (t) && gzp6816d.ok && isfinite (t = gzp6816d.t))
             tempfrom = REVK_SETTINGS_TEMPREF_GZP6816D;
-         if (!isnan (t))
+         if (isfinite (t))
          {                      // Smoother
             static float lastt = NAN;
             float n = t;
-            if (!isnan (lastt))
+            if (isfinite (lastt))
                n = (t + lastt) / 2;
             lastt = t;
             t = n;
@@ -2458,7 +2458,7 @@ app_main ()
             last2 = NAN;
          float predict = t,
             fade = (float) radfade / radfade_scale;;
-         if (radahead && !isnan (last2) && ((last2 <= last1 && last1 <= t) ||   // going up - turn off early if predict above target
+         if (radahead && isfinite (last2) && ((last2 <= last1 && last1 <= t) ||   // going up - turn off early if predict above target
                                             ((last2 >= last1 && last1 >= t) &&  // going down - turn on early in 10 (heatfadem) min stages if predict is below target
                                              (!radfade || !radfadem
                                               || (lastmin % radfadem) < (targetmin + fade - t) * radfadem / fade))))
@@ -2529,7 +2529,7 @@ app_main ()
       data.lux = (veml6040.ok ? veml6040.w : NAN);
       data.pressure = (gzp6816d.ok ? gzp6816d.hpa : NAN);
       xSemaphoreGive (data_mutex);
-      if (!isnan (t) && (b.cal || (tm.tm_hour != lasthour && up > 15 * 60 && autocal)))
+      if (isfinite (t) && (b.cal || (tm.tm_hour != lasthour && up > 15 * 60 && autocal)))
       {                         // Autocal
          uint8_t found = 0;
          jo_t j = jo_object_alloc ();
@@ -2645,7 +2645,7 @@ app_main ()
                gfx_pos (gfx_width () - 3, 135, GFX_T | GFX_R | GFX_H);
                show_co2 (co2);
                gfx_pos (2, gfx_y (), GFX_T | GFX_L | GFX_H);
-               if (!isnan (blerh))
+               if (isfinite (blerh))
                   icon_plot (icon_bt, 0);
                show_rh (rh);
             }
