@@ -1064,7 +1064,7 @@ i2c_task (void *x)
    }
    if (i2cport < 0)
       vTaskDelete (NULL);
-   usleep (100000);
+   sleep (1);
    // Init
    if (veml6040i2c)
    {
@@ -1314,7 +1314,7 @@ i2c_task (void *x)
 void
 ds18b20_task (void *x)
 {
-   onewire_bus_config_t bus_config = { ds18b20.num };
+   onewire_bus_config_t bus_config = { ds18b20.num,.flags={0} };
    onewire_bus_rmt_config_t rmt_config = { 20 };
    onewire_bus_handle_t bus_handle = { 0 };
    REVK_ERR_CHECK (onewire_new_bus_rmt (&bus_config, &rmt_config, &bus_handle));
@@ -2458,10 +2458,10 @@ app_main ()
             last2 = NAN;
          float predict = t,
             fade = (float) radfade / radfade_scale;;
-         if (radahead && isfinite (last2) && ((last2 <= last1 && last1 <= t) ||   // going up - turn off early if predict above target
-                                            ((last2 >= last1 && last1 >= t) &&  // going down - turn on early in 10 (heatfadem) min stages if predict is below target
-                                             (!radfade || !radfadem
-                                              || (lastmin % radfadem) < (targetmin + fade - t) * radfadem / fade))))
+         if (radahead && isfinite (last2) && ((last2 <= last1 && last1 <= t) || // going up - turn off early if predict above target
+                                              ((last2 >= last1 && last1 >= t) &&        // going down - turn on early in 10 (heatfadem) min stages if predict is below target
+                                               (!radfade || !radfadem
+                                                || (lastmin % radfadem) < (targetmin + fade - t) * radfadem / fade))))
             predict += radahead * (t - last2) / 2;      // Use predicted value, i.e. turn on/off early
          if (!radcontrol || predict > targetmin || b.faikincool)
          {                      /* Heat off */
