@@ -1314,7 +1314,7 @@ i2c_task (void *x)
 void
 ds18b20_task (void *x)
 {
-   onewire_bus_config_t bus_config = { ds18b20.num,.flags={0} };
+   onewire_bus_config_t bus_config = { ds18b20.num };
    onewire_bus_rmt_config_t rmt_config = { 20 };
    onewire_bus_handle_t bus_handle = { 0 };
    REVK_ERR_CHECK (onewire_new_bus_rmt (&bus_config, &rmt_config, &bus_handle));
