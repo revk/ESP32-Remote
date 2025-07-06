@@ -2083,7 +2083,7 @@ ha_config (void)
    ha_config_sensor ("spi",.name = "PSRAM",.field = "spi",.unit = "B");
    ha_config_sensor ("co2",.name = "CO₂",.type = "carbon_dioxide",.unit = "ppm",.field = "co2",.delete = !scd41.found
                      && !t6793.found);
-   ha_config_sensor ("temp",.name = "Temp",.type = "temperature",.unit = "C",.field = "temp");
+   ha_config_sensor ("temp",.name = "Temp",.type = "temperature",.unit = "°C",.field = "temp");
    ha_config_sensor ("hum",.name = "Humidity",.type = "humidity",.unit = "%",.field = "rh",.delete = !scd41.found);
    ha_config_sensor ("lux",.name = "Lux",.type = "illuminance",.unit = "lx",.field = "lux",.delete = !veml6040.found);
    ha_config_sensor ("pressure",.name = "Pressure",.type = "pressure",.unit = "mbar",.field = "pressure",.delete = !gzp6816d.found);
