@@ -18131,7 +18131,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 181.61 113.538 90)
 			(effects
 				(font
@@ -18158,7 +18158,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C25118"
+		(property "MPN" ""
 			(at 181.61 111.76 90)
 			(effects
 				(font
