@@ -4996,7 +4996,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "RevK:TPS562243"
+		(symbol "RevK:TPS562246"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -5009,7 +5009,7 @@
 					(justify left)
 				)
 			)
-			(property "Value" "TPS562243"
+			(property "Value" "TPS562246"
 				(at -2.54 6.35 0)
 				(effects
 					(font
@@ -5028,7 +5028,7 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "https://www.ti.com/lit/gpn/tps562243"
+			(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tps562246.pdf"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5046,7 +5046,7 @@
 					(hide yes)
 				)
 			)
-			(property "MPN" "C42295941"
+			(property "MPN" "C41833479"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5073,7 +5073,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "TPS562243_0_1"
+			(symbol "TPS562246_0_1"
 				(rectangle
 					(start -7.62 5.08)
 					(end 7.62 -5.08)
@@ -5086,7 +5086,7 @@
 					)
 				)
 			)
-			(symbol "TPS562243_1_1"
+			(symbol "TPS562246_1_1"
 				(pin power_in line
 					(at -10.16 2.54 0)
 					(length 2.54)
@@ -15243,7 +15243,7 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:TPS562243")
+		(lib_id "RevK:TPS562246")
 		(at 222.25 20.955 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -15278,7 +15278,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.ti.com/lit/gpn/tps562243"
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tps562246.pdf"
 			(at 222.25 20.955 0)
 			(effects
 				(font
@@ -15296,7 +15296,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C42295941"
+		(property "MPN" "C41833479"
 			(at 222.25 20.955 0)
 			(effects
 				(font
