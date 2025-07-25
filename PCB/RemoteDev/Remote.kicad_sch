@@ -15260,7 +15260,7 @@
 				)
 			)
 		)
-		(property "Value" "TPS562243"
+		(property "Value" "TPS562246"
 			(at 222.25 14.1548 0)
 			(effects
 				(font
@@ -19670,7 +19670,7 @@
 		(dnp no)
 		(uuid "a56442a9-2374-4f26-9bc1-2198c2bc3c45")
 		(property "Reference" "D11"
-			(at 264.414 90.424 0)
+			(at 263.906 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19738,7 +19738,7 @@
 	)
 	(symbol
 		(lib_id "power:VBUS")
-		(at 265.43 61.595 270)
+		(at 266.7 57.15 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -19747,7 +19747,7 @@
 		(fields_autoplaced yes)
 		(uuid "a6c3f518-975e-4a42-b59b-acb215d7b743")
 		(property "Reference" "#PWR01"
-			(at 261.62 61.595 0)
+			(at 262.89 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19756,7 +19756,7 @@
 			)
 		)
 		(property "Value" "VBUS"
-			(at 268.605 61.595 90)
+			(at 269.875 57.15 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19765,7 +19765,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 265.43 61.595 0)
+			(at 266.7 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19774,7 +19774,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 265.43 61.595 0)
+			(at 266.7 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19783,7 +19783,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"VBUS\""
-			(at 265.43 61.595 0)
+			(at 266.7 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19798,6 +19798,82 @@
 			(project ""
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
 					(reference "#PWR01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:D_Schottky")
+		(at 262.89 50.8 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a7a59e5c-cb3b-4032-836c-cd45ad8b8389")
+		(property "Reference" "D19"
+			(at 259.588 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "DKS34"
+			(at 262.89 53.848 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "RevK:D_SOD-123FL"
+			(at 262.89 50.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 262.89 50.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Schottky diode"
+			(at 262.89 50.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C727076"
+			(at 262.89 50.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "378811d3-4622-4335-995f-50833647d207")
+		)
+		(pin "1"
+			(uuid "3efa353d-1698-4449-9a89-41e3d1f56c2b")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "D19")
 					(unit 1)
 				)
 			)
@@ -20720,7 +20796,7 @@
 	)
 	(symbol
 		(lib_id "power:VDC")
-		(at 257.81 61.595 90)
+		(at 259.08 57.15 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -20729,7 +20805,7 @@
 		(fields_autoplaced yes)
 		(uuid "bd50084d-d5d2-4525-9ff1-3cf4b8f151cc")
 		(property "Reference" "#PWR034"
-			(at 261.62 61.595 0)
+			(at 262.89 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20738,7 +20814,7 @@
 			)
 		)
 		(property "Value" "VDC"
-			(at 254.635 61.595 90)
+			(at 255.905 57.15 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20747,7 +20823,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 257.81 61.595 0)
+			(at 259.08 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20756,7 +20832,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 257.81 61.595 0)
+			(at 259.08 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20765,7 +20841,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"VDC\""
-			(at 257.81 61.595 0)
+			(at 259.08 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20780,6 +20856,82 @@
 			(project "EnvMon"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
 					(reference "#PWR034")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:D_Schottky")
+		(at 262.89 57.15 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "bd7ad7f9-b5be-406c-aeea-d59aa3d61b96")
+		(property "Reference" "D20"
+			(at 259.588 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "DKS34"
+			(at 262.89 60.198 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "RevK:D_SOD-123FL"
+			(at 262.89 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 262.89 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Schottky diode"
+			(at 262.89 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C727076"
+			(at 262.89 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "81393ae3-5e64-4a40-b930-b5270172fab1")
+		)
+		(pin "1"
+			(uuid "87859321-cc97-47bb-a44f-d190b9b39929")
+		)
+		(instances
+			(project "Remote"
+				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
+					(reference "D20")
 					(unit 1)
 				)
 			)
@@ -21918,158 +22070,6 @@
 			(project "Remote"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
 					(reference "TP8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:D_Schottky")
-		(at 262.89 50.8 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "d2cda327-b282-436a-bb14-5d01f9484f01")
-		(property "Reference" "D19"
-			(at 262.509 53.34 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "DKS22"
-			(at 262.509 55.7643 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "RevK:D_SOD-123FL"
-			(at 262.89 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 262.89 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Schottky diode"
-			(at 262.89 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C727072"
-			(at 262.89 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "00a9244f-f546-471f-a371-b00afaa222af")
-		)
-		(pin "1"
-			(uuid "3c41d7b1-f38a-401a-b64f-1c2b2bb911bf")
-		)
-		(instances
-			(project "Remote"
-				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
-					(reference "D19")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:D_Schottky")
-		(at 261.62 61.595 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "d4210fb3-92e9-489a-ba45-6bfbdc4417d8")
-		(property "Reference" "D20"
-			(at 261.239 64.135 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "DKS22"
-			(at 261.239 66.5593 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "RevK:D_SOD-123FL"
-			(at 261.62 61.595 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 261.62 61.595 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Schottky diode"
-			(at 261.62 61.595 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C727072"
-			(at 261.62 61.595 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "4c319680-f5a3-4804-86f8-ea027da15804")
-		)
-		(pin "1"
-			(uuid "4e4a176e-204e-4e0d-9cdc-dc9e640c6b23")
-		)
-		(instances
-			(project "Remote"
-				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
-					(reference "D20")
 					(unit 1)
 				)
 			)
