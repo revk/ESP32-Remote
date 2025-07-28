@@ -10504,7 +10504,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C473460"
 			(at 62.23 35.56 90)
 			(effects
 				(font
@@ -10582,7 +10582,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C473460"
 			(at 62.23 33.02 90)
 			(effects
 				(font
@@ -11615,7 +11615,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C7467262"
 			(at 236.855 50.165 90)
 			(effects
 				(font
@@ -13541,7 +13541,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C7467262"
 			(at 262.255 73.66 90)
 			(effects
 				(font
@@ -15305,7 +15305,7 @@
 				(hide yes)
 			)
 		)
-		(property "Rotation Offset" "-90"
+		(property "Rotation Offset" "180"
 			(at 222.25 20.955 0)
 			(effects
 				(font
@@ -17031,7 +17031,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C7467262"
 			(at 236.855 56.515 90)
 			(effects
 				(font
@@ -17989,7 +17989,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0201"
+		(property "Footprint" "RevK:R_0402"
 			(at 181.61 113.538 90)
 			(effects
 				(font
@@ -18016,7 +18016,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C854484"
 			(at 181.61 111.76 90)
 			(effects
 				(font
@@ -18916,7 +18916,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C102690"
 			(at 199.39 97.155 90)
 			(effects
 				(font
