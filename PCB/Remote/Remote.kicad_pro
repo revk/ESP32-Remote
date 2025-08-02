@@ -61,11 +61,15 @@
       ],
       "drc_exclusions": [
         [
-          "copper_edge_clearance|128072600|104662000|4576b995-08e5-403b-9685-e4effb97b4c0|5d371fcd-d9c3-42fd-9778-5f5c766849c0",
+          "copper_edge_clearance|128072600|104662000|461862f3-bff3-41ba-b9e5-bc1799c505d6|5d371fcd-d9c3-42fd-9778-5f5c766849c0",
           ""
         ],
         [
-          "lib_footprint_mismatch|89905000|85475000|dbf3678c-3bde-4fee-9edb-d75918d19e96|00000000-0000-0000-0000-000000000000",
+          "copper_edge_clearance|71100000|101700000|d07d25a9-0422-43dc-b433-8d90dd779945|a7e0e545-3d18-43aa-ad64-1bf44bd94be4",
+          ""
+        ],
+        [
+          "lib_footprint_mismatch|90000000|85467500|dbf3678c-3bde-4fee-9edb-d75918d19e96|00000000-0000-0000-0000-000000000000",
           ""
         ]
       ],
@@ -119,6 +123,7 @@
         "solder_mask_bridge": "error",
         "starved_thermal": "error",
         "text_height": "warning",
+        "text_on_edge_cuts": "error",
         "text_thickness": "warning",
         "through_hole_pad_without_hole": "error",
         "too_many_vias": "error",
@@ -207,6 +212,7 @@
         0.2,
         0.25,
         0.3,
+        0.4,
         0.5,
         0.8,
         1.0,
@@ -259,6 +265,15 @@
     "viewports": []
   },
   "boards": [],
+  "component_class_settings": {
+    "assignments": [],
+    "meta": {
+      "version": 0
+    },
+    "sheet_component_classes": {
+      "enabled": false
+    }
+  },
   "cvpcb": {
     "equivalence_files": []
   },
@@ -673,5 +688,11 @@
       "Root"
     ]
   ],
-  "text_variables": {}
+  "text_variables": {},
+  "time_domain_parameters": {
+    "delay_profiles_user_defined": [],
+    "meta": {
+      "version": 0
+    }
+  }
 }
