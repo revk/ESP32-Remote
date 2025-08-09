@@ -19,6 +19,7 @@ icons/*.png
 icons/*.gray
 icons/*.h
 icons/CMakeLists.txt
+PCB/home
 managed_components
 dependencies.lock
 settings.h
