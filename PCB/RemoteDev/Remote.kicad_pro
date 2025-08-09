@@ -61,10 +61,6 @@
       ],
       "drc_exclusions": [
         [
-          "copper_edge_clearance|128072600|104662000|461862f3-bff3-41ba-b9e5-bc1799c505d6|5d371fcd-d9c3-42fd-9778-5f5c766849c0",
-          ""
-        ],
-        [
           "copper_edge_clearance|71100000|101700000|d07d25a9-0422-43dc-b433-8d90dd779945|a7e0e545-3d18-43aa-ad64-1bf44bd94be4",
           ""
         ],
