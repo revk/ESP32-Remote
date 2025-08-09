@@ -17823,27 +17823,16 @@
 		)
 	)
 	(symbol
-<<<<<<< HEAD
 		(lib_id "Device:R")
 		(at 206.375 23.495 270)
-=======
-		(lib_id "Device:C")
-		(at 196.85 23.495 0)
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-<<<<<<< HEAD
 		(uuid "8fe53493-8801-436c-9143-10e2a1401cc4")
 		(property "Reference" "R10"
 			(at 204.724 23.495 90)
-=======
-		(uuid "912dec70-36b3-4d54-b095-98914e94b2ad")
-		(property "Reference" "C21"
-			(at 197.358 21.463 0)
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17851,13 +17840,8 @@
 				(justify left)
 			)
 		)
-<<<<<<< HEAD
 		(property "Value" "150k 1%"
 			(at 204.851 25.781 90)
-=======
-		(property "Value" "100nF 25V"
-			(at 190.5 25.781 0)
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17865,13 +17849,8 @@
 				(justify left)
 			)
 		)
-<<<<<<< HEAD
 		(property "Footprint" "RevK:R_0201"
 			(at 206.375 21.717 90)
-=======
-		(property "Footprint" "RevK:C_0402"
-			(at 197.8152 27.305 0)
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17880,11 +17859,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-<<<<<<< HEAD
 			(at 206.375 23.495 0)
-=======
-			(at 196.85 23.495 0)
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17892,13 +17867,8 @@
 				(hide yes)
 			)
 		)
-<<<<<<< HEAD
 		(property "Description" "Resistor"
 			(at 206.375 23.495 0)
-=======
-		(property "Description" "Unpolarized capacitor"
-			(at 196.85 23.495 0)
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17906,13 +17876,8 @@
 				(hide yes)
 			)
 		)
-<<<<<<< HEAD
 		(property "MPN" "C310173"
 			(at 206.375 23.495 0)
-=======
-		(property "MPN" "C56392"
-			(at 196.85 23.495 0)
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17920,24 +17885,15 @@
 				(hide yes)
 			)
 		)
-<<<<<<< HEAD
 		(pin "1"
 			(uuid "f11720eb-5ce5-4021-a2a0-62cbbadd3dbb")
 		)
 		(pin "2"
 			(uuid "16dcea00-cfa1-42ea-98a4-838f5cbfb6df")
-=======
-		(pin "2"
-			(uuid "02d993cd-c0ac-42e8-bf5d-b002a63d770d")
-		)
-		(pin "1"
-			(uuid "67cbf6c9-8128-43ab-968c-17e4d6248e0f")
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 		)
 		(instances
 			(project "Remote"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
-<<<<<<< HEAD
 					(reference "R10")
 					(unit 1)
 				)
@@ -18016,8 +17972,6 @@
 		(instances
 			(project "Remote"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
-=======
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 					(reference "C21")
 					(unit 1)
 				)
@@ -20082,85 +20036,6 @@
 		)
 	)
 	(symbol
-<<<<<<< HEAD
-=======
-		(lib_id "Device:R")
-		(at 206.375 23.495 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "a859e65f-875e-4cda-85b3-f04e501e7b1b")
-		(property "Reference" "R10"
-			(at 206.502 21.209 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "100k"
-			(at 206.502 23.495 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "RevK:R_0201"
-			(at 206.375 25.273 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 206.375 23.495 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 206.375 23.495 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C106224"
-			(at 206.375 23.495 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e8f87bd1-d551-4b93-8b5c-9a4e310fd8f0")
-		)
-		(pin "2"
-			(uuid "cfc64525-48d3-4c3a-9025-2e2b68dcee53")
-		)
-		(instances
-			(project "Remote"
-				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
-					(reference "R10")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
->>>>>>> 2717822043a4be6b63dcc1f18dd506bda1fc5a8c
 		(lib_id "power:+3.3V")
 		(at 220.345 163.83 270)
 		(unit 1)
