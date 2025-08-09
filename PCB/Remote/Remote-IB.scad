@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-09 09:14:52
+// Generated 2025-08-09 12:20:57
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -9,8 +9,8 @@
 
 // Globals
 margin=0.200000;
-lip=2.000000;
-casebottom=2.000000;
+lip=3.000000;
+casebottom=2.500000;
 casetop=12.000000;
 casewall=3.000000;
 fit=0.000000;
@@ -842,9 +842,6 @@ translate([-15.4/2,-15.45/2,0])
 	{
 		cube([15.4,20.5,0.8]);
 		translate([0.7,0.5,0])cube([14,13.55,2.4]);
-	}
-	if(hole)
-	{
 		cube([15.4,20.5,0.8]);
 	}
 }
@@ -925,8 +922,8 @@ module top_half(step=false)
 {
 	difference()
 	{
-		translate([-casebottom-100,-casewall-100,pcbthickness-lip/2+0.01]) cube([pcbwidth+casewall*2+200,pcblength+casewall*2+200,height]);
-		if(step)translate([0,0,pcbthickness-lip/2-0.03])
+		translate([-casebottom-100,-casewall-100,pcbthickness+0.01]) cube([pcbwidth+casewall*2+200,pcblength+casewall*2+200,height]);
+		if(step)translate([0,0,pcbthickness])
         	{
             		difference()
             		{
@@ -934,7 +931,7 @@ module top_half(step=false)
                 		pcb_hulled(lip,casewall/2+fit);
 				for(a=[0,180])rotate(a)hull()
                 		{
-                            		translate([lip/2,lip/2,-lip])cube([pcbwidth,pcblength,lip]);
+                            		translate([lip/2,lip/2,0])cube([pcbwidth,pcblength,lip]);
                             		translate([-lip/2,-lip/2,lip])cube([pcbwidth,pcblength,lip]);
                 		}
             		}
@@ -943,11 +940,29 @@ module top_half(step=false)
                 		pcb_hulled(lip,casewall/2+fit);
 				for(a=[90,270])rotate(a)hull()
                 		{
-                            		translate([lip/2,lip/2,-lip])cube([pcbwidth,pcblength,lip]);
-                            		translate([-lip/2,-lip/2,lip])cube([pcbwidth,pcblength,lip]);
+                            		translate([lip/2,lip/2,0])cube([pcblength,pcbwidth,lip]);
+                            		translate([-lip/2,-lip/2,lip])cube([pcblength,pcbwidth,lip]);
                 		}
 			}
             	}
+		minkowski()
+                {
+                	union()
+                	{
+                		parts_top(part=true);
+                		parts_bottom(part=true);
+                	}
+                	translate([-0.01,-0.01,-height])cube([0.02,0.02,height]);
+                }
+        }
+	minkowski()
+        {
+        	union()
+                {
+                	parts_top(part=true);
+                	parts_bottom(part=true);
+                }
+                translate([-0.01,-0.01,0])cube([0.02,0.02,height]);
         }
 }
 
