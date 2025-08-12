@@ -1,6 +1,6 @@
 all:	png stl
 
-stl:	Remote/RemoteCIBTT.stl Remote/RemoteCIBBT.stl Remote/RemoteCIBT.stl Remote/RemoteC--T.stl Remote/Remote-I-T.stl Remote/Remote--BT.stl Remote/RemoteCI-T.stl Remote/RemoteC-BT.stl Remote/Remote-IBT.stl Remote/Remote---T.stl Remote/RemoteBlindT.stl Remote/RemoteCIBTB.stl Remote/RemoteCIBBB.stl Remote/RemoteCIBB.stl Remote/RemoteC--B.stl Remote/Remote-I-B.stl Remote/Remote--BB.stl Remote/RemoteCI-B.stl Remote/RemoteC-BB.stl Remote/Remote-IBB.stl Remote/Remote---B.stl Remote/RemoteBlindB.stl $(patsubst %.scad,%.stl,$(wildcard *.scad))
+stl:	Remote/RemoteCIBT.stl Remote/RemoteC--T.stl Remote/Remote-I-T.stl Remote/Remote--BT.stl Remote/RemoteCI-T.stl Remote/RemoteC-BT.stl Remote/Remote-IBT.stl Remote/Remote---T.stl Remote/RemoteBlindT.stl Remote/RemoteCIBTB.stl Remote/RemoteCIBBB.stl Remote/RemoteCIBB.stl Remote/RemoteC--B.stl Remote/Remote-I-B.stl Remote/Remote--BB.stl Remote/RemoteCI-B.stl Remote/RemoteC-BB.stl Remote/Remote-IBB.stl Remote/Remote---B.stl Remote/RemoteBlindB.stl $(patsubst %.scad,%.stl,$(wildcard *.scad))
 
 PCBCase/clean: PCBCase/clean.c
 	make -C PCBCase
@@ -44,11 +44,5 @@ Remote/Remote-IBT.scad: Remote/Remote.kicad_pcb PCBCase/case
 
 Remote/RemoteCIBT.scad: Remote/Remote.kicad_pcb PCBCase/case
 	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 --two-file
-
-Remote/RemoteCIBTT.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 -T --two-file
-
-Remote/RemoteCIBBT.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 -B --two-file
 
 
