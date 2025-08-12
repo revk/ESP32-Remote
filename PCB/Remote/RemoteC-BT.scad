@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-12 11:23:50
+// Generated 2025-08-12 11:42:26
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -334,10 +334,6 @@ module part_C24(part=true,hole=false,block=false)
 {
 translate([2.100000,2.000000,1.200000])m13(part,hole,block,casetop); // RevK:C_0805 C_0805_2012Metric (back)
 };
-module part_U6(part=true,hole=false,block=false)
-{
-translate([-12.000000,-25.000000,1.200000])rotate([0,0,-90.000000])m25(part,hole,block,casetop); // RevK:IR-SMD-4P,3.35x3.9mm IR-3.35x3.9 (back)
-};
 module part_R6(part=true,hole=false,block=false)
 {
 translate([-18.500000,7.400000,1.200000])rotate([0,0,-90.000000])m1(part,hole,block,casetop); // RevK:R_0201 R_0201_0603Metric (back)
@@ -347,7 +343,7 @@ module part_TP4(part=true,hole=false,block=false)
 };
 module part_T1(part=true,hole=false,block=false)
 {
-translate([26.800000,-11.500000,1.200000])rotate([0,0,90.000000])m26(part,hole,block,casetop); // T1 (back)
+translate([26.800000,-11.500000,1.200000])rotate([0,0,90.000000])m25(part,hole,block,casetop); // T1 (back)
 };
 // Parts to go on PCB (top)
 module parts_top(part=false,hole=false,block=false){
@@ -434,7 +430,6 @@ part_R4(part,hole,block);
 part_C6(part,hole,block);
 part_C7(part,hole,block);
 part_C24(part,hole,block);
-part_U6(part,hole,block);
 part_R6(part,hole,block);
 part_TP4(part,hole,block);
 part_T1(part,hole,block);
@@ -873,23 +868,6 @@ translate([-15.4/2,-15.45/2,0])
 }
 
 module m25(part=false,hole=false,block=false,height)
-{ // RevK:IR-SMD-4P,3.35x3.9mm IR-3.35x3.9
-if(part)
-{
-	b(0,0,0,3.35,3.9,1.6);
-	translate([0,0.45,1.6])sphere(r=1.4);
-}
-if(hole)
-{
-	translate([0,0.45,0])cylinder(d1=4,d2=6,h=height+1,$fn=6);
-}
-if(block)
-{
-	translate([0,0.45,0])cylinder(d1=6,d2=8,h=height+1,$fn=6);
-}
-}
-
-module m26(part=false,hole=false,block=false,height)
 { // T1
 if(part)
 {
@@ -1241,4 +1219,4 @@ module bottom()
 		pcb(height,r=margin);
 	}
 }
-bottom();
+top();
