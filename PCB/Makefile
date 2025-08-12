@@ -1,6 +1,6 @@
 all:	png stl
 
-stl:	Remote/RemoteCIBT.stl Remote/RemoteCIBB.stl Remote/RemoteCIB.stl Remote/RemoteC--.stl Remote/Remote-I-.stl Remote/Remote--B.stl Remote/RemoteCI-.stl Remote/RemoteC-B.stl Remote/Remote-IB.stl Remote/Remote---.stl Remote/RemoteBlind.stl $(patsubst %.scad,%.stl,$(wildcard *.scad))
+stl:	Remote/RemoteCIBTT.stl Remote/RemoteCIBBT.stl Remote/RemoteCIBT.stl Remote/RemoteC--T.stl Remote/Remote-I-T.stl Remote/Remote--BT.stl Remote/RemoteCI-T.stl Remote/RemoteC-BT.stl Remote/Remote-IBT.stl Remote/Remote---T.stl Remote/RemoteBlindT.stl Remote/RemoteCIBTB.stl Remote/RemoteCIBBB.stl Remote/RemoteCIBB.stl Remote/RemoteC--B.stl Remote/Remote-I-B.stl Remote/Remote--BB.stl Remote/RemoteCI-B.stl Remote/RemoteC-BB.stl Remote/Remote-IBB.stl Remote/Remote---B.stl Remote/RemoteBlindB.stl $(patsubst %.scad,%.stl,$(wildcard *.scad))
 
 PCBCase/clean: PCBCase/clean.c
 	make -C PCBCase
@@ -18,37 +18,37 @@ png:	$(patsubst %.kicad_pcb,%.png,$(wildcard */*.kicad_pcb))
 	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD $< -o $@
 	echo "Made $@"
 
-Remote/RemoteBlind.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1 --case=3
+Remote/RemoteBlindT.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1 --case=3 --two-file
 
-Remote/Remote---.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 --case=3 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U2,U6,SW1
+Remote/Remote---T.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 --case=3 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U2,U6,SW1 --two-file
 
-Remote/RemoteC--.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U6,SW1
+Remote/RemoteC--T.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U6,SW1 --two-file
 
-Remote/Remote-I-.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U2,SW1
+Remote/Remote-I-T.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U2,SW1 --two-file
 
-Remote/Remote--B.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U2,U6
+Remote/Remote--BT.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U2,U6 --two-file
 
-Remote/RemoteCI-.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,SW1
+Remote/RemoteCI-T.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,SW1 --two-file
 
-Remote/RemoteC-B.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U6
+Remote/RemoteC-BT.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U6 --two-file
 
-Remote/Remote-IB.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U2
-
-Remote/RemoteCIB.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7
+Remote/Remote-IBT.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7,U2 --two-file
 
 Remote/RemoteCIBT.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 -T
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 --two-file
 
-Remote/RemoteCIBB.scad: Remote/Remote.kicad_pcb PCBCase/case
-	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 -B
+Remote/RemoteCIBTT.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 -T --two-file
+
+Remote/RemoteCIBBT.scad: Remote/Remote.kicad_pcb PCBCase/case
+	PCBCase/case -o $@ $< --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7 -B --two-file
 
 
