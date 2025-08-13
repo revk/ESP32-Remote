@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-12 11:30:15
+// Generated 2025-08-13 10:36:02
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -437,13 +437,18 @@ module part_J7(part=true,hole=false,block=false)
 module part_J5(part=true,hole=false,block=false)
 {
 };
+module part_J4(part=true,hole=false,block=false)
+{
+translate([26.625000,9.125000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m25(part,hole,block,casebottom,08); // J4
+};
 // Parts to go on PCB (bottom)
 module parts_bottom(part=false,hole=false,block=false){
 part_J7(part,hole,block);
 part_J5(part,hole,block);
+part_J4(part,hole,block);
 }
 
-parts_bottom=0;
+parts_bottom=1;
 module b(cx,cy,z,w,l,h){translate([cx-w/2,cy-l/2,z])cube([w,l,h]);}
 module m0(part=false,hole=false,block=false,height)
 { // RevK:C_0201 C_0201_0603Metric
@@ -840,6 +845,21 @@ if(hole)
 		cylinder(d=1,h=pcbthickness+0.02);
 		translate([0,-10+casewall+1,0])cylinder(d=1,h=pcbthickness+0.02);
 	}
+}
+}
+
+module m25(part=false,hole=false,block=false,height,N=0)
+{ // J4
+translate([0,-(N-1)*2.54/2,0])
+{
+if(part)
+{
+	b(0,0,0,2.54,N*2.54,4);
+}
+if(hole)
+{
+	b(0,0,0,2.54-0.01,N*2.54-0.01,height);
+}
 }
 }
 

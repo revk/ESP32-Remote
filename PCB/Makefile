@@ -1,6 +1,6 @@
 all:	png stl
 
-stl:	Remote/RemoteCIBT.stl Remote/RemoteC--T.stl Remote/Remote-I-T.stl Remote/Remote--BT.stl Remote/RemoteCI-T.stl Remote/RemoteC-BT.stl Remote/Remote-IBT.stl Remote/Remote---T.stl Remote/RemoteBlindT.stl Remote/RemoteCIBTB.stl Remote/RemoteCIBBB.stl Remote/RemoteCIBB.stl Remote/RemoteC--B.stl Remote/Remote-I-B.stl Remote/Remote--BB.stl Remote/RemoteCI-B.stl Remote/RemoteC-BB.stl Remote/Remote-IBB.stl Remote/Remote---B.stl Remote/RemoteBlindB.stl $(patsubst %.scad,%.stl,$(wildcard *.scad))
+stl:	Remote/RemoteCIBT.stl Remote/RemoteC--T.stl Remote/Remote-I-T.stl Remote/Remote--BT.stl Remote/RemoteCI-T.stl Remote/RemoteC-BT.stl Remote/Remote-IBT.stl Remote/Remote---T.stl Remote/RemoteBlindT.stl Remote/RemoteCIBB.stl Remote/RemoteC--B.stl Remote/Remote-I-B.stl Remote/Remote--BB.stl Remote/RemoteCI-B.stl Remote/RemoteC-BB.stl Remote/Remote-IBB.stl Remote/Remote---B.stl Remote/RemoteBlindB.stl $(patsubst %.scad,%.stl,$(wildcard *.scad))
 
 PCBCase/clean: PCBCase/clean.c
 	make -C PCBCase
