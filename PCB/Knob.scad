@@ -1,5 +1,6 @@
 $fn=120;
-H=14;
+H=15;
+m=0; // 0.3; // Zero for resin
 difference()
 {
     union()
@@ -13,7 +14,9 @@ difference()
                 cylinder(r=5,h=0.1);
              }
         }
-        cylinder(d=5.5,h=H-0.01);
+        cylinder(d=5.5,h=H-2);
+        translate([0,0,H-2])cylinder(d2=4.5,d1=5.5,h=2);
     }
-    translate([0,0,H-1.5])cube([2.25,2.25,4],center=true);
+    translate([0,0,H-2])cube([1.9+m,1.9+m,4],center=true);
+    translate([0,0,H-1])cylinder(d=3+m,h=2);
 }
