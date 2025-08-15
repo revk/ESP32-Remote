@@ -65,6 +65,7 @@ struct
    uint8_t fan:3;
 } data = { 0 };
 
+led_strip_handle_t strip = NULL;
 httpd_handle_t webserver = NULL;
 SemaphoreHandle_t lcd_mutex = NULL;
 SemaphoreHandle_t data_mutex = NULL;
@@ -89,10 +90,15 @@ uint8_t hold = 0;               // Display hold
 bleenv_t *bleidtemp = NULL;
 bleenv_t *bleidfaikin = NULL;
 
+gfx_colour_t temp_colour (float t);
+gfx_colour_t co2_colour (uint16_t co2);
+gfx_colour_t rh_colour (float rh);
+
 const uint8_t icon_mode[] = { icon_unknown, icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_unknown, icon_modefaikin };   // order same as acmode
 const char *const icon_mode_message[] =
    { NULL, "Mode: Auto", "Mode: Fan", "Mode: Dry", "Mode: Cool", "Mode: Heat", NULL, "Mode: Faikin" };
 
+const char led_mode[] = "KyrbBRKY";
 const uint8_t icon_fans5[] = { icon_unknown, icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };      // order same as acfan
 const char *const icon_fan5_message[] = { NULL, "Fan: Auto", "Fan: 1", "Fan: 2", "Fan: 3", "Fan: 4", "Fan: 5", "Fan: Quiet" };
 
@@ -216,6 +222,37 @@ static void
 my_free (void *opaque, void *address)
 {
    free (address);
+}
+
+void
+led_task (void *x)
+{
+   while (!b.die)
+   {
+      usleep (100000);
+      uint32_t status = revk_blinker ();
+      for (int i = 0; i < sizeof (lightmode) / sizeof (*lightmode); i++)
+         switch (lightmode[i])
+         {
+         case REVK_SETTINGS_LIGHTMODE_STATUS:
+            revk_led (strip, i, 255, status);
+            break;
+         case REVK_SETTINGS_LIGHTMODE_MODE:
+            revk_led (strip, i, 255, revk_rgb (b.away ? 'O' : !b.poweron ? 'K' : led_mode[data.mode]));
+            break;
+         case REVK_SETTINGS_LIGHTMODE_CO2:
+            revk_led (strip, i, 255, co2_colour (data.co2));
+            break;
+         case REVK_SETTINGS_LIGHTMODE_RH:
+            revk_led (strip, i, 255, rh_colour (data.rh));
+            break;
+         case REVK_SETTINGS_LIGHTMODE_TEMP:
+            revk_led (strip, i, 255, temp_colour (data.temp));
+            break;
+         }
+      led_strip_refresh (strip);
+   }
+   vTaskDelete (NULL);
 }
 
 const char *
@@ -1863,7 +1900,7 @@ select_icon_plot (uint8_t i, int8_t dx, int8_t dy)
 #endif
 }
 
-void
+gfx_colour_t
 temp_colour (float t)
 {
    gfx_colour_t c = 0x888888;
@@ -1884,11 +1921,10 @@ temp_colour (float t)
       else
          c = 0xFF0000;
    }
-   gfx_background (c);
-   gfx_foreground (c);
+   return c;
 }
 
-void
+gfx_colour_t
 co2_colour (uint16_t co2)
 {
    gfx_colour_t c = 0x888888;
@@ -1901,11 +1937,10 @@ co2_colour (uint16_t co2)
       else
          c = 0xFF0000;
    }
-   gfx_background (c);
-   gfx_foreground (c);
+   return c;
 }
 
-void
+gfx_colour_t
 rh_colour (float rh)
 {
    gfx_colour_t c = 0x888888;
@@ -1920,8 +1955,7 @@ rh_colour (float rh)
       else
          c = 0xFF0000;
    }
-   gfx_background (c);
-   gfx_foreground (c);
+   return c;
 }
 
 void
@@ -1945,7 +1979,9 @@ send_rad (uint8_t rad)
 void
 show_temp (float t)
 {                               // Show current temp
-   temp_colour (t);
+   gfx_colour_t c = temp_colour (t);
+   gfx_background (c);
+   gfx_foreground (c);
    if (isnan (t) || t <= -100 || t >= 1000)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 11, "---.-%c", fahrenheit ? 'F' : 'C');
    else
@@ -1962,7 +1998,9 @@ show_target (float t)
    }
    if (notarget)
       return;
-   temp_colour (t);
+   gfx_colour_t c = temp_colour (t);
+   gfx_background (c);
+   gfx_foreground (c);
    if (isnan (t) || t <= -10 || t >= 100)
       gfx_7seg (GFX_7SEG_SMALL_DOT, 6, "--.-%c", fahrenheit ? 'F' : 'C');
    else
@@ -2011,7 +2049,9 @@ show_co2 (uint16_t co2)
 {
    if (noco2 || !scd41.found)
       return;
-   co2_colour (co2);
+   gfx_colour_t c = co2_colour (co2);
+   gfx_background (c);
+   gfx_foreground (c);
    if (gfx_a () & GFX_R)
       icon_plot (icon_co2, 5);
    if (co2 < 400 || co2 > 10000)
@@ -2029,7 +2069,9 @@ show_rh (float rh)
 {
    if (norh)
       return;
-   rh_colour (rh);
+   gfx_colour_t c = rh_colour (rh);
+   gfx_background (c);
+   gfx_foreground (c);
    if (gfx_a () & GFX_R)
       icon_plot (icon_humidity, 5);
    if (isnan (rh) || rh >= 100)
@@ -2109,6 +2151,23 @@ app_main ()
    xSemaphoreGive (data_mutex);
    revk_boot (&app_callback);
    revk_start ();
+   if (lightgpio.set)
+   {
+      led_strip_config_t strip_config = {
+         .strip_gpio_num = (lightgpio.num),
+         .max_leds = 3,
+         .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_GRB,
+         .led_model = LED_MODEL_WS2812, // LED strip model
+         .flags.invert_out = lightgpio.invert,  // whether to invert the output signal(useful when your hardware has a level inverter)
+      };
+      led_strip_rmt_config_t rmt_config = {
+         .clk_src = RMT_CLK_SRC_DEFAULT,        // different clock source can lead to different power consumption
+         .resolution_hz = 10 * 1000 * 1000,     // 10 MHz
+         .flags.with_dma = true,
+      };
+      REVK_ERR_CHECK (led_strip_new_rmt_device (&strip_config, &rmt_config, &strip));
+      revk_task ("blink", led_task, NULL, 4);
+   }
    // Web interface
    httpd_config_t config = HTTPD_DEFAULT_CONFIG ();
    config.stack_size += 1024 * 4;

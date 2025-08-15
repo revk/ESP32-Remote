@@ -13,6 +13,9 @@ u8      gfx.low         0       .live .unit="%"         // Display low level (e.
 u8      gfx.high        100     .live .unit="%"         // Display high level (e.g. light mode)
 u8	gfx.message	10	.live .unit="s"		// Message display time
 
+gpio	light.gpio	46				// LED GPIO
+enum    light.mode	"1 2 3"       .live .array=3 .enums="Off,Status,Mode,CO2,RH,Temp"	// LED display
+
 bit	ha.announce	1				// Home Assistant announce
 u16	reporting	60	.unit="s"		// Report interval
 
