@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-14 11:56:05
+// Generated 2025-08-17 08:24:15
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -808,15 +808,19 @@ module m23(part=false,hole=false,block=false,height)
 if(part)
 {
 	b(0,0,0,3.35,3.9,1.6);
-	translate([0,0.45,1.6])sphere(r=1.4);
+	translate([0,0.45,1.6])sphere(r=1.4,$fn=24);
 }
 if(hole)
 {
-	translate([0,0.45,0])cylinder(d1=4,d2=6,h=height+1,$fn=6);
+	hull()
+	{
+		translate([0,0.45,1.6])cylinder(d=2.4,$fn=24);
+		translate([0,0.45,height])cylinder(d=6,h=height+1,$fn=6);
+	}
 }
 if(block)
 {
-	translate([0,0.45,0])cylinder(d1=6,d2=8,h=height+1,$fn=6);
+	translate([0,0.45,1.8])cylinder(d1=4.4,d2=8,h=height+1,$fn=6);
 }
 }
 

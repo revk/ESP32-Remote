@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-16 15:23:00
+// Generated 2025-08-17 08:36:40
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -492,12 +492,10 @@ if(hole)
 }
 if(block)
 {
-	translate([0,0,1])rotate([0,0,45])
+	hull()
 	{
-		rotate([15,0,0])cylinder(d=9,h=height,$fn=8);
-		rotate([-15,0,0])cylinder(d=9,h=height,$fn=8);
-		rotate([0,15,0])cylinder(d=9,h=height,$fn=8);
-		rotate([0,-15,0])cylinder(d=9,h=height,$fn=8);
+		translate([0,0,2.1])cylinder(d=10,h=1,$fn=8);
+		translate([0,0,height])cylinder(d=15,h=1,$fn=8);
 	}
 }
 }
@@ -768,15 +766,19 @@ module m20(part=false,hole=false,block=false,height)
 if(part)
 {
 	b(0,0,0,3.35,3.9,1.6);
-	translate([0,0.45,1.6])sphere(r=1.4);
+	translate([0,0.45,1.6])sphere(r=1.4,$fn=24);
 }
 if(hole)
 {
-	translate([0,0.45,0])cylinder(d1=4,d2=6,h=height+1,$fn=6);
+	hull()
+	{
+		translate([0,0.45,1.6])cylinder(d=2.4,$fn=24);
+		translate([0,0.45,height])cylinder(d=6,h=height+1,$fn=6);
+	}
 }
 if(block)
 {
-	translate([0,0.45,0])cylinder(d1=6,d2=8,h=height+1,$fn=6);
+	translate([0,0.45,1.8])cylinder(d1=4.4,d2=8,h=height+1,$fn=6);
 }
 }
 
