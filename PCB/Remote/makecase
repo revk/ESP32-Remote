@@ -2,7 +2,7 @@
 setenv T `mktemp`
 setenv ARGS "-o $T Remote/Remote.kicad_pcb --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7"
 if("$1" == Base) then
-	PCBCase/case $ARGS --top-only
+	PCBCase/case $ARGS --bottom-only
 else
 	PCBCase/case -o $T $ARGS -n
 	if("$1" =~ *P*) then
