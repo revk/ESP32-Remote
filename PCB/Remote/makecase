@@ -1,0 +1,26 @@
+#!/bin/csh -f
+setenv T `mktemp`
+setenv ARGS "-o $T Remote/Remote.kicad_pcb --top=12 --bottom=2.5 --pcb=2 -y92.5 --ignore=J1.1,J1.3,J1.4,J1.5,J1.6,J1.7"
+if("$1" == Base) then
+	PCBCase/case $ARGS --top-only
+else
+	PCBCase/case -o $T $ARGS -n
+	if("$1" =~ *P*) then
+		echo "use <../blankplate.scad>" >> $T
+		echo "difference(){translate([0,6.5,0])rotate(90)blankplate();translate([-28.5,-18,-1])cube([56.5,48,30]);translate([-23.5,25,0])cylinder(d=13,h=30);translate([30,30,8])rotate([0,90,90])hull(){cylinder(d=4,h=30);translate([2,0,0])cylinder(d=4,h=30);}}" >> $T
+	endif
+	if(! ("$1" =~ *D*)) then
+		echo "translate([-56/2,-36/2,0])cube([56,36,1]);" >> $T
+	endif
+	if(! ("$1" =~ *C*)) then
+		echo "translate([19,20.5,0])cube([9,9,1]);" >> $T
+	endif
+	if(! ("$1" =~ *I*)) then
+		echo "translate([-15.5,20.5,0])cube([8,10,1]);" >> $T
+	endif
+	if(! ("$1" =~ *B*)) then
+		echo "translate([-23.5,25,0])cylinder(d=13,h=1);" >> $T
+	endif
+	echo "translate([-casewall,-casewall,0])top();" >> $T
+endif
+mv -f $T Remote/Remote-$1.scad
