@@ -241,13 +241,28 @@ led_task (void *x)
             revk_led (strip, i, 255, revk_rgb (b.away ? 'O' : !b.poweron ? 'K' : led_mode[data.mode]));
             break;
          case REVK_SETTINGS_LIGHTMODE_CO2:
-            revk_led (strip, i, 255, co2_colour (data.co2));
+            {
+               uint32_t c = co2_colour (data.co2);
+               if (dark && c == 0x00FF00)
+                  c = 0;
+               revk_led (strip, i, 255, c);
+            }
             break;
          case REVK_SETTINGS_LIGHTMODE_RH:
-            revk_led (strip, i, 255, rh_colour (data.rh));
-            break;
+            {
+               uint32_t c = rh_colour (data.rh);
+               if (dark && c == 0x00FF00)
+                  c = 0;
+               revk_led (strip, i, 255, c);
+               break;
+            }
          case REVK_SETTINGS_LIGHTMODE_TEMP:
-            revk_led (strip, i, 255, temp_colour (data.temp));
+            {
+               uint32_t c = temp_colour (data.temp);
+               if (dark && c == 0x00FF00)
+                  c = 0;
+               revk_led (strip, i, 255, c);
+            }
             break;
          }
       led_strip_refresh (strip);
