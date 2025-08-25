@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-18 13:51:22
+// Generated 2025-08-25 12:42:54
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -8,7 +8,7 @@
 //
 
 // Globals
-margin=0.200000;
+margin=0.250000;
 lip=3.000000;
 lipa=0;
 lipt=2;
@@ -550,7 +550,7 @@ module m6(part=false,hole=false,block=false,height)
 // 5x5x4 Inductor
 if(part)
 {
-	b(0,0,0,5,5,4);
+	b(0,0,0,5,5,4.3);
 }
 }
 
@@ -1139,7 +1139,7 @@ module top_edge()
 
 module top_pos()
 { // Position for plotting bottom
-	translate([casewall,casewall,pcbthickness+casetop])rotate([180,0,0])children();
+	translate([0,0,pcbthickness+casetop])rotate([180,0,0])children();
 }
 
 module pcb_pos()
@@ -1195,7 +1195,7 @@ module bottom_edge()
 
 module bottom_pos()
 {
-	translate([casewall,casewall,casebottom])children();
+	translate([0,0,casebottom])children();
 }
 
 module bottom()

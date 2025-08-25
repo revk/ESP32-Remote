@@ -1,6 +1,6 @@
 all:	png stl
 
-stl:	Remote/Remote-PDCIB.stl $(patsubst %.scad,%.stl,$(wildcard Remote/*.scad)) $(patsubst %.scad,%.stl,$(wildcard *.scad))
+stl:	Remote/Remote-PDCIB.stl $(patsubst %.scad,%.stl,$(wildcard */*.scad)) $(patsubst %.scad,%.stl,$(wildcard *.scad))
 
 PCBCase/clean: PCBCase/clean.c
 	make -C PCBCase
