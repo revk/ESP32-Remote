@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-25 13:01:54
+// Generated 2025-08-25 14:23:26
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -23,6 +23,13 @@ nohull=false;
 hullcap=1.000000;
 hulledge=1.000000;
 useredge=false;
+datex=0.000000;
+datey=0.000000;
+datet=0.500000;
+dateh=3.000000;
+datea=0;
+date="2025-08-14";
+datef="OCRB";
 spacing=74.000000;
 pcbwidth=58.000000;
 pcblength=48.000000;
@@ -1211,4 +1218,13 @@ module bottom()
 		pcb(height,r=margin);
 	}
 }
-difference(){bottom();translate([0.000000,0.000000,-0.001])rotate(0)scale([-1,1])linear_extrude(0.500000)text("2025-08-14",size=3.000000,halign="center",valign="center",font="OCRB");}
+
+module datecode()
+{
+	minkowski()
+	{
+		translate([datex,datey,-1])rotate(datea)scale([-1,1])linear_extrude(datet)text(date,size=dateh,halign="center",valign="center",font=datef);
+		cylinder(d1=datet,d2=0,h=datet,$fn=6);
+	}
+}
+difference(){bottom();datecode();}
