@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-25 12:42:55
+// Generated 2025-08-25 13:01:58
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -1212,4 +1212,4 @@ module bottom()
 	}
 }
 translate([-23.5,25,0])cylinder(d=13,h=1);
-translate([-casewall,-casewall,0])top();
+translate([0,0,0])top();

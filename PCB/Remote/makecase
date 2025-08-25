@@ -6,7 +6,7 @@ if("$1" == Base) then
 else
 	PCBCase/case -o $T $ARGS -n
 	if("$1" =~ *P*) then
-		echo "use <../blankplate.scad>" >> $T
+		echo "use <blankplate.scad>" >> $T
 		echo "difference(){translate([0,6.5,0])rotate(90)blankplate();translate([-28.5,-18,-1])cube([56.5,48,30]);translate([-23.5,25,0])cylinder(d=13,h=30);translate([30,30,8])rotate([0,90,90])hull(){cylinder(d=4,h=30);translate([2,0,0])cylinder(d=4,h=30);}}" >> $T
 	endif
 	if(! ("$1" =~ *D*)) then
@@ -21,6 +21,6 @@ else
 	if(! ("$1" =~ *B*)) then
 		echo "translate([-23.5,25,0])cylinder(d=13,h=1);" >> $T
 	endif
-	echo "translate([-casewall,-casewall,0])top();" >> $T
+	echo "translate([0,0,0])top();" >> $T
 endif
 mv -f $T Remote/Remote-$1.scad
