@@ -17,6 +17,6 @@ difference()
         cylinder(d=5.5,h=H-2);
         translate([0,0,H-2])cylinder(d2=4.5,d1=5.5,h=2);
     }
-    translate([0,0,H-2])cube([1.9+m,1.9+m,4],center=true);
+    translate([0,0,H-2])cube([2+m,2+m,4],center=true);
     translate([0,0,H-1])cylinder(d=3+m,h=2);
 }
