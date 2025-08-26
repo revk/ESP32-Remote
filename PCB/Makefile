@@ -1,4 +1,4 @@
-all:	png stl
+all:	png stl */README.md
 
 stl:	Remote/Remote-PDCIB.stl $(patsubst %.scad,%.stl,$(wildcard */*.scad)) $(patsubst %.scad,%.stl,$(wildcard *.scad))
 
@@ -17,6 +17,9 @@ png:	$(patsubst %.kicad_pcb,%.png,$(wildcard */*.kicad_pcb))
 	echo "Making $@"
 	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD $< -o $@
 	echo "Made $@"
+
+%/README.md: %/*.kicad_pcb %/*.stl PCBCase/readme
+	PCBCase/readme $@
 
 Remote/Remote-PDCIB.scad: Remote/Remote.kicad_pcb PCBCase/case Remote/makecase
 	Remote/makecase Base
