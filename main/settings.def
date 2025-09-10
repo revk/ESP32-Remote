@@ -32,6 +32,7 @@ gpio	scl		1				// I2C SCL
 gpio	sda		2				// I2C SDA
 
 gpio	ds18b20		35				// DS18B20 Temp sensors
+gpio	gpio.fixed	.array=1			// Fixed outputs (set to 1)
 
 gpio	i2s.clock	34				// I2S PDM clock
 gpio	i2s.data	33				// I2S PDM data
@@ -89,7 +90,7 @@ s	ble.faikin		.live 			// ID of Faikin to track
 enum	ble.advert		.live .enums="Faikin,BTHome1,BTHome2"	// BLE advertisement type
 
 enum	rh.ref			.live .enums="Auto,SCD41,SHT40,BLE"	// Primary reference for RH
-enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,AC,DS18B20[0],DS18B20[1],SHT40"	// Primary reference temperature
+enum	temp.ref		.live .enums="Auto,MCP9808,TMP1075,SCD41,GZP6816D,BLE,AC,SHT40,DS18B20[0],DS18B20[1],DS18B20[2]"	// Primary reference temperature
 s16	temp.min	16	.live .unit="°" .decimal=1      // Min temp target
 s16	temp.max	32	.live .unit="°" .decimal=1      // Max temp target
 u8	temp.step	0.5	.live .unit="°" .decimal=1      // Target steps

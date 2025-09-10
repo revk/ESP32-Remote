@@ -498,8 +498,8 @@ revk_web_extra (httpd_req_t * req, int page)
    if (*bletemp)
       revk_web_send (req, "<tr><td>%s</td><td align=right>%.2f°</td><td>External BLE sensor.</td></tr>", bletemp,
                      bleidtemp ? T ((float) bleidtemp->temp / 100.0) : NAN);
-   if (ds18b20_num)
-      revk_web_send (req, "<tr><td>DS18B20</td><td align=right>%.2f°</td><td>External wired sensor.</td></tr>", ds18b20s[0].t);
+   for (int i = 0; i < ds18b20_num; i++)
+      revk_web_send (req, "<tr><td>DS18B20</td><td align=right>%.2f°</td><td>External wired sensor.</td></tr>", ds18b20s[i].t);
    if (scd41.found)
       revk_web_send (req, "<tr><td>SCD41</td><td align=right>%.2f°</td><td>Internal CO₂ sensor%s.</td></tr>", scd41.t,
                      isnan (scd41.t) ? ", shows after startup delay" : "");
@@ -2166,6 +2166,9 @@ app_main ()
    xSemaphoreGive (data_mutex);
    revk_boot (&app_callback);
    revk_start ();
+   for (int i = 0; i < sizeof (gpiofixed) / sizeof (*gpiofixed); i++)
+      if (gpiofixed[i].set)
+         revk_gpio_output (gpiofixed[i], 1);
    if (lightgpio.set)
    {
       led_strip_config_t strip_config = {
@@ -2369,6 +2372,10 @@ app_main ()
             if (ds18b20_num >= 2)
                t = ds18b20s[1].t;
             break;
+         case REVK_SETTINGS_TEMPREF_DS18B20_2_:
+            if (ds18b20_num >= 3)
+               t = ds18b20s[2].t;
+            break;
          }
          if (isnan (t) && isfinite (t = blet))
             tempfrom = REVK_SETTINGS_TEMPREF_BLE;
@@ -2376,6 +2383,8 @@ app_main ()
             tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_0_;
          if (isnan (t) && ds18b20_num >= 2 && isfinite (t = ds18b20s[1].t))
             tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_1_;
+         if (isnan (t) && ds18b20_num >= 3 && isfinite (t = ds18b20s[2].t))
+            tempfrom = REVK_SETTINGS_TEMPREF_DS18B20_2_;
          if (isnan (t) && scd41.ok && isfinite (t = scd41.t))
             tempfrom = REVK_SETTINGS_TEMPREF_SCD41;
          if (isnan (t) && tmp1075.ok && isfinite (t = tmp1075.t))
