@@ -61,7 +61,7 @@
       ],
       "drc_exclusions": [
         [
-          "copper_edge_clearance|127972600|104662000|994a8af1-9397-4b0c-a2d5-b0012dc5e86e|5d371fcd-d9c3-42fd-9778-5f5c766849c0",
+          "copper_edge_clearance|127972600|104662000|ea7ff60b-248b-4ce4-8f99-1347778e84bd|5d371fcd-d9c3-42fd-9778-5f5c766849c0",
           ""
         ],
         [
@@ -493,6 +493,7 @@
       "single_global_label": "ignore",
       "unannotated": "error",
       "unconnected_wire_endpoint": "warning",
+      "undefined_netclass": "error",
       "unit_value_mismatch": "error",
       "unresolved_variable": "error",
       "wire_dangling": "error"
