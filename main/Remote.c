@@ -2166,9 +2166,9 @@ app_main ()
    xSemaphoreGive (data_mutex);
    revk_boot (&app_callback);
    revk_start ();
-   for (int i = 0; i < sizeof (gpiofixed) / sizeof (*gpiofixed); i++)
-      if (gpiofixed[i].set)
-         revk_gpio_output (gpiofixed[i], 1);
+   for (int i = 0; i < sizeof (fixedgpio) / sizeof (*fixedgpio); i++)
+      if (fixedgpio[i].set)
+         revk_gpio_output (fixedgpio[i], 1);
    if (lightgpio.set)
    {
       led_strip_config_t strip_config = {

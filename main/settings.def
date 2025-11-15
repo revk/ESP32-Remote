@@ -32,7 +32,7 @@ gpio	scl		1				// I2C SCL
 gpio	sda		2				// I2C SDA
 
 gpio	ds18b20		35				// DS18B20 Temp sensors
-gpio	gpio.fixed	.array=1			// Fixed outputs (set to 1)
+gpio	fixedgpio	.array=1			// Fixed outputs (set to 1)
 
 gpio	i2s.clock	34				// I2S PDM clock
 gpio	i2s.data	33				// I2S PDM data
