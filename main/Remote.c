@@ -31,9 +31,9 @@ struct
    uint8_t fan:1;               // Fan on
    uint8_t rad:1;               // Rad on
    uint8_t connect:1;           // MQTT connect
-   uint8_t faikoutheat:1;        // Faikout auto is heating
-   uint8_t faikoutcool:1;        // Faikout auto is cooling
-   uint8_t faikoutbad:1;         // Faikout antifreeze ot slave
+   uint8_t faikoutheat:1;       // Faikout auto is heating
+   uint8_t faikoutcool:1;       // Faikout auto is cooling
+   uint8_t faikoutbad:1;        // Faikout antifreeze ot slave
    uint8_t cal:1;               // Auto cal manual
    // Power
    uint8_t manual:1;            // Manual override (cleared when matches non override)
@@ -94,7 +94,7 @@ gfx_colour_t temp_colour (float t);
 gfx_colour_t co2_colour (uint16_t co2);
 gfx_colour_t rh_colour (float rh);
 
-const uint8_t icon_mode[] = { icon_unknown, icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_unknown, icon_modefaikout };   // order same as acmode
+const uint8_t icon_mode[] = { icon_unknown, icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_unknown, icon_modefaikout };  // order same as acmode
 const char *const icon_mode_message[] =
    { NULL, "Mode: Auto", "Mode: Fan", "Mode: Dry", "Mode: Cool", "Mode: Heat", NULL, "Mode: Faikout" };
 
@@ -409,9 +409,9 @@ revk_state_extra (jo_t j)
 }
 
 static void
-settings_blefaikout (httpd_req_t * req)
+settings_blefaikout (httpd_req_t *req)
 {
-   revk_web_send (req, "<tr><td>Faikout</td><td>"        //
+   revk_web_send (req, "<tr><td>Faikout</td><td>"       //
                   "<select name=blefaikout>");
    revk_web_send (req, "<option value=\"\">-- None --");
    char found = 0;
@@ -435,7 +435,7 @@ settings_blefaikout (httpd_req_t * req)
 }
 
 static void
-settings_bletemp (httpd_req_t * req)
+settings_bletemp (httpd_req_t *req)
 {
    revk_web_send (req, "<tr><td>BLE</td><td>"   //
                   "<select name=bletemp>");
@@ -463,7 +463,7 @@ settings_bletemp (httpd_req_t * req)
 }
 
 void
-revk_web_extra (httpd_req_t * req, int page)
+revk_web_extra (httpd_req_t *req, int page)
 {
    revk_web_setting_title (req, "Controls");
    if (!nofaikout)
@@ -536,7 +536,7 @@ revk_web_extra (httpd_req_t * req, int page)
 }
 
 static void
-register_uri (const httpd_uri_t * uri_struct)
+register_uri (const httpd_uri_t *uri_struct)
 {
    esp_err_t res = httpd_register_uri_handler (webserver, uri_struct);
    if (res != ESP_OK)
@@ -546,7 +546,7 @@ register_uri (const httpd_uri_t * uri_struct)
 }
 
 static void
-register_get_uri (const char *uri, esp_err_t (*handler) (httpd_req_t * r))
+register_get_uri (const char *uri, esp_err_t (*handler) (httpd_req_t *r))
 {
    httpd_uri_t uri_struct = {
       .uri = uri,
@@ -572,7 +572,7 @@ epd_unlock (void)
 
 #ifdef	CONFIG_LWPNG_ENCODE
 static esp_err_t
-web_frame (httpd_req_t * req)
+web_frame (httpd_req_t *req)
 {
    xSemaphoreTake (lcd_mutex, portMAX_DELAY);
    uint8_t *png = NULL;
@@ -615,7 +615,7 @@ web_frame (httpd_req_t * req)
    ESP_LOGD (TAG, "Encoded %u bytes %s", len, e ? : "");
    if (e)
    {
-      revk_web_head (req, *hostname ? hostname : appname);
+      revk_web_head (req, *hostname ? hostname : revk_app);
       revk_web_send (req, e);
       revk_web_foot (req, 0, 1, NULL);
    } else
@@ -795,7 +795,7 @@ sht40_write (uint8_t cmd)
 }
 
 static esp_err_t
-sht40_read (uint16_t * ap, uint16_t * bp)
+sht40_read (uint16_t *ap, uint16_t *bp)
 {
    if (ap)
       *ap = 0;
@@ -851,7 +851,7 @@ scd41_command (uint16_t c)
 }
 
 static esp_err_t
-scd41_read (uint16_t c, int8_t len, uint8_t * buf)
+scd41_read (uint16_t c, int8_t len, uint8_t *buf)
 {
    i2c_cmd_handle_t t = i2c_cmd_link_create ();
    i2c_master_start (t);
@@ -1366,7 +1366,10 @@ i2c_task (void *x)
 void
 ds18b20_task (void *x)
 {
-   onewire_bus_config_t bus_config = { ds18b20.num };
+   ds18b20_device_handle_t adr_ds18b20[10];
+   //uint64_t id[sizeof (adr_ds18b20) / sizeof (*adr_ds18b20)];
+   onewire_bus_config_t bus_config = { ds18b20.num,.flags = {0}
+   };
    onewire_bus_rmt_config_t rmt_config = { 20 };
    onewire_bus_handle_t bus_handle = { 0 };
    REVK_ERR_CHECK (onewire_new_bus_rmt (&bus_config, &rmt_config, &bus_handle));
@@ -1375,14 +1378,12 @@ ds18b20_task (void *x)
       onewire_device_iter_handle_t iter = { 0 };
       REVK_ERR_CHECK (onewire_new_device_iter (bus_handle, &iter));
       onewire_device_t dev = { };
-      while (!onewire_device_iter_get_next (iter, &dev))
+      while (!onewire_device_iter_get_next (iter, &dev) && ds18b20_num < sizeof (adr_ds18b20) / sizeof (*adr_ds18b20))
       {
-         ds18b20s = realloc (ds18b20s, (ds18b20_num + 1) * sizeof (*ds18b20s));
-         ds18b20s[ds18b20_num].t = NAN;
-         ds18b20s[ds18b20_num].serial = dev.address;
+         //id[ds18b20_num] = dev.address;
          ds18b20_config_t config = { };
-         REVK_ERR_CHECK (ds18b20_new_device (&dev, &config, &ds18b20s[ds18b20_num].handle));
-         REVK_ERR_CHECK (ds18b20_set_resolution (ds18b20s[ds18b20_num].handle, DS18B20_RESOLUTION_12B));
+         REVK_ERR_CHECK (ds18b20_new_device_from_enumeration (&dev, &config, &adr_ds18b20[ds18b20_num]));
+         REVK_ERR_CHECK (ds18b20_set_resolution (adr_ds18b20[ds18b20_num], DS18B20_RESOLUTION_12B));
          ds18b20_num++;
       }
    }
@@ -1423,7 +1424,7 @@ ds18b20_task (void *x)
 }
 
 static esp_err_t
-web_favicon (httpd_req_t * req)
+web_favicon (httpd_req_t *req)
 {                               // serve image -  maybe make more generic file serve
    httpd_resp_set_type (req, "image/x-icon");
    extern const char fistart[] asm ("_binary_favicon_ico_start");
@@ -1433,7 +1434,7 @@ web_favicon (httpd_req_t * req)
 }
 
 static esp_err_t
-web_apple (httpd_req_t * req)
+web_apple (httpd_req_t *req)
 {                               // serve image -  maybe make more generic file serve
    httpd_resp_set_type (req, "image/png");
    extern const char istart[] asm ("_binary_apple_touch_icon_png_start");
@@ -1443,7 +1444,7 @@ web_apple (httpd_req_t * req)
 }
 
 static esp_err_t
-web_icon (httpd_req_t * req)
+web_icon (httpd_req_t *req)
 {                               // serve image -  maybe make more generic file serve
    char *name = strrchr (req->uri, '?');
    if (name)
@@ -1462,7 +1463,7 @@ web_icon (httpd_req_t * req)
 }
 
 static esp_err_t
-web_root (httpd_req_t * req)
+web_root (httpd_req_t *req)
 {
    if (revk_link_down ())
       return revk_web_settings (req);   // Direct to web set up
@@ -1490,7 +1491,7 @@ web_root (httpd_req_t * req)
 }
 
 static esp_err_t
-web_status (httpd_req_t * req)
+web_status (httpd_req_t *req)
 {
    jo_t j = jo_object_alloc ();
    revk_state_extra (j);
@@ -1749,7 +1750,7 @@ btn_task (void *x)
 }
 
 static void
-ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_t * data)
+ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_t *data)
 {                               // Handle generic IR https://www.amazon.co.uk/dp/B07DJ58XGC
    static char key = 0;
    static uint8_t count = 0;
@@ -1844,7 +1845,7 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
 }
 
 static esp_err_t
-web_btn (httpd_req_t * req)
+web_btn (httpd_req_t *req)
 {
    char *name = strrchr (req->uri, '?');
    if (name)
@@ -2038,7 +2039,7 @@ show_mode (void)
       icon_plot (icon_modeoff, 2);
    else if (nomode || nofaikout)
       return;
-   else if (b.faikoutbad)        // Antifreeze or slave
+   else if (b.faikoutbad)       // Antifreeze or slave
       icon_plot (icon_modebad, 2);
    else if (acmode == REVK_SETTINGS_ACMODE_FAIKOUT)
       icon_plot (b.faikoutheat ? icon_modefaikoutheat : b.faikoutcool ? icon_modefaikoutcool : icon_modefaikout, 2);
@@ -2153,6 +2154,7 @@ ha_config (void)
 void
 app_main ()
 {
+   ESP_LOGE (TAG, "Started");
    data.temp = NAN;
    data.target = NAN;
    data.tmin = NAN;
@@ -2299,7 +2301,8 @@ app_main ()
          }
          bleenv_expire (120);
          if ((*bletemp && (!bleidtemp || (strcmp (bleidtemp->name, bletemp) && strcmp (bleidtemp->mac, bletemp)))) || (!*bletemp && bleidtemp)  //
-             || (*blefaikout && (!bleidfaikout || (strcmp (bleidfaikout->name, blefaikout) && strcmp (bleidfaikout->mac, blefaikout))))
+             || (*blefaikout
+                 && (!bleidfaikout || (strcmp (bleidfaikout->name, blefaikout) && strcmp (bleidfaikout->mac, blefaikout))))
              || (!*blefaikout && bleidfaikout))
          {                      // Update BLE pointers
             bleidtemp = NULL;
