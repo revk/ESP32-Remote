@@ -1366,8 +1366,6 @@ i2c_task (void *x)
 void
 ds18b20_task (void *x)
 {
-   ds18b20_device_handle_t adr_ds18b20[10];
-   //uint64_t id[sizeof (adr_ds18b20) / sizeof (*adr_ds18b20)];
    onewire_bus_config_t bus_config = { ds18b20.num,.flags = {0}
    };
    onewire_bus_rmt_config_t rmt_config = { 20 };
@@ -1378,12 +1376,13 @@ ds18b20_task (void *x)
       onewire_device_iter_handle_t iter = { 0 };
       REVK_ERR_CHECK (onewire_new_device_iter (bus_handle, &iter));
       onewire_device_t dev = { };
-      while (!onewire_device_iter_get_next (iter, &dev) && ds18b20_num < sizeof (adr_ds18b20) / sizeof (*adr_ds18b20))
+      while (!onewire_device_iter_get_next (iter, &dev))
       {
-         //id[ds18b20_num] = dev.address;
+         ds18b20s = realloc (ds18b20s, sizeof (*ds18b20s) * (ds18b20_num + 1));
+         ds18b20s[ds18b20_num].serial = dev.address;
          ds18b20_config_t config = { };
-         REVK_ERR_CHECK (ds18b20_new_device_from_enumeration (&dev, &config, &adr_ds18b20[ds18b20_num]));
-         REVK_ERR_CHECK (ds18b20_set_resolution (adr_ds18b20[ds18b20_num], DS18B20_RESOLUTION_12B));
+         REVK_ERR_CHECK (ds18b20_new_device_from_enumeration (&dev, &config, &ds18b20s[ds18b20_num].handle));
+         REVK_ERR_CHECK (ds18b20_set_resolution (ds18b20s[ds18b20_num].handle, DS18B20_RESOLUTION_12B));
          ds18b20_num++;
       }
    }
