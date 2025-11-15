@@ -2153,7 +2153,6 @@ ha_config (void)
 void
 app_main ()
 {
-   ESP_LOGE (TAG, "Started");
    data.temp = NAN;
    data.target = NAN;
    data.tmin = NAN;
