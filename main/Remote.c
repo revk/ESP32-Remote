@@ -1,4 +1,4 @@
-// Faikin Remote
+// Faikout Remote
 
 const char TAG[] = "Remote";
 
@@ -31,9 +31,9 @@ struct
    uint8_t fan:1;               // Fan on
    uint8_t rad:1;               // Rad on
    uint8_t connect:1;           // MQTT connect
-   uint8_t faikinheat:1;        // Faikin auto is heating
-   uint8_t faikincool:1;        // Faikin auto is cooling
-   uint8_t faikinbad:1;         // Faikin antifreeze ot slave
+   uint8_t faikoutheat:1;        // Faikout auto is heating
+   uint8_t faikoutcool:1;        // Faikout auto is cooling
+   uint8_t faikoutbad:1;         // Faikout antifreeze ot slave
    uint8_t cal:1;               // Auto cal manual
    // Power
    uint8_t manual:1;            // Manual override (cleared when matches non override)
@@ -88,15 +88,15 @@ uint8_t edit = EDIT_NONE;       // Edit mode
 uint8_t wake = 0;               // Wake (uptime) timeout
 uint8_t hold = 0;               // Display hold
 bleenv_t *bleidtemp = NULL;
-bleenv_t *bleidfaikin = NULL;
+bleenv_t *bleidfaikout = NULL;
 
 gfx_colour_t temp_colour (float t);
 gfx_colour_t co2_colour (uint16_t co2);
 gfx_colour_t rh_colour (float rh);
 
-const uint8_t icon_mode[] = { icon_unknown, icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_unknown, icon_modefaikin };   // order same as acmode
+const uint8_t icon_mode[] = { icon_unknown, icon_modeauto, icon_modefan, icon_modedry, icon_modecool, icon_modeheat, icon_unknown, icon_modefaikout };   // order same as acmode
 const char *const icon_mode_message[] =
-   { NULL, "Mode: Auto", "Mode: Fan", "Mode: Dry", "Mode: Cool", "Mode: Heat", NULL, "Mode: Faikin" };
+   { NULL, "Mode: Auto", "Mode: Fan", "Mode: Dry", "Mode: Cool", "Mode: Heat", NULL, "Mode: Faikout" };
 
 const char led_mode[] = "KyrbBRKY";
 const uint8_t icon_fans5[] = { icon_unknown, icon_fanauto, icon_fan1, icon_fan2, icon_fan3, icon_fan4, icon_fan5, icon_fanquiet };      // order same as acfan
@@ -394,12 +394,12 @@ revk_state_extra (jo_t j)
          jo_close (j);
       }
    }
-   if (data.mode && !nomode && !nofaikin)
+   if (data.mode && !nomode && !nofaikout)
       add_enum ("mode", data.mode, REVK_SETTINGS_ACMODE_ENUMS);
-   if (data.fan && !nofan && !nofaikin)
+   if (data.fan && !nofan && !nofaikout)
       add_enum ("fan", data.fan, REVK_SETTINGS_ACFAN_ENUMS);
    jo_string (j, "state",
-              b.faikinbad ? "bad" : b.manual ? "manual" : b.away ? "away" : b.earlyon ? "early" : b.timeron ? "timer" : "off");
+              b.faikoutbad ? "bad" : b.manual ? "manual" : b.away ? "away" : b.earlyon ? "early" : b.timeron ? "timer" : "off");
    jo_bool (j, "power", data.poweron);
    if (fancontrol)
       jo_bool (j, "extfan", b.fan);
@@ -409,17 +409,17 @@ revk_state_extra (jo_t j)
 }
 
 static void
-settings_blefaikin (httpd_req_t * req)
+settings_blefaikout (httpd_req_t * req)
 {
-   revk_web_send (req, "<tr><td>Faikin</td><td>"        //
-                  "<select name=blefaikin>");
+   revk_web_send (req, "<tr><td>Faikout</td><td>"        //
+                  "<select name=blefaikout>");
    revk_web_send (req, "<option value=\"\">-- None --");
    char found = 0;
    for (bleenv_t * e = bleenv; e; e = e->next)
-      if (e->faikinset)
+      if (e->faikoutset)
       {
          revk_web_send (req, "<option value=\"%s\"", e->mac);
-         if (*blefaikin && (!strcmp (blefaikin, e->name) || !strcmp (blefaikin, e->mac)))
+         if (*blefaikout && (!strcmp (blefaikout, e->name) || !strcmp (blefaikout, e->mac)))
          {
             revk_web_send (req, " selected");
             found = 1;
@@ -428,10 +428,10 @@ settings_blefaikin (httpd_req_t * req)
          if (!e->missing && e->rssi)
             revk_web_send (req, " %ddB", e->rssi);
       }
-   if (!found && *blefaikin)
-      revk_web_send (req, "<option selected value=\"%s\">%s", blefaikin, blefaikin);
+   if (!found && *blefaikout)
+      revk_web_send (req, "<option selected value=\"%s\">%s", blefaikout, blefaikout);
    revk_web_send (req, "</select>");
-   revk_web_send (req, "</td><td>Air conditioner Faikin</td></tr>");
+   revk_web_send (req, "</td><td>Air conditioner Faikout</td></tr>");
 }
 
 static void
@@ -442,7 +442,7 @@ settings_bletemp (httpd_req_t * req)
    revk_web_send (req, "<option value=\"\">-- None --");
    char found = 0;
    for (bleenv_t * e = bleenv; e; e = e->next)
-      if (!e->faikinset)
+      if (!e->faikoutset)
       {
          revk_web_send (req, "<option value=\"%s\"", e->mac);
          if (*bletemp && (!strcmp (bletemp, e->name) || !strcmp (bletemp, e->mac)))
@@ -466,20 +466,20 @@ void
 revk_web_extra (httpd_req_t * req, int page)
 {
    revk_web_setting_title (req, "Controls");
-   if (!nofaikin)
-      settings_blefaikin (req);
+   if (!nofaikout)
+      settings_blefaikout (req);
    if (!notarget)
    {
       revk_web_setting (req, "Target now", "actarget");
       if (!norevert)
          revk_web_setting (req, "Target fixed", "acrevert");
    }
-   if (!nofaikin)
+   if (!nofaikout)
    {
       revk_web_setting (req, "±", "acmargin");
-      if (!nofaikin && !nomode)
+      if (!nofaikout && !nomode)
          revk_web_setting (req, "Mode", "acmode");
-      if (!nofaikin && !nofan)
+      if (!nofaikout && !nofan)
          revk_web_setting (req, "Fan", "acfan");
    }
    revk_web_setting (req, "Start", "acstart");
@@ -509,9 +509,9 @@ revk_web_extra (httpd_req_t * req, int page)
       revk_web_send (req, "<tr><td>TMP1075</td><td align=right>%.2f°</td><td>Internal temperature sensor.</td></tr>", tmp1075.t);
    if (mcp9808.found)
       revk_web_send (req, "<tr><td>MCP9808</td><td align=right>%.2f°</td><td>Internal temperature sensor.</td></tr>", mcp9808.t);
-   if (*blefaikin)
-      revk_web_send (req, "<tr><td>%s</td><td align=right>%.2f°</td><td>Aircon temperature via Faikin.</td></tr>", blefaikin,
-                     bleidfaikin ? T ((float) bleidfaikin->temp / 100.0) : NAN);
+   if (*blefaikout)
+      revk_web_send (req, "<tr><td>%s</td><td align=right>%.2f°</td><td>Aircon temperature via Faikout.</td></tr>", blefaikout,
+                     bleidfaikout ? T ((float) bleidfaikout->temp / 100.0) : NAN);
    if (gzp6816d.found)
       revk_web_send (req,
                      "<tr><td>GZP6816D</td><td align=right>%.2f°</td><td>Internal pressure sensor, not recommended.</td></tr>",
@@ -1539,8 +1539,8 @@ btnud (int8_t d)
          {
             m += d;
             if (m < REVK_SETTINGS_ACMODE_AUTO)
-               m = REVK_SETTINGS_ACMODE_FAIKIN;
-            else if (m > REVK_SETTINGS_ACMODE_FAIKIN)
+               m = REVK_SETTINGS_ACMODE_FAIKOUT;
+            else if (m > REVK_SETTINGS_ACMODE_FAIKOUT)
                m = REVK_SETTINGS_ACMODE_AUTO;
          }
          while (!icon_mode_message[m]);
@@ -1597,8 +1597,8 @@ btnlr (int8_t d)
    if (edit >= EDIT_MODE)
    {
       edit += d;
-      while (edit <= EDIT_TARGET || edit >= EDIT_NUM || ((faikinonly || nomode || nofaikin) && edit == EDIT_MODE)
-             || ((nofaikin || nofan) && edit == EDIT_FAN) || (norevert && edit == EDIT_REVERT))
+      while (edit <= EDIT_TARGET || edit >= EDIT_NUM || ((faikoutonly || nomode || nofaikout) && edit == EDIT_MODE)
+             || ((nofaikout || nofan) && edit == EDIT_FAN) || (norevert && edit == EDIT_REVERT))
       {
          edit += d;
          if (edit <= EDIT_TARGET)
@@ -1646,7 +1646,7 @@ btnR (void)
 {
    if (edit < EDIT_MODE)
       edit = EDIT_MODE;
-   while (((faikinonly || nomode || nofaikin) && edit == EDIT_MODE) || ((nofaikin || nofan) && edit == EDIT_FAN))
+   while (((faikoutonly || nomode || nofaikout) && edit == EDIT_MODE) || ((nofaikout || nofan) && edit == EDIT_FAN))
       edit++;
 }
 
@@ -1821,7 +1821,7 @@ ir_callback (uint8_t coding, uint16_t lead0, uint16_t lead1, uint8_t len, uint8_
          {
             if (!nomode && (data[5] >> 4) < 7)
                jo_int (j, "acmode", "1034502"[(data[5] >> 4)] - '0');   // mode
-            // TODO if we are not using AC temp reference, for Auto set Faikin Auto...
+            // TODO if we are not using AC temp reference, for Auto set Faikout Auto...
             if (!nofan)
                jo_int (j, "acfan", "0002345600170000"[(data[8] >> 4)] - '0');   // fan
             if (!notarget && data[6] > 20 && data[6] < 100)
@@ -2032,16 +2032,16 @@ show_mode (void)
    }
    if (edit != EDIT_MODE && b.away && !b.poweron)
       icon_plot (icon_modeaway, 2);
-   else if (edit != EDIT_MODE && radcontrol && b.rad && (!b.poweron || nomode || nofaikin))
+   else if (edit != EDIT_MODE && radcontrol && b.rad && (!b.poweron || nomode || nofaikout))
       icon_plot (icon_moderad, 2);
    else if (edit != EDIT_MODE && !b.poweron)
       icon_plot (icon_modeoff, 2);
-   else if (nomode || nofaikin)
+   else if (nomode || nofaikout)
       return;
-   else if (b.faikinbad)        // Antifreeze or slave
+   else if (b.faikoutbad)        // Antifreeze or slave
       icon_plot (icon_modebad, 2);
-   else if (acmode == REVK_SETTINGS_ACMODE_FAIKIN)
-      icon_plot (b.faikinheat ? icon_modefaikinheat : b.faikincool ? icon_modefaikincool : icon_modefaikin, 2);
+   else if (acmode == REVK_SETTINGS_ACMODE_FAIKOUT)
+      icon_plot (b.faikoutheat ? icon_modefaikoutheat : b.faikoutcool ? icon_modefaikoutcool : icon_modefaikout, 2);
    else
       icon_plot (icon_mode[acmode], 2);
 }
@@ -2054,7 +2054,7 @@ show_fan (void)
       select_icon_plot (icon_select, 0, 0);
       message = (fan3 ? icon_fan3_message : icon_fan5_message)[acfan];
    }
-   if (nofan || nofaikin)
+   if (nofan || nofaikout)
       return;
    icon_plot ((fan3 ? icon_fans3 : icon_fans5)[acfan], 2);
 }
@@ -2263,8 +2263,8 @@ app_main ()
          t = NAN;
          rh = NAN;
          co2 = 0;
-         if (faikinonly)
-            acmode = REVK_SETTINGS_ACMODE_FAIKIN;
+         if (faikoutonly)
+            acmode = REVK_SETTINGS_ACMODE_FAIKOUT;
          if (wake && !--wake)
             edit = 0;
          if (b.ha)
@@ -2299,11 +2299,11 @@ app_main ()
          }
          bleenv_expire (120);
          if ((*bletemp && (!bleidtemp || (strcmp (bleidtemp->name, bletemp) && strcmp (bleidtemp->mac, bletemp)))) || (!*bletemp && bleidtemp)  //
-             || (*blefaikin && (!bleidfaikin || (strcmp (bleidfaikin->name, blefaikin) && strcmp (bleidfaikin->mac, blefaikin))))
-             || (!*blefaikin && bleidfaikin))
+             || (*blefaikout && (!bleidfaikout || (strcmp (bleidfaikout->name, blefaikout) && strcmp (bleidfaikout->mac, blefaikout))))
+             || (!*blefaikout && bleidfaikout))
          {                      // Update BLE pointers
             bleidtemp = NULL;
-            bleidfaikin = NULL;
+            bleidfaikout = NULL;
             bleenv_clean ();
             for (bleenv_t * e = bleenv; e; e = e->next)
                if (!strcmp (e->name, bletemp) || !strcmp (e->mac, bletemp))
@@ -2312,9 +2312,9 @@ app_main ()
                   break;
                }
             for (bleenv_t * e = bleenv; e; e = e->next)
-               if (!strcmp (e->name, blefaikin) || !strcmp (e->mac, blefaikin))
+               if (!strcmp (e->name, blefaikout) || !strcmp (e->mac, blefaikout))
                {
-                  bleidfaikin = e;
+                  bleidfaikout = e;
                   break;
                }
          }
@@ -2331,14 +2331,14 @@ app_main ()
             blet = NAN;
             blerh = NAN;
          }
-         if (*blefaikin && (!bleidfaikin || !bleidfaikin->faikinset || bleidfaikin->missing) && !message)
-            message = "*Faikin gone";
-         b.faikinheat =
-            ((bleidfaikin && bleidfaikin->faikinset && !bleidfaikin->missing && bleidfaikin->power &&
-              bleidfaikin->mode == REVK_SETTINGS_ACMODE_HEAT) ? 1 : 0);
-         b.faikincool =
-            ((bleidfaikin && bleidfaikin->faikinset && !bleidfaikin->missing && bleidfaikin->power &&
-              bleidfaikin->mode == REVK_SETTINGS_ACMODE_COOL) ? 1 : 0);
+         if (*blefaikout && (!bleidfaikout || !bleidfaikout->faikoutset || bleidfaikout->missing) && !message)
+            message = "*Faikout gone";
+         b.faikoutheat =
+            ((bleidfaikout && bleidfaikout->faikoutset && !bleidfaikout->missing && bleidfaikout->power &&
+              bleidfaikout->mode == REVK_SETTINGS_ACMODE_HEAT) ? 1 : 0);
+         b.faikoutcool =
+            ((bleidfaikout && bleidfaikout->faikoutset && !bleidfaikout->missing && bleidfaikout->power &&
+              bleidfaikout->mode == REVK_SETTINGS_ACMODE_COOL) ? 1 : 0);
          // Work out current values to show / test
          switch (tempref)
          {
@@ -2361,8 +2361,8 @@ app_main ()
             t = blet;
             break;
          case REVK_SETTINGS_TEMPREF_AC:
-            if (bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
-               t = T ((float) bleidfaikin->temp / 100);
+            if (bleidfaikout && !bleidfaikout->missing && bleidfaikout->faikoutset)
+               t = T ((float) bleidfaikout->temp / 100);
             break;
          case REVK_SETTINGS_TEMPREF_DS18B20_0_:
             if (ds18b20_num >= 1)
@@ -2393,9 +2393,9 @@ app_main ()
             tempfrom = REVK_SETTINGS_TEMPREF_SHT40;
          if (isnan (t) && mcp9808.ok && isfinite (t = mcp9808.t))
             tempfrom = REVK_SETTINGS_TEMPREF_MCP9808;
-         if (isnan (t) && bleidfaikin && !bleidfaikin->missing && bleidfaikin->faikinset)
+         if (isnan (t) && bleidfaikout && !bleidfaikout->missing && bleidfaikout->faikoutset)
          {
-            t = T ((float) bleidfaikin->temp / 100);
+            t = T ((float) bleidfaikout->temp / 100);
             tempfrom = REVK_SETTINGS_TEMPREF_AC;
          }
          if (isnan (t) && gzp6816d.ok && isfinite (t = gzp6816d.t))
@@ -2484,8 +2484,8 @@ app_main ()
             }
          }
       }
-      float targetmin = (float) actarget / actarget_scale - (nofaikin ? 0 : (float) acmargin / acmargin_scale);
-      float targetmax = (float) actarget / actarget_scale + (nofaikin ? 0 : (float) acmargin / acmargin_scale);
+      float targetmin = (float) actarget / actarget_scale - (nofaikout ? 0 : (float) acmargin / acmargin_scale);
+      float targetmax = (float) actarget / actarget_scale + (nofaikout ? 0 : (float) acmargin / acmargin_scale);
       if (early)
       {                         // Target adjust for early
          if (earlyheat)
@@ -2515,14 +2515,14 @@ app_main ()
          b.manual = 0;
       // Decide on power state
       b.poweron = (b.manual ? b.manualon : b.earlyon | b.timeron);
-      // We don't power control a/c if Faikin mode, so use temp control
-      if ((nomode || nofaikin || acmode == REVK_SETTINGS_ACMODE_FAIKIN) && !b.poweron && !early)
-      {                         // Full range as not power on - allows faikin to turn off itself even - we leave if early so could decide to turn on itself
+      // We don't power control a/c if Faikout mode, so use temp control
+      if ((nomode || nofaikout || acmode == REVK_SETTINGS_ACMODE_FAIKOUT) && !b.poweron && !early)
+      {                         // Full range as not power on - allows faikout to turn off itself even - we leave if early so could decide to turn on itself
          targetmin = (float) tempmin / tempmin_scale;
          targetmax = (float) tempmax / tempmax_scale;
       }
       // No point in range if no a/c
-      if (nofaikin)
+      if (nofaikout)
          targetmax = targetmin; //  not a range just a setting for rad
       // Fan control
       if (!fancontrol || b.away || ((!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen)))
@@ -2546,7 +2546,7 @@ app_main ()
                                                (!radfade || !radfadem
                                                 || (lastmin % radfadem) < (targetmin + fade - t) * radfadem / fade))))
             predict += radahead * (t - last2) / 2;      // Use predicted value, i.e. turn on/off early
-         if (!radcontrol || predict > targetmin || b.faikincool)
+         if (!radcontrol || predict > targetmin || b.faikoutcool)
          {                      /* Heat off */
             if (b.rad)
                send_rad (0);
@@ -2559,31 +2559,31 @@ app_main ()
          last1 = t;
       }
       // Info from a/c
-      if (tm.tm_sec != lastsec && bleidfaikin && bleidfaikin->faikinset && !bleidfaikin->missing)
-      {                         // From Faikin
+      if (tm.tm_sec != lastsec && bleidfaikout && bleidfaikout->faikoutset && !bleidfaikout->missing)
+      {                         // From Faikout
          if (change)
             change--;
          if (!change)
          {                      // Update - this only updates if there is no change from us pending
             jo_t j = jo_object_alloc ();
-            if (acmode != REVK_SETTINGS_ACMODE_FAIKIN && bleidfaikin->power != b.poweron)
+            if (acmode != REVK_SETTINGS_ACMODE_FAIKOUT && bleidfaikout->power != b.poweron)
             {
-               b.poweron = b.manualon = bleidfaikin->power;
+               b.poweron = b.manualon = bleidfaikout->power;
                b.manual = 1;
             }
-            if (bleidfaikin->fan != acfan)
+            if (bleidfaikout->fan != acfan)
             {
-               jo_int (j, "acfan", bleidfaikin->fan);
+               jo_int (j, "acfan", bleidfaikout->fan);
                change = 1;
             }
-            if (bleidfaikin->mode != acmode && acmode != REVK_SETTINGS_ACMODE_FAIKIN)
+            if (bleidfaikout->mode != acmode && acmode != REVK_SETTINGS_ACMODE_FAIKOUT)
             {
-               jo_int (j, "acmode", bleidfaikin->mode);
+               jo_int (j, "acmode", bleidfaikout->mode);
                change = 1;
             }
-            b.faikinbad = bleidfaikin->rad;
-            float target = T ((float) (bleidfaikin->targetmin + bleidfaikin->targetmax) / 200);
-            if (acmode != REVK_SETTINGS_ACMODE_FAIKIN && actarget != target)
+            b.faikoutbad = bleidfaikout->rad;
+            float target = T ((float) (bleidfaikout->targetmin + bleidfaikout->targetmax) / 200);
+            if (acmode != REVK_SETTINGS_ACMODE_FAIKOUT && actarget != target)
             {
                jo_litf (j, "actarget", "%.1f", target);
                change = 1;
@@ -2596,7 +2596,7 @@ app_main ()
       // Record data for logging
       xSemaphoreTake (data_mutex, portMAX_DELAY);
       if (data.poweron != b.poweron || data.mode != acmode || data.fan != acfan
-          || (acmode != REVK_SETTINGS_ACMODE_FAIKIN && data.target != (float) actarget / actarget_scale))
+          || (acmode != REVK_SETTINGS_ACMODE_FAIKOUT && data.target != (float) actarget / actarget_scale))
          change = 10;           // Delay incoming updates
       data.poweron = b.poweron;
       data.mode = acmode;
@@ -2651,8 +2651,8 @@ app_main ()
       // BLE
       switch (bleadvert)
       {
-      case REVK_SETTINGS_BLEADVERT_FAIKIN:
-         bleenv_faikin (hostname, C (t), C (targetmin), C (targetmax), b.manual ? b.manualon : b.poweron, b.rad, acmode, acfan);
+      case REVK_SETTINGS_BLEADVERT_FAIKOUT:
+         bleenv_faikout (hostname, C (t), C (targetmin), C (targetmax), b.manual ? b.manualon : b.poweron, b.rad, acmode, acfan);
          break;
       case REVK_SETTINGS_BLEADVERT_BTHOME1:
          bleenv_bthome1 (hostname, C (t), rh, co2, veml6040.w);

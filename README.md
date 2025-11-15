@@ -1,18 +1,18 @@
-# Faikin Remote
+# Faikout Remote
 
 <img src=https://github.com/user-attachments/assets/fe21073f-2d91-4ceb-891b-1b56910d66a1 width=25% align=right>
 
-A remote control for Daikin air conditioners which use the [Faikin](https://faikin.revk.uk/) controller.
+A remote control for Daikin air conditioners which use the [Faikout](https://faikout.revk.uk/) controller.
 
 This provides hardware and software for a wall mounted controller with 2" full colour display and 4 way *joystick* control button.
 
-USB-C powered (or DC 5V-36V), linked via Bluetooth BLE to the Faikin. This provides a display of current mode and simple controls of basic operations. This is ideal for installations that do not have Home Assistant or MQTT. With HA, it logs environmental data as well.
+USB-C powered (or DC 5V-36V), linked via Bluetooth BLE to the Faikout. This provides a display of current mode and simple controls of basic operations. This is ideal for installations that do not have Home Assistant or MQTT. With HA, it logs environmental data as well.
 
-It can also work fan and radiator controls via MQTT and so operate in cases without an air-conditioner / Faikin or where these supplement the air conditioner.
+It can also work fan and radiator controls via MQTT and so operate in cases without an air-conditioner / Faikout or where these supplement the air conditioner.
 
 A number of sensors are included, which can be reported to Home Assistant. The hardware can also run my [EPD project](https://epd.revk.uk/) code. This is ideal as a general purpose environmental monitor for home and offices, including CO₂ and multiple DS18B20 temperature probes.
 
-A key feature is that this can work as the temperature reference for *Faikin auto* mode.
+A key feature is that this can work as the temperature reference for *Faikout auto* mode.
 
 This is the PCB design:-
 
@@ -61,18 +61,18 @@ Current target temp reverts to fixed target temp on end of timed period, or end 
 
 ## BLE working
 
-- A BLE announcement advises current settings, and a Faikin can be set to use this as a control input.
+- A BLE announcement advises current settings, and a Faikout can be set to use this as a control input.
 - The BLE can announce in a number of common temperature sensor modes instead (BTHome v1 and v2).
 
-To link to Faikin.
+To link to Faikout.
 
-- Ensure you have a sensible hostname for Faikin and the remote.
-- On Faikin, enable BLE and select `Remote:` and the name for the remote.
-- Once that is done you should be able to select the Faikin by name as the A/C on the Remote settings
+- Ensure you have a sensible hostname for Faikout and the remote.
+- On Faikout, enable BLE and select `Remote:` and the name for the remote.
+- Once that is done you should be able to select the Faikout by name as the A/C on the Remote settings
 
 ## Fan/radiator
 
-In addition to working with the Faikin this can send MQTT messages to turn on or off a fan or radiator.
+In addition to working with the Faikout this can send MQTT messages to turn on or off a fan or radiator.
 
 - The radiator mode is typically where heating is cheaper than using an air conditioning unit.
 - The fan control applies when (configurable) high CO₂ or high humidity.
@@ -94,7 +94,7 @@ In addition to working with the Faikin this can send MQTT messages to turn on or
 - The board can work without a display if it is simply to be used as a sensor or temperature reference.
 - The board can work with or without the SCD41 CO₂ sensor - as this is an expensive part, and not always required.
 
-Available on [Tindie](https://www.tindie.com/products/revk/faikin-remote-aircon-control-display-dev-board/) now (may not have IR receiver or microphone in current stock).
+Available on [Tindie](https://www.tindie.com/products/revk/faikout-remote-aircon-control-display-dev-board/) now (may not have IR receiver or microphone in current stock).
 
 ## MQTT
 
