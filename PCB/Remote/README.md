@@ -2,7 +2,7 @@
 
 ## Trademark
 
-This is an open source project, but bear in mind you cannot sell boards or cases bearing the Andrews & Arnold Ltd name, the A&A logo, the registered trademark AJK logo, or the GS1 allocated EANs assigned to Andrews & Arnold Ltd.
+This project is subject to the licence in the LICENCE file, and even if that says it is an open source project, you cannot sell boards or cases bearing the Andrews & Arnold Ltd name, the A&A logo, the registered trademark AJK logo or other registered trademarks, or any GS1 allocated EANs/barcode assigned to Andrews & Arnold Ltd.
 
 ## PCB Designs
 
@@ -57,4 +57,4 @@ These files are for use with [KiCAD](https://www.kicad.org).
 
 ---
 
-*Auto generated README.md 2026-01-02T11:50:43*
+*Auto generated README.md 2026-01-02T12:24:21*
