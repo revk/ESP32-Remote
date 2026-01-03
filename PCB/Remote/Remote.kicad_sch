@@ -11146,15 +11146,6 @@
 				(hide yes)
 			)
 		)
-		(property "Sim.Enable" "0"
-			(at 273.685 173.355 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 		(instances
 			(project "EnvMon"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
@@ -12523,7 +12514,7 @@
 				)
 			)
 		)
-		(property "Value" "XL-1010RGBC-WS2812B"
+		(property "Value" "XL-1615RGBC-2812B"
 			(at 84.455 145.415 0)
 			(effects
 				(font
@@ -12533,7 +12524,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1615"
+		(property "Footprint" "RevK:SMD1615-Side"
 			(at 84.455 132.08 0)
 			(effects
 				(font
@@ -13354,15 +13345,6 @@
 				(hide yes)
 			)
 		)
-		(property "Sim.Enable" "0"
-			(at 276.86 176.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 		(instances
 			(project "EnvMon"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
@@ -13621,7 +13603,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1615"
+		(property "Footprint" "RevK:SMD1615-Side"
 			(at 99.695 132.08 0)
 			(effects
 				(font
@@ -16785,15 +16767,6 @@
 				(hide yes)
 			)
 		)
-		(property "Sim.Enable" "0"
-			(at 280.035 173.355 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 		(instances
 			(project "EnvMon"
 				(path "/12422a89-3d0c-485c-9386-f77121fd68fd"
@@ -17652,7 +17625,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1615"
+		(property "Footprint" "RevK:SMD1615-Side"
 			(at 92.075 132.08 0)
 			(effects
 				(font
@@ -22912,15 +22885,6 @@
 			)
 		)
 		(property "Description" ""
-			(at 276.86 170.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Sim.Enable" "0"
 			(at 276.86 170.18 0)
 			(effects
 				(font
