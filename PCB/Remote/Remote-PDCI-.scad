@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2026-01-03 09:29:13
+// Generated 2026-01-03 09:44:50
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -788,8 +788,8 @@ if(part)
 	b(0,0,0,10.4,10.4,1);	// Base board
 	hull()
 	{
-		for(x=[-3.3,3.333])for(y=[-3.3,3.3])translate([x,y,0])cylinder(r=1,h=1,$fn=8);
-		for(x=[-3,3])for(y=[-3,3])translate([x,y,4.8])sphere(r=2,$fn=12);
+		for(x=[-3.3,3.3])for(y=[-3.3,3.3])translate([x,y,0])cylinder(r=1,h=1,$fn=8);
+		for(x=[-3,3])for(y=[-3,3])translate([x,y,4.8])sphere(r=1,$fn=12);
 	}
 }
 if(hole)
