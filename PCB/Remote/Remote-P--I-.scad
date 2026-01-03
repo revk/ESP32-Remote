@@ -1,6 +1,6 @@
 // Generated case design for Remote/Remote.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2026-01-03 09:20:49
+// Generated 2026-01-03 09:29:16
 // title:	Remote
 // comment:	www.me.uk
 // comment:	@TheRealRevK
@@ -695,7 +695,7 @@ translate([-29,17.5,8.25]) rotate([180,0,0])
 if(hole)
 translate([-29,17.5,8.25]) rotate([180,0,0])
 {
-        translate([29+1.5,17.5,10])hull(){cube([42,32,1],center=true);translate([0,0,10])cube([52,42,1],center=true);}
+        translate([29+1.5,17.5,10])hull(){cube([42,32,1],center=true);translate([0,0,7])cube([44,34,10],center=true);}
         hull()for(x=[2.5,55.5])for(y=[2.5,32.5])translate([x,y,0])cylinder(r=2.5,h=6,$fn=24);
         // Pins
         for(x=[0:1:7])translate([2.4,8.61+x*2.54,0])
