@@ -13,7 +13,6 @@ const char TAG[] = "Remote";
 #include <onewire_bus.h>
 #include <ds18b20.h>
 #include "gfx.h"
-#include "led_strip.h"
 #include "bleenv.h"
 #include "halib.h"
 #include <lwpng.h>
@@ -65,7 +64,6 @@ struct
    uint8_t fan:3;
 } data = { 0 };
 
-led_strip_handle_t strip = NULL;
 httpd_handle_t webserver = NULL;
 SemaphoreHandle_t lcd_mutex = NULL;
 SemaphoreHandle_t data_mutex = NULL;
@@ -227,46 +225,49 @@ my_free (void *opaque, void *address)
 void
 led_task (void *x)
 {
-   while (!b.die)
-   {
-      usleep (100000);
-      uint32_t status = revk_blinker ();
-      for (int i = 0; i < sizeof (lightmode) / sizeof (*lightmode); i++)
-         switch (lightmode[i])
-         {
-         case REVK_SETTINGS_LIGHTMODE_STATUS:
-            revk_led (strip, i, 255, status);
-            break;
-         case REVK_SETTINGS_LIGHTMODE_MODE:
-            revk_led (strip, i, 255, revk_rgb (b.away ? 'O' : !b.poweron ? 'K' : led_mode[data.mode]));
-            break;
-         case REVK_SETTINGS_LIGHTMODE_CO2:
+   led_strip_t strip = NULL;
+   led_strip (&strip, lightgpio.num, lightgpio.invert, 3, 3, LED_GRB);
+   if (strip)
+      while (!b.die)
+      {
+         usleep (100000);
+         uint32_t status = revk_blinker ();
+         for (int i = 0; i < sizeof (lightmode) / sizeof (*lightmode); i++)
+            switch (lightmode[i])
             {
-               uint32_t c = co2_colour (data.co2);
-               if (dark && c == 0x00FF00)
-                  c = 0;
-               revk_led (strip, i, 255, c);
-            }
-            break;
-         case REVK_SETTINGS_LIGHTMODE_RH:
-            {
-               uint32_t c = rh_colour (data.rh);
-               if (dark && c == 0x00FF00)
-                  c = 0;
-               revk_led (strip, i, 255, c);
+            case REVK_SETTINGS_LIGHTMODE_STATUS:
+               revk_led (strip, i, 255, status);
+               break;
+            case REVK_SETTINGS_LIGHTMODE_MODE:
+               revk_led (strip, i, 255, revk_rgb (b.away ? 'O' : !b.poweron ? 'K' : led_mode[data.mode]));
+               break;
+            case REVK_SETTINGS_LIGHTMODE_CO2:
+               {
+                  uint32_t c = co2_colour (data.co2);
+                  if (dark && c == 0x00FF00)
+                     c = 0;
+                  revk_led (strip, i, 255, c);
+               }
+               break;
+            case REVK_SETTINGS_LIGHTMODE_RH:
+               {
+                  uint32_t c = rh_colour (data.rh);
+                  if (dark && c == 0x00FF00)
+                     c = 0;
+                  revk_led (strip, i, 255, c);
+                  break;
+               }
+            case REVK_SETTINGS_LIGHTMODE_TEMP:
+               {
+                  uint32_t c = temp_colour (data.temp);
+                  if (dark && c == 0x00FF00)
+                     c = 0;
+                  revk_led (strip, i, 255, c);
+               }
                break;
             }
-         case REVK_SETTINGS_LIGHTMODE_TEMP:
-            {
-               uint32_t c = temp_colour (data.temp);
-               if (dark && c == 0x00FF00)
-                  c = 0;
-               revk_led (strip, i, 255, c);
-            }
-            break;
-         }
-      led_strip_refresh (strip);
-   }
+         led_send ();
+      }
    vTaskDelete (NULL);
 }
 
@@ -2170,22 +2171,7 @@ app_main ()
       if (fixedgpio[i].set)
          revk_gpio_output (fixedgpio[i], 1);
    if (lightgpio.set)
-   {
-      led_strip_config_t strip_config = {
-         .strip_gpio_num = (lightgpio.num),
-         .max_leds = 3,
-         .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_GRB,
-         .led_model = LED_MODEL_WS2812, // LED strip model
-         .flags.invert_out = lightgpio.invert,  // whether to invert the output signal(useful when your hardware has a level inverter)
-      };
-      led_strip_rmt_config_t rmt_config = {
-         .clk_src = RMT_CLK_SRC_DEFAULT,        // different clock source can lead to different power consumption
-         .resolution_hz = 10 * 1000 * 1000,     // 10 MHz
-         .flags.with_dma = true,
-      };
-      REVK_ERR_CHECK (led_strip_new_rmt_device (&strip_config, &rmt_config, &strip));
       revk_task ("blink", led_task, NULL, 4);
-   }
    // Web interface
    httpd_config_t config = HTTPD_DEFAULT_CONFIG ();
    config.stack_size += 1024 * 4;
