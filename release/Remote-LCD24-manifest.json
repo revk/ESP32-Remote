@@ -1,6 +1,6 @@
 {
   "name":"LCD24 Remote RevK",
-  "url": "https://ota.revk.uk/LCD24-manifest.json",
+  "url": "https://ota.revk.uk/Remote-LCD24-manifest.json",
   "chip": "ESP32S3MCN4R2",
   "flash": [
     {
