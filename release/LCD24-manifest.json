@@ -1,6 +1,6 @@
 {
-  "name":"Remote N4R2 RevK",
-  "url": "https://ota.revk.uk/Remote-S3-MINI-N4-R2-manifest.json",
+  "name":"LCD24 Remote RevK",
+  "url": "https://ota.revk.uk/LCD24-manifest.json",
   "chip": "ESP32S3MCN4R2",
   "flash": [
     {
@@ -16,7 +16,7 @@
     },
     {
       "address": "10000",
-      "url": "https://ota.revk.uk/Remote-S3-MINI-N4-R2.bin",
+      "url": "https://ota.revk.uk/Remote-S3-MINI-N4-R2-LCD24.bin",
       "app":true
     }
   ]
