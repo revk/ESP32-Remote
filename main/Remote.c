@@ -984,6 +984,7 @@ i2s_task (void *x)
       err = i2s_channel_enable (mic_handle);
    if (err)
    {
+      revk_ate_fail ("I2S");
       ESP_LOGE (TAG, "Mic I2S failed");
       jo_t j = jo_object_alloc ();
       jo_int (j, "code", err);
@@ -1084,6 +1085,7 @@ i2c_task (void *x)
    i2s.mean60 = NAN;
    void fail (uint8_t addr, const char *e)
    {
+      revk_ate_fail ("I2C");
       ESP_LOGE (TAG, "I2C fail %02X: %s", addr & 0x7F, e);
       jo_t j = jo_object_alloc ();
       jo_string (j, "error", e);
@@ -2207,6 +2209,7 @@ app_main ()
     const char *e = gfx_init (cs: gfxcs.num, sck: gfxsck.num, mosi: gfxmosi.num, dc: gfxdc.num, rst: gfxrst.num, flip:gfxflip);
       if (e)
       {
+         revk_ate_fail ("Display");
          jo_t j = jo_object_alloc ();
          jo_string (j, "error", "Failed to start");
          jo_string (j, "description", e);
@@ -2219,6 +2222,7 @@ app_main ()
    revk_gfx_init (5);
    xSemaphoreGive (lcd_mutex);
 #endif
+   revk_ate_pass ();
    int8_t lastsec = -1;
    int8_t lastmin = -1;
    int8_t lasthour = -1;
