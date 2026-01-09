@@ -2,6 +2,7 @@
   "name":"LCD2 Remote",
   "url": "https://ota.revk.uk/Remote-LCD2-manifest.json",
   "chip": "ESP32S3MCN4R2",
+  "wait": 20,
   "flash": [
     {
       "url":"https://ota.revk.uk/Remote-S3-MINI-N4-R2-bootloader.bin"
