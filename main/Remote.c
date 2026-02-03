@@ -2516,7 +2516,7 @@ app_main ()
       if (nofaikout)
          targetmax = targetmin; //  not a range just a setting for rad
       // Fan control
-      if (!fancontrol || b.away || ((!co2green || co2 < co2green) && (rhgreen || rh <= rhgreen)))
+      if (!fancontrol || b.away || ((!co2green || co2 < co2green) && (!rhgreen || rh <= rhgreen)))
       {                         // Fan off
          if (b.fan)
             send_fan (0);
