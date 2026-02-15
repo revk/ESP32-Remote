@@ -6,7 +6,7 @@
 	url = https://codeberg.org/RevK/ESP32-RevK
 [submodule "components/ESP32-GFX"]
 	path = components/ESP32-GFX
-	url = https://github.com/revk/ESP32-GFX
+	url = https://codeberg.org/RevK/ESP32-GFX
 [submodule "ESP32-BLE-Env"]
 	path = ESP32-BLE-Env
 	url = https://github.com/revk/ESP32-BLE-Env
